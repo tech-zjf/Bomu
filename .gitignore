@@ -3,6 +3,8 @@
 ._*
 *.swp
 *.swo
+__pycache__/
+*.pyc
 .idea/
 
 # Xcode / Swift build products and local state

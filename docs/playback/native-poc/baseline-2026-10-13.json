@@ -1,0 +1,1509 @@
+{
+  "activity": [
+    {
+      "after": {
+        "coreAlive": true,
+        "drawCount": 2,
+        "idle": true,
+        "openCount": 0,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 0,
+        "videoFrameCount": 0,
+        "videoOutputConfigured": false
+      },
+      "before": {
+        "coreAlive": true,
+        "drawCount": 2,
+        "idle": true,
+        "openCount": 0,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 0,
+        "videoFrameCount": 0,
+        "videoOutputConfigured": false
+      },
+      "phase": "prepared-idle",
+      "process": [
+        {
+          "cpuSeconds": 2.7863309999999997,
+          "physicalFootprintBytes": 285492232,
+          "residentBytes": 220020736,
+          "uptime": 300579.9605203334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.802661,
+          "physicalFootprintBytes": 276169736,
+          "residentBytes": 219987968,
+          "uptime": 300580.2235875417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.806647,
+          "physicalFootprintBytes": 264061960,
+          "residentBytes": 219987968,
+          "uptime": 300580.48366925004,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.807062,
+          "physicalFootprintBytes": 264061960,
+          "residentBytes": 219987968,
+          "uptime": 300580.74617875007,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.8072179999999998,
+          "physicalFootprintBytes": 264061960,
+          "residentBytes": 219987968,
+          "uptime": 300581.0075745834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.8075349999999997,
+          "physicalFootprintBytes": 213730312,
+          "residentBytes": 219987968,
+          "uptime": 300581.27402675006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.807996,
+          "physicalFootprintBytes": 206504968,
+          "residentBytes": 219987968,
+          "uptime": 300581.5365024167,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.808136,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300581.80327691673,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.8085139999999997,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300582.05492141674,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.808745,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300582.31985354173,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.808925,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300582.5862148334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.809102,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300582.84135129175,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.809254,
+          "physicalFootprintBytes": 202310664,
+          "residentBytes": 205717504,
+          "uptime": 300583.0955673751,
+          "windowVisible": true
+        }
+      ]
+    },
+    {
+      "after": {
+        "coreAlive": true,
+        "drawCount": 248,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 83,
+        "videoFrameCount": 245,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "before": {
+        "coreAlive": true,
+        "drawCount": 7,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 3,
+        "videoFrameCount": 4,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "phase": "playing-1080p",
+      "process": [
+        {
+          "cpuSeconds": 2.860361,
+          "physicalFootprintBytes": 364545056,
+          "residentBytes": 218972160,
+          "uptime": 300583.19974879175,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.8766059999999998,
+          "physicalFootprintBytes": 336987168,
+          "residentBytes": 181993472,
+          "uptime": 300583.4578496251,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.891429,
+          "physicalFootprintBytes": 337069088,
+          "residentBytes": 177782784,
+          "uptime": 300583.7241605417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.9086119999999998,
+          "physicalFootprintBytes": 336790560,
+          "residentBytes": 177602560,
+          "uptime": 300583.9791562501,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.923336,
+          "physicalFootprintBytes": 336856096,
+          "residentBytes": 177618944,
+          "uptime": 300584.22927491675,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.938965,
+          "physicalFootprintBytes": 334595104,
+          "residentBytes": 177651712,
+          "uptime": 300584.48665687506,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.955132,
+          "physicalFootprintBytes": 334595104,
+          "residentBytes": 178864128,
+          "uptime": 300584.7525697084,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.974542,
+          "physicalFootprintBytes": 334513184,
+          "residentBytes": 178913280,
+          "uptime": 300585.00787687505,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 2.994948,
+          "physicalFootprintBytes": 334513184,
+          "residentBytes": 179027968,
+          "uptime": 300585.27402762504,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.013618,
+          "physicalFootprintBytes": 334529568,
+          "residentBytes": 180174848,
+          "uptime": 300585.52635391674,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.0329569999999997,
+          "physicalFootprintBytes": 334529568,
+          "residentBytes": 169902080,
+          "uptime": 300585.77717350004,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.0498339999999997,
+          "physicalFootprintBytes": 334529568,
+          "residentBytes": 169902080,
+          "uptime": 300586.0438553334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.069596,
+          "physicalFootprintBytes": 334562336,
+          "residentBytes": 169721856,
+          "uptime": 300586.30735575006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.089882,
+          "physicalFootprintBytes": 334775328,
+          "residentBytes": 169934848,
+          "uptime": 300586.5681587084,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.10762,
+          "physicalFootprintBytes": 334808096,
+          "residentBytes": 169984000,
+          "uptime": 300586.8299600834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.132189,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 170000384,
+          "uptime": 300587.0950305834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.154567,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 170000384,
+          "uptime": 300587.3576501667,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.176449,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 170000384,
+          "uptime": 300587.61666262505,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.197507,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 170016768,
+          "uptime": 300587.88272650004,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.212345,
+          "physicalFootprintBytes": 334791712,
+          "residentBytes": 170049536,
+          "uptime": 300588.14144916675,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.231226,
+          "physicalFootprintBytes": 334791712,
+          "residentBytes": 170098688,
+          "uptime": 300588.40800675005,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.250225,
+          "physicalFootprintBytes": 334791712,
+          "residentBytes": 170147840,
+          "uptime": 300588.6715022501,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.268974,
+          "physicalFootprintBytes": 334791712,
+          "residentBytes": 170246144,
+          "uptime": 300588.9374698751,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.28766,
+          "physicalFootprintBytes": 334808096,
+          "residentBytes": 170262528,
+          "uptime": 300589.19206887507,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.307179,
+          "physicalFootprintBytes": 334808096,
+          "residentBytes": 170262528,
+          "uptime": 300589.44933966675,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.32836,
+          "physicalFootprintBytes": 334775328,
+          "residentBytes": 170082304,
+          "uptime": 300589.7073032084,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.345109,
+          "physicalFootprintBytes": 334808096,
+          "residentBytes": 165920768,
+          "uptime": 300589.9655755834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.366475,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 165937152,
+          "uptime": 300590.2253803334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.389667,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 165937152,
+          "uptime": 300590.4841577501,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.412576,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 165937152,
+          "uptime": 300590.7430800417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.432641,
+          "physicalFootprintBytes": 334824480,
+          "residentBytes": 165937152,
+          "uptime": 300591.00324800005,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.453697,
+          "physicalFootprintBytes": 334890016,
+          "residentBytes": 166002688,
+          "uptime": 300591.2606472917,
+          "windowVisible": true
+        }
+      ]
+    },
+    {
+      "after": {
+        "coreAlive": true,
+        "drawCount": 250,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 115,
+        "videoFrameCount": 245,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "before": {
+        "coreAlive": true,
+        "drawCount": 249,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 84,
+        "videoFrameCount": 245,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "phase": "paused",
+      "process": [
+        {
+          "cpuSeconds": 3.460932,
+          "physicalFootprintBytes": 334906400,
+          "residentBytes": 166281216,
+          "uptime": 300591.3138202917,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.462634,
+          "physicalFootprintBytes": 334906400,
+          "residentBytes": 166281216,
+          "uptime": 300591.58026187506,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.4634869999999998,
+          "physicalFootprintBytes": 334906400,
+          "residentBytes": 158515200,
+          "uptime": 300591.8452343334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.4643800000000002,
+          "physicalFootprintBytes": 334906400,
+          "residentBytes": 158515200,
+          "uptime": 300592.1005884584,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.465551,
+          "physicalFootprintBytes": 325141536,
+          "residentBytes": 158531584,
+          "uptime": 300592.36737175006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.466818,
+          "physicalFootprintBytes": 274809888,
+          "residentBytes": 158154752,
+          "uptime": 300592.6203587917,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.468398,
+          "physicalFootprintBytes": 270615584,
+          "residentBytes": 139739136,
+          "uptime": 300592.8847192501,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.469413,
+          "physicalFootprintBytes": 270615584,
+          "residentBytes": 139526144,
+          "uptime": 300593.14860554173,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.470229,
+          "physicalFootprintBytes": 268272672,
+          "residentBytes": 139526144,
+          "uptime": 300593.4077915834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.470968,
+          "physicalFootprintBytes": 268272672,
+          "residentBytes": 139526144,
+          "uptime": 300593.67449362506,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.471944,
+          "physicalFootprintBytes": 268272672,
+          "residentBytes": 119439360,
+          "uptime": 300593.9288525417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.475919,
+          "physicalFootprintBytes": 258966560,
+          "residentBytes": 122093568,
+          "uptime": 300594.17944175005,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.476821,
+          "physicalFootprintBytes": 258966560,
+          "residentBytes": 122093568,
+          "uptime": 300594.4397122084,
+          "windowVisible": true
+        }
+      ]
+    },
+    {
+      "after": {
+        "coreAlive": true,
+        "drawCount": 265,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 82,
+        "snapshotCount": 147,
+        "videoFrameCount": 260,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "before": {
+        "coreAlive": true,
+        "drawCount": 252,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 1,
+        "renderContextAlive": true,
+        "skippedFrameCount": 0,
+        "snapshotCount": 116,
+        "videoFrameCount": 247,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "phase": "hidden-playing",
+      "process": [
+        {
+          "cpuSeconds": 3.508891,
+          "physicalFootprintBytes": 329729056,
+          "residentBytes": 97206272,
+          "uptime": 300594.5210393334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 3.5383329999999997,
+          "physicalFootprintBytes": 405947424,
+          "residentBytes": 99074048,
+          "uptime": 300594.77637554175,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.554005,
+          "physicalFootprintBytes": 454493216,
+          "residentBytes": 99483648,
+          "uptime": 300595.0327006251,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.560129,
+          "physicalFootprintBytes": 454558752,
+          "residentBytes": 99827712,
+          "uptime": 300595.2994508751,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.566202,
+          "physicalFootprintBytes": 454575136,
+          "residentBytes": 100024320,
+          "uptime": 300595.5661936667,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.5722490000000002,
+          "physicalFootprintBytes": 454558752,
+          "residentBytes": 100024320,
+          "uptime": 300595.83295575005,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.579878,
+          "physicalFootprintBytes": 454558752,
+          "residentBytes": 100024320,
+          "uptime": 300596.08747925004,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.587605,
+          "physicalFootprintBytes": 404243488,
+          "residentBytes": 97943552,
+          "uptime": 300596.3438308334,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.600162,
+          "physicalFootprintBytes": 392381472,
+          "residentBytes": 97959936,
+          "uptime": 300596.6078445834,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.60916,
+          "physicalFootprintBytes": 388236320,
+          "residentBytes": 98009088,
+          "uptime": 300596.85808216676,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.622499,
+          "physicalFootprintBytes": 388203552,
+          "residentBytes": 97337344,
+          "uptime": 300597.1223179167,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.630839,
+          "physicalFootprintBytes": 388203552,
+          "residentBytes": 96960512,
+          "uptime": 300597.3879369167,
+          "windowVisible": false
+        },
+        {
+          "cpuSeconds": 3.6442069999999998,
+          "physicalFootprintBytes": 388203552,
+          "residentBytes": 96944128,
+          "uptime": 300597.6540558751,
+          "windowVisible": false
+        }
+      ]
+    },
+    {
+      "after": {
+        "coreAlive": true,
+        "drawCount": 1591,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "idle": true,
+        "openCount": 101,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 669,
+        "videoFrameCount": 1387,
+        "videoOutputConfigured": false
+      },
+      "before": {
+        "coreAlive": true,
+        "drawCount": 1591,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "idle": true,
+        "openCount": 101,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 669,
+        "videoFrameCount": 1387,
+        "videoOutputConfigured": false
+      },
+      "phase": "stopped",
+      "process": [
+        {
+          "cpuSeconds": 9.936687,
+          "physicalFootprintBytes": 299402272,
+          "residentBytes": 155090944,
+          "uptime": 300635.4052799584,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.93685,
+          "physicalFootprintBytes": 299402272,
+          "residentBytes": 155107328,
+          "uptime": 300635.67059850006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.937913,
+          "physicalFootprintBytes": 284361760,
+          "residentBytes": 155107328,
+          "uptime": 300635.93725162506,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.938198,
+          "physicalFootprintBytes": 215778336,
+          "residentBytes": 155107328,
+          "uptime": 300636.1893083334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.938552,
+          "physicalFootprintBytes": 215778336,
+          "residentBytes": 155107328,
+          "uptime": 300636.4456527917,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.938815,
+          "physicalFootprintBytes": 215778336,
+          "residentBytes": 155107328,
+          "uptime": 300636.71091679175,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.939204,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 155107328,
+          "uptime": 300636.9640635834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.939604,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 155107328,
+          "uptime": 300637.22912404174,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.939884,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 155107328,
+          "uptime": 300637.4899690834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.940091,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300637.75230066676,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.940322,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300638.0066342084,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.940606,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300638.2603968751,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.940863,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300638.51771737507,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.941126,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300638.7701710417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.941331,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300639.0356415834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.941538,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300639.3018947917,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.9418,
+          "physicalFootprintBytes": 211584032,
+          "residentBytes": 152616960,
+          "uptime": 300639.56779675005,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.942083,
+          "physicalFootprintBytes": 182567968,
+          "residentBytes": 140001280,
+          "uptime": 300639.8289594584,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.942531,
+          "physicalFootprintBytes": 182469664,
+          "residentBytes": 139968512,
+          "uptime": 300640.09489541675,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.942978,
+          "physicalFootprintBytes": 182469664,
+          "residentBytes": 139984896,
+          "uptime": 300640.35173875006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.943131,
+          "physicalFootprintBytes": 182469664,
+          "residentBytes": 139984896,
+          "uptime": 300640.61152479175,
+          "windowVisible": true
+        }
+      ]
+    },
+    {
+      "after": {
+        "coreAlive": false,
+        "drawCount": 1591,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "openCount": 101,
+        "renderContextAlive": false,
+        "skippedFrameCount": 83,
+        "snapshotCount": 669,
+        "videoFrameCount": 1387
+      },
+      "before": {
+        "coreAlive": false,
+        "drawCount": 1591,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "openCount": 101,
+        "renderContextAlive": false,
+        "skippedFrameCount": 83,
+        "snapshotCount": 669,
+        "videoFrameCount": 1387
+      },
+      "phase": "shutdown",
+      "process": [
+        {
+          "cpuSeconds": 9.949283,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139821056,
+          "uptime": 300640.6183275834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.949499,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139821056,
+          "uptime": 300640.8789130417,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.949786,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139821056,
+          "uptime": 300641.1351432917,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.950103,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139821056,
+          "uptime": 300641.3915753334,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.950319,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139821056,
+          "uptime": 300641.6576460834,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.950464,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139427840,
+          "uptime": 300641.92290541675,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.950565,
+          "physicalFootprintBytes": 119030792,
+          "residentBytes": 139395072,
+          "uptime": 300642.1896634584,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.95073,
+          "physicalFootprintBytes": 120030216,
+          "residentBytes": 128598016,
+          "uptime": 300642.4564726251,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.950941,
+          "physicalFootprintBytes": 120030216,
+          "residentBytes": 128598016,
+          "uptime": 300642.71293737506,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.951172,
+          "physicalFootprintBytes": 120030216,
+          "residentBytes": 128598016,
+          "uptime": 300642.97308225004,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.951378,
+          "physicalFootprintBytes": 120013832,
+          "residentBytes": 128598016,
+          "uptime": 300643.23990925006,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.951969,
+          "physicalFootprintBytes": 119964680,
+          "residentBytes": 128598016,
+          "uptime": 300643.5067162084,
+          "windowVisible": true
+        },
+        {
+          "cpuSeconds": 9.952167,
+          "physicalFootprintBytes": 119964680,
+          "residentBytes": 128598016,
+          "uptime": 300643.7735386667,
+          "windowVisible": true
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "completedResizes": 100,
+  "firstFrames": [
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 1,
+      "milliseconds": 428.74795832904056,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 2,
+      "milliseconds": 53.121250006370246,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 3,
+      "milliseconds": 77.28604169096798,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 4,
+      "milliseconds": 46.313999977428466,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 5,
+      "milliseconds": 72.77325005270541,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 6,
+      "milliseconds": 81.37695834739134,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 7,
+      "milliseconds": 93.0264166672714,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 8,
+      "milliseconds": 112.91337496368214,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 9,
+      "milliseconds": 90.47120838658884,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 10,
+      "milliseconds": 53.88741666683927,
+      "sample": "h264-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 1,
+      "milliseconds": 61.40458333538845,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 2,
+      "milliseconds": 49.679333344101906,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 3,
+      "milliseconds": 50.27500004507601,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 4,
+      "milliseconds": 39.456749975215644,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 5,
+      "milliseconds": 43.129333353135735,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 6,
+      "milliseconds": 53.32379165338352,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 7,
+      "milliseconds": 46.08187498524785,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 8,
+      "milliseconds": 56.208499998319894,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 9,
+      "milliseconds": 40.586624993011355,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 1080,
+      "iteration": 10,
+      "milliseconds": 48.107333306688815,
+      "sample": "h265-main10-1080p",
+      "width": 1920
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 1,
+      "milliseconds": 153.57962501002476,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 2,
+      "milliseconds": 75.99183334968984,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 3,
+      "milliseconds": 77.94658333295956,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 4,
+      "milliseconds": 86.63879166124389,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 5,
+      "milliseconds": 173.50145831005648,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 6,
+      "milliseconds": 115.716666681692,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 7,
+      "milliseconds": 122.45120835723355,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 8,
+      "milliseconds": 67.01816665008664,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 9,
+      "milliseconds": 75.29504166450351,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    },
+    {
+      "decoder": "videotoolbox",
+      "height": 2160,
+      "iteration": 10,
+      "milliseconds": 71.38387503800914,
+      "sample": "h265-main10-4k",
+      "width": 3840
+    }
+  ],
+  "logicalProcessors": 10,
+  "measurement": "Debug standalone AppKit benchmark process using production playback/render sources; first frame submitted to layer FBO; fresh engine, warm filesystem cache; muted audio",
+  "osVersion": "版本26.0（版号25A8353）",
+  "physicalMemoryBytes": 17179869184,
+  "recordedAt": "2026-10-13T09:26:05Z",
+  "schemaVersion": 5,
+  "switches": [
+    {
+      "completed": 10,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 384,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 11,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 198,
+        "videoFrameCount": 369,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 4.199325,
+        "physicalFootprintBytes": 296567840,
+        "residentBytes": 166674432,
+        "uptime": 300601.2930245001,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 20,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 495,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 21,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 248,
+        "videoFrameCount": 470,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 4.730333,
+        "physicalFootprintBytes": 296551456,
+        "residentBytes": 163250176,
+        "uptime": 300604.75836737506,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 30,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 605,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 31,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 296,
+        "videoFrameCount": 571,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 5.26016,
+        "physicalFootprintBytes": 298861600,
+        "residentBytes": 163315712,
+        "uptime": 300608.08503500005,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 40,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 722,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 41,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 346,
+        "videoFrameCount": 678,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 5.811102,
+        "physicalFootprintBytes": 268534816,
+        "residentBytes": 162234368,
+        "uptime": 300611.5476538334,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 50,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 835,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 51,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 395,
+        "videoFrameCount": 781,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 6.371402,
+        "physicalFootprintBytes": 276382752,
+        "residentBytes": 161120256,
+        "uptime": 300614.9125312084,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 60,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 953,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 61,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 445,
+        "videoFrameCount": 889,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 6.931933,
+        "physicalFootprintBytes": 277005344,
+        "residentBytes": 156450816,
+        "uptime": 300618.44039050007,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 70,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 1069,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 71,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 494,
+        "videoFrameCount": 995,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 7.505511,
+        "physicalFootprintBytes": 246432776,
+        "residentBytes": 156401664,
+        "uptime": 300621.8987119584,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 80,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 1183,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 81,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 544,
+        "videoFrameCount": 1099,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 8.105235,
+        "physicalFootprintBytes": 245777416,
+        "residentBytes": 156549120,
+        "uptime": 300625.37512075005,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 90,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 1295,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 91,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 593,
+        "videoFrameCount": 1201,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 8.641463,
+        "physicalFootprintBytes": 249283592,
+        "residentBytes": 155189248,
+        "uptime": 300628.69379925006,
+        "windowVisible": true
+      }
+    },
+    {
+      "completed": 100,
+      "playback": {
+        "coreAlive": true,
+        "drawCount": 1408,
+        "firstVideoFrameUptime": 300583.15516754176,
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "openCount": 101,
+        "renderContextAlive": true,
+        "skippedFrameCount": 83,
+        "snapshotCount": 642,
+        "videoFrameCount": 1304,
+        "videoHeight": 1080,
+        "videoOutputConfigured": true,
+        "videoWidth": 1920
+      },
+      "process": {
+        "cpuSeconds": 9.179158,
+        "physicalFootprintBytes": 249332744,
+        "residentBytes": 151945216,
+        "uptime": 300632.0645807084,
+        "windowVisible": true
+      }
+    }
+  ],
+  "evidence": {
+    "runDirectory": ".build/benchmarks/20261013-172558",
+    "hardware": [
+      "Mac17,2",
+      "Apple M5"
+    ],
+    "toolchain": [
+      "Xcode 26.1.1",
+      "Build version 17B100"
+    ],
+    "source": {
+      "baseCommit": "f8fb6ae21cb9aaa48c00b46d6a5be19739cdfff1",
+      "sourceSHA256": {
+        "Sources/App/AppLifecycle.swift": "b75fad7c04b6bec499b58a4f95eae37014fd9ea01933c5f312b6fd4277c37a48",
+        "Sources/App/BomuApp.swift": "50d07ac3972ca1c4e71095039abd498ce8664b1ae2a9703f3ee659edd194d956",
+        "Sources/App/Brand.swift": "add12eef54d318eb4d7d5a222adb80ec502ac66f64dedd98810a429838b7e8a5",
+        "Sources/App/StartView.swift": "871af23362d86a7d85ff22ad4be3a689979c2d9c5156d36592e3119d8d689ca2",
+        "Sources/DesignSystem/AppTheme.swift": "f5bee6854786ad75f951ed49b5289b26e7e85d19269b008f70d227ba058e1748",
+        "Sources/Playback/MPV/BMMPVSession.h": "3a4a08ccc42025304375dd96afa2a82608a543b64ce45f644836dde3b41482d1",
+        "Sources/Playback/MPV/BMMPVSession.m": "48581da59f700d9ec12e97288836165cfde3341f189faee3c79f7f94af919748",
+        "Sources/Playback/MPV/MPVPlaybackEngine.swift": "5218d8adc46de197726f0ec1b2e2bfc1f21ba4c79cdef46e8338562704a6bc22",
+        "Sources/Playback/MPV/PlaybackDiagnostics.swift": "98ea331fa3d5e4f3d481c2b7f0ad57a0fba56c935d699e0c817794bf1a224f9b",
+        "Sources/Playback/PlaybackEngine.swift": "06b9c3578df0f8a13e2aca6b19ada96077a34e606df97a1db9aff87cb9158b21",
+        "Sources/Playback/PlaybackState.swift": "7c5a486cc6cf1c559baa90043bea412051e6760595389966cfbe7d986f641d84",
+        "Sources/PlayerFeature/OpenMediaPanel.swift": "eb01bddaf29f36e02f28a71265d8c1d25fb22af0b92f5f30c600f5efae8fd4c8",
+        "Sources/PlayerFeature/PlaybackControls.swift": "f78690181b109cbb2fb9925de6ce023358855a07d12b256967295bff3617725d",
+        "Sources/PlayerFeature/PlayerModel.swift": "e508b7675465ed64228d182d606e19131b9faf6a09f9ecffdd89043e3f506866",
+        "Sources/PlayerFeature/PlayerScreen.swift": "466aeaa55cb641d7fed732b73f42844e97dde96e1994a2120d8234ddf4048512",
+        "Sources/Rendering/BMVideoSurface.h": "350d4dd0163dafa5c57059035298c826f8f6fe0e01ade30cd6938f9f77e3d74d",
+        "Sources/Rendering/BMVideoSurface.m": "3a629b884d350b332fa71a5799a858c8d32a3ab7b6c388854bdac882a9e2cef6",
+        "Sources/Rendering/VideoHostView.swift": "dc1338cca1d642d00a50a539a8cda4d5aeb2def3b6bb353ef340474d84bf2ccd",
+        "Tests/MPVIntegrationTests.swift": "a66d1ff5d044e7af57272e6fbc8c5e6241d22193108c177097c3b8c347c85e76",
+        "Tests/PlaybackStateTests.swift": "66e7a592c9b3d2860f3a6bfb710f8c887bccaf60b76d185159810df92876fa0c",
+        "Tools/PlaybackBenchmark/BenchmarkApp.swift": "d6e7f47449e155087dd8ed24d9f2db47ae1c92b0e356da18e3b1714f496d1f66",
+        "Tools/PlaybackBenchmark/BenchmarkMeasurements.swift": "8b501c486df9c3b8c51a78d4152962d5aff0041ce669bbde03465daabdc332d4",
+        "Tools/PlaybackBenchmark/PlaybackBenchmark.swift": "04e512b18356be48a7615f6e56c7732218662799fd8c336a9f7bf67e29d39a7f",
+        "Config/App.xcconfig": "b117ee0474f3a0d90a6e16e08cc986b4cdf4ab3b25592d5869571407d7ee3e18",
+        "Config/Bomu-Bridging-Header.h": "19619e7565827f775b1f22766aa730187122bde215972f10950beea30bfb776b",
+        "Config/Dependencies.lock.json": "47e603c8aa0033458da691ecec4f9b567092302819aca2b9e910b2268f51b130",
+        "Config/Info.plist": "785c562459c4dfdffae307d581c5a8773f3e8853120dd554a8fc94715c3ccbad",
+        "scripts/benchmark-dev.sh": "501c9c96c17f21936979d50602ebcf86c69fc8049dc899f2d22ea941f4f17606",
+        "scripts/build-dev.sh": "e4bbc5e4f0f14381a91a03a08b83fa2aade9dc09714f0ee4ef03e3b7c56c12ff",
+        "scripts/dependencies.py": "8ee0c32ea588d3244f1b0d12d460d69f516b8dba0539d990412c05bc932adf25",
+        "scripts/generate-benchmark-media.sh": "0830b48ac84fc058086785a2c064dafb6a74f12a039bb8701d33e4f6c7352526",
+        "scripts/generate-fixtures.sh": "d130a3db504683f20d7b72ecc5aedf2d8e2735c4979bbddefc68d3d14e7ad8de",
+        "scripts/summarize-benchmark.py": "26eef52337c23afd6aff6d42e07af2bcb8f269f4a807bbd933e67a47e30cf28b",
+        "scripts/test-dev.sh": "d9891a904dc1a762c14813b14cf2b4b9a664c82404847625b5053d91d8c9b7ca",
+        "Bomu.xcodeproj/project.pbxproj": "f7de25dc9d3d2ca05e66a6fe075a95f5593e4b387fd7315bdbd7e312cb6f8bfb",
+        "Bomu.xcodeproj/xcshareddata/xcschemes/Bomu.xcscheme": "7a6cb11171a4e35ad15f1e1edd3c7eec7f6eee540dc4fb26baffc0a120e1aeb6",
+        "Bomu.xcodeproj/xcshareddata/xcschemes/BomuBenchmark.xcscheme": "b124720a93bb325fa2b6252229b7d6aee46c20fcbd9b2b0769a3376224d2e6df"
+      },
+      "note": "Source hashes describe the working files, including uncommitted changes."
+    },
+    "runtime": {
+      "mpv-version": "mpv v0.41.0",
+      "ffmpeg-version": "9.0.1"
+    },
+    "dependencyLockSHA256": "47e603c8aa0033458da691ecec4f9b567092302819aca2b9e910b2268f51b130",
+    "mediaGenerator": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "samples": [
+      {
+        "file": "h264-1080p.mp4",
+        "sha256": "ac98c1ac911427d9a53d53fd3b770f53a6fbeef2495813f46b5dbe1165f75c81",
+        "source": "Bomu generated testsrc2 pattern and sine wave",
+        "license": "CC0-1.0"
+      },
+      {
+        "file": "h265-main10-1080p.mp4",
+        "sha256": "da99343af8143d00221b203a3a6be509f25b6b4abb2387a4fa2b2fae398eef3d",
+        "source": "Bomu generated testsrc2 pattern and sine wave",
+        "license": "CC0-1.0"
+      },
+      {
+        "file": "h265-main10-4k.mp4",
+        "sha256": "a44d9ddaa9c13bf980e0e1aaeda3152de6ec56f9773eb1ff9f7057f022fa47ad",
+        "source": "Bomu generated testsrc2 pattern and sine wave",
+        "license": "CC0-1.0"
+      }
+    ],
+    "rawReportSHA256": "8286a6bb8e6ed5483ec1983597c3251a11ec60e991cfa905de355bc614147d12",
+    "scope": "Local debug baseline. Full product UI, physical scanout, audio onset, GPU power, calibrated color and long-duration leakage are outside this measurement."
+  }
+}

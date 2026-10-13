@@ -4,105 +4,160 @@
 	classes = {};
 	objectVersion = 56;
 	objects = {
-
-/* Begin PBXBuildFile section */
-		100000000000000000000001 /* BomuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* BomuApp.swift */; };
-		100000000000000000000002 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000002 /* Brand.swift */; };
-		100000000000000000000003 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000003 /* StartView.swift */; };
-		100000000000000000000004 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000004 /* AppTheme.swift */; };
-/* End PBXBuildFile section */
-
-/* Begin PBXFileReference section */
-		200000000000000000000001 /* BomuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BomuApp.swift; sourceTree = "<group>"; };
-		200000000000000000000002 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
-		200000000000000000000003 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
-		200000000000000000000004 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
-		200000000000000000000005 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
-		200000000000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		200000000000000000000007 /* Bomu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bomu.app; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		300000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-/* End PBXFrameworksBuildPhase section */
-
-/* Begin PBXGroup section */
-		400000000000000000000001 = {isa = PBXGroup; children = (400000000000000000000002 /* Sources */, 400000000000000000000005 /* Config */, 400000000000000000000006 /* Products */); sourceTree = "<group>"; };
-		400000000000000000000002 /* Sources */ = {isa = PBXGroup; children = (400000000000000000000003 /* App */, 400000000000000000000004 /* DesignSystem */); path = Sources; sourceTree = "<group>"; };
-		400000000000000000000003 /* App */ = {isa = PBXGroup; children = (200000000000000000000001, 200000000000000000000002, 200000000000000000000003); path = App; sourceTree = "<group>"; };
-		400000000000000000000004 /* DesignSystem */ = {isa = PBXGroup; children = (200000000000000000000004); path = DesignSystem; sourceTree = "<group>"; };
-		400000000000000000000005 /* Config */ = {isa = PBXGroup; children = (200000000000000000000005, 200000000000000000000006); path = Config; sourceTree = "<group>"; };
-		400000000000000000000006 /* Products */ = {isa = PBXGroup; children = (200000000000000000000007); name = Products; sourceTree = "<group>"; };
-/* End PBXGroup section */
-
-/* Begin PBXNativeTarget section */
-		500000000000000000000001 /* Bomu */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 800000000000000000000002;
-			buildPhases = (300000000000000000000002 /* Sources */, 300000000000000000000001 /* Frameworks */, 300000000000000000000003 /* Resources */);
-			buildRules = ();
-			dependencies = ();
-			name = Bomu;
-			productName = Bomu;
-			productReference = 200000000000000000000007 /* Bomu.app */;
-			productType = "com.apple.product-type.application";
-		};
-/* End PBXNativeTarget section */
-
-/* Begin PBXProject section */
-		600000000000000000000001 /* Project object */ = {
-			isa = PBXProject;
-			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2600; LastUpgradeCheck = 2600; TargetAttributes = {500000000000000000000001 = {CreatedOnToolsVersion = 26.0; }; }; };
-			buildConfigurationList = 800000000000000000000001;
-			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = "zh-Hans";
-			hasScannedForEncodings = 0;
-			knownRegions = ("zh-Hans", en, Base);
-			mainGroup = 400000000000000000000001;
-			productRefGroup = 400000000000000000000006;
-			projectDirPath = "";
-			projectRoot = "";
-			targets = (500000000000000000000001 /* Bomu */);
-		};
-/* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		300000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		300000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000001, 100000000000000000000002, 100000000000000000000003, 100000000000000000000004); runOnlyForDeploymentPostprocessing = 0; };
-/* End PBXSourcesBuildPhase section */
-
-/* Begin XCBuildConfiguration section */
-		700000000000000000000001 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)"); ONLY_ACTIVE_ARCH = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; };
-			name = Debug;
-		};
-		700000000000000000000002 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; };
-			name = Release;
-		};
-		700000000000000000000003 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 200000000000000000000005 /* App.xcconfig */;
-			buildSettings = {CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; ENABLE_APP_SANDBOX = NO; };
-			name = Debug;
-		};
-		700000000000000000000004 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 200000000000000000000005 /* App.xcconfig */;
-			buildSettings = {ENABLE_APP_SANDBOX = NO; };
-			name = Release;
-		};
-/* End XCBuildConfiguration section */
-
-/* Begin XCConfigurationList section */
-		800000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (700000000000000000000001 /* Debug */, 700000000000000000000002 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		800000000000000000000002 = {isa = XCConfigurationList; buildConfigurations = (700000000000000000000003 /* Debug */, 700000000000000000000004 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-/* End XCConfigurationList section */
+		4AC45023DB204F6888455E69 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/WindowVisibilityMeasurement.swift"; sourceTree = SOURCE_ROOT; };
+		3C94466D67254885ACBFCCC1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/WindowVisibilityMeasurementTests.swift"; sourceTree = SOURCE_ROOT; };
+		20E0FDF9B920478FACD67CDE = { isa = PBXBuildFile; fileRef = 4AC45023DB204F6888455E69; };
+		8C7500AFDF0E4FB0BA285C75 = { isa = PBXBuildFile; fileRef = 4AC45023DB204F6888455E69; };
+		D684205745BF4B5496A5595A = { isa = PBXBuildFile; fileRef = 3C94466D67254885ACBFCCC1; };
+		5860C92C969975D3AEBDF3AF = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Verify development toolchain"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/toolchain.py\" --build-environment\n"; };
+		88DD8C5D56AF5222AC58D2A2 = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Verify development toolchain"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/toolchain.py\" --build-environment\n"; };
+		63C1FC9A0E98A31790F0FFA5 = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Verify development toolchain"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/toolchain.py\" --build-environment\n"; };
+		EB5183A98149C64D35717C0A = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Verify development toolchain"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/toolchain.py\" --build-environment\n"; };
+		DD2AB9C1E85F7D3284477C2F = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/App/AppLifecycle.swift"; sourceTree = SOURCE_ROOT; };
+		AC7B5F9BEBCA46D143F31ACD = { isa = PBXBuildFile; fileRef = DD2AB9C1E85F7D3284477C2F; };
+		E9B600DBFA884318FD88BF42 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/App/BomuApp.swift"; sourceTree = SOURCE_ROOT; };
+		11AC89FEEE2245C7055970C4 = { isa = PBXBuildFile; fileRef = E9B600DBFA884318FD88BF42; };
+		23B035C81FB1BF800F37A9EF = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/App/Brand.swift"; sourceTree = SOURCE_ROOT; };
+		2560B125E0A34B776406830A = { isa = PBXBuildFile; fileRef = 23B035C81FB1BF800F37A9EF; };
+		B1B24BCCF2F01EA47DDE8577 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/App/StartView.swift"; sourceTree = SOURCE_ROOT; };
+		C1E0E730E86C6FEAA65AA3AB = { isa = PBXBuildFile; fileRef = B1B24BCCF2F01EA47DDE8577; };
+		3C2AF4C769DC27EE7BEC2900 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/DesignSystem/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
+		3EBB428478D929E7F2B1788C = { isa = PBXBuildFile; fileRef = 3C2AF4C769DC27EE7BEC2900; };
+		BB0EBF1EF155A332286C2C03 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Sources/Playback/MPV/BMMPVSession.h"; sourceTree = SOURCE_ROOT; };
+		79D5304B3B0D66B10FB33482 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Sources/Playback/MPV/BMMPVSession.m"; sourceTree = SOURCE_ROOT; };
+		1025AAA7BBA1CFBB4BB9D401 = { isa = PBXBuildFile; fileRef = 79D5304B3B0D66B10FB33482; };
+		1948018FBE957D91B06181B6 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/Playback/MPV/MPVPlaybackEngine.swift"; sourceTree = SOURCE_ROOT; };
+		40A5B54C4E1BACAAF3606BA4 = { isa = PBXBuildFile; fileRef = 1948018FBE957D91B06181B6; };
+		CC7E52FF37BFD24532B5050E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/Playback/MPV/PlaybackDiagnostics.swift"; sourceTree = SOURCE_ROOT; };
+		B54A9BC09A0FF0C2F170C9B8 = { isa = PBXBuildFile; fileRef = CC7E52FF37BFD24532B5050E; };
+		9347E62688BE41695AB1553D = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/Playback/PlaybackEngine.swift"; sourceTree = SOURCE_ROOT; };
+		CB963A7B55F84BBBC557C965 = { isa = PBXBuildFile; fileRef = 9347E62688BE41695AB1553D; };
+		AB09C62E76891B9D849369ED = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/Playback/PlaybackState.swift"; sourceTree = SOURCE_ROOT; };
+		7D9CD9843621A8A83F63C695 = { isa = PBXBuildFile; fileRef = AB09C62E76891B9D849369ED; };
+		B337BFADB2E5D29B125CEE24 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/PlayerFeature/OpenMediaPanel.swift"; sourceTree = SOURCE_ROOT; };
+		9B6C47B348BF341DBBF754DA = { isa = PBXBuildFile; fileRef = B337BFADB2E5D29B125CEE24; };
+		74240B2BFBE2BEB2813AE714 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/PlayerFeature/PlaybackControls.swift"; sourceTree = SOURCE_ROOT; };
+		A081AD84FDDF8D22B5FB4D68 = { isa = PBXBuildFile; fileRef = 74240B2BFBE2BEB2813AE714; };
+		5F7A2CD4CC478EC08D52E5E6 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/PlayerFeature/PlayerModel.swift"; sourceTree = SOURCE_ROOT; };
+		E54310EB8ABE3D82DA2F2863 = { isa = PBXBuildFile; fileRef = 5F7A2CD4CC478EC08D52E5E6; };
+		07052BD7494CC91CD7C06E93 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/PlayerFeature/PlayerScreen.swift"; sourceTree = SOURCE_ROOT; };
+		D49E458044BA7343A136D955 = { isa = PBXBuildFile; fileRef = 07052BD7494CC91CD7C06E93; };
+		E7A54FE0230D7D00ED172F1B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Sources/Rendering/BMVideoSurface.h"; sourceTree = SOURCE_ROOT; };
+		B5BA20DB8C5D4793E4D38932 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Sources/Rendering/BMVideoSurface.m"; sourceTree = SOURCE_ROOT; };
+		B06497A65F9B16F1EC93ACC8 = { isa = PBXBuildFile; fileRef = B5BA20DB8C5D4793E4D38932; };
+		201A6087C8D1F38124BE041A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/Rendering/VideoHostView.swift"; sourceTree = SOURCE_ROOT; };
+		2054F1D1FE9F9029D5BE1C1D = { isa = PBXBuildFile; fileRef = 201A6087C8D1F38124BE041A; };
+		F0578E1D64AD05E7985453A2 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/MPVIntegrationTests.swift"; sourceTree = SOURCE_ROOT; };
+		E2D852E1619BC87C76809CF6 = { isa = PBXBuildFile; fileRef = F0578E1D64AD05E7985453A2; };
+		38B5BACF675E55242CA6BE02 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/PlaybackStateTests.swift"; sourceTree = SOURCE_ROOT; };
+		40035559E842C2113C2A53B7 = { isa = PBXBuildFile; fileRef = 38B5BACF675E55242CA6BE02; };
+		7676400BB96223C21CEF42BB = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/BenchmarkApp.swift"; sourceTree = SOURCE_ROOT; };
+		B22C16FE461F224533503974 = { isa = PBXBuildFile; fileRef = 7676400BB96223C21CEF42BB; };
+		2DF434193AE8683FA6894337 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/BenchmarkMeasurements.swift"; sourceTree = SOURCE_ROOT; };
+		2AADE2F7FD1C3713DAF1A723 = { isa = PBXBuildFile; fileRef = 2DF434193AE8683FA6894337; };
+		889467E143C027917BC37C72 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/PlaybackBenchmark.swift"; sourceTree = SOURCE_ROOT; };
+		888905C90090AF52CE3309CE = { isa = PBXBuildFile; fileRef = 889467E143C027917BC37C72; };
+		CEF2FC792F677D12281234A5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift"; sourceTree = SOURCE_ROOT; };
+		B7BBC523E83AE1B413D6D15F = { isa = PBXBuildFile; fileRef = CEF2FC792F677D12281234A5; };
+		FE0667378B1705B87A4D7E3E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/PlaybackBenchmark/WindowLifecycleReport.swift"; sourceTree = SOURCE_ROOT; };
+		B60D0F8C9488EE13CFB9C913 = { isa = PBXBuildFile; fileRef = FE0667378B1705B87A4D7E3E; };
+		DFBA7AADE0868074C2861C98 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
+		59BD0A3FF43B32849B319E64 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config/Info.plist; sourceTree = SOURCE_ROOT; };
+		B35432EC304767C2A253EFD7 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "en"; path = "Sources/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
+		8F859A67DCB9A00D58B2C4F4 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "Sources/Resources/zh-Hans.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
+		BFD903E8670902324963C591 = { isa = PBXVariantGroup; children = (B35432EC304767C2A253EFD7,8F859A67DCB9A00D58B2C4F4,); name = Localizable.strings; sourceTree = "<group>"; };
+		3A2077369F001E4458727FE5 = { isa = PBXBuildFile; fileRef = BFD903E8670902324963C591; };
+		1C48CE29E4E135EE62951B22 = { isa = PBXGroup; children = (DD2AB9C1E85F7D3284477C2F,E9B600DBFA884318FD88BF42,23B035C81FB1BF800F37A9EF,B1B24BCCF2F01EA47DDE8577,); name = App; sourceTree = "<group>"; };
+		490CD259D3EED38A828CDE6E = { isa = PBXGroup; children = (3C2AF4C769DC27EE7BEC2900,); name = DesignSystem; sourceTree = "<group>"; };
+		E4411B138A5BF40E6A741577 = { isa = PBXGroup; children = (B337BFADB2E5D29B125CEE24,74240B2BFBE2BEB2813AE714,5F7A2CD4CC478EC08D52E5E6,07052BD7494CC91CD7C06E93,); name = PlayerFeature; sourceTree = "<group>"; };
+		88A513CE27ECE26B32F289C7 = { isa = PBXGroup; children = (BB0EBF1EF155A332286C2C03,79D5304B3B0D66B10FB33482,1948018FBE957D91B06181B6,CC7E52FF37BFD24532B5050E,9347E62688BE41695AB1553D,AB09C62E76891B9D849369ED,); name = Playback; sourceTree = "<group>"; };
+		CCCB0B55C11E27B4901A9637 = { isa = PBXGroup; children = (E7A54FE0230D7D00ED172F1B,B5BA20DB8C5D4793E4D38932,201A6087C8D1F38124BE041A,); name = Rendering; sourceTree = "<group>"; };
+		8309DD304D804F9D7F6302F5 = { isa = PBXGroup; children = (1C48CE29E4E135EE62951B22,490CD259D3EED38A828CDE6E,E4411B138A5BF40E6A741577,88A513CE27ECE26B32F289C7,CCCB0B55C11E27B4901A9637,BFD903E8670902324963C591,); name = Sources; sourceTree = "<group>"; };
+		A619C04D8A87AB070162A099 = { isa = PBXGroup; children = (3C94466D67254885ACBFCCC1,F0578E1D64AD05E7985453A2,38B5BACF675E55242CA6BE02,); name = Tests; sourceTree = "<group>"; };
+		C3AA13D4B9D7726694FDDE01 = { isa = PBXGroup; children = (4AC45023DB204F6888455E69,7676400BB96223C21CEF42BB,2DF434193AE8683FA6894337,889467E143C027917BC37C72,CEF2FC792F677D12281234A5,FE0667378B1705B87A4D7E3E,); name = Tools; sourceTree = "<group>"; };
+		52E26EDB6BA31E7F07C1F020 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = Bomu.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		477D21AFD1C5E5438F50091F = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BomuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		06A1584507626A84D46B83F2 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = BomuBenchmark.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D94C2F2C4D8E8B627E94424 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BomuLogicTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBDC4F23F93125BBEEAE800C = { isa = PBXGroup; children = (52E26EDB6BA31E7F07C1F020,477D21AFD1C5E5438F50091F,06A1584507626A84D46B83F2,3D94C2F2C4D8E8B627E94424,); name = Products; sourceTree = "<group>"; };
+		B28B7AF69320201D1CF206EB = { isa = PBXGroup; children = (8309DD304D804F9D7F6302F5,A619C04D8A87AB070162A099,C3AA13D4B9D7726694FDDE01,DFBA7AADE0868074C2861C98,59BD0A3FF43B32849B319E64,FBDC4F23F93125BBEEAE800C,); sourceTree = "<group>"; };
+		89E1FD6268CC0F221A2BE178 = { isa = XCBuildConfiguration;  buildSettings = { CLANG_ENABLE_MODULES = "YES"; CLANG_ENABLE_OBJC_ARC = "YES"; GCC_C_LANGUAGE_STANDARD = "gnu17"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; ENABLE_TESTABILITY = "YES"; }; name = Debug; };
+		E6DE6C99132752C914FEF632 = { isa = XCBuildConfiguration;  buildSettings = { CLANG_ENABLE_MODULES = "YES"; CLANG_ENABLE_OBJC_ARC = "YES"; GCC_C_LANGUAGE_STANDARD = "gnu17"; SWIFT_OPTIMIZATION_LEVEL = "-O"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)"; ENABLE_TESTABILITY = "NO"; }; name = Release; };
+		6650A2B5E24FA7522CE6B81C = { isa = XCConfigurationList; buildConfigurations = (89E1FD6268CC0F221A2BE178,E6DE6C99132752C914FEF632,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		23948FA20AF1BA8D83FD2E55 = { isa = PBXBuildFile; fileRef = DD2AB9C1E85F7D3284477C2F; };
+		F982873BB638B4BC9AB6974E = { isa = PBXBuildFile; fileRef = E9B600DBFA884318FD88BF42; };
+		FC1F39E8A624559B49C6EFD9 = { isa = PBXBuildFile; fileRef = 23B035C81FB1BF800F37A9EF; };
+		07A438A88A4B0243395CC57E = { isa = PBXBuildFile; fileRef = B1B24BCCF2F01EA47DDE8577; };
+		3D9D1D832A110EE849DD759E = { isa = PBXBuildFile; fileRef = 3C2AF4C769DC27EE7BEC2900; };
+		CB8248765ED3CD52B04BE586 = { isa = PBXBuildFile; fileRef = 79D5304B3B0D66B10FB33482; };
+		D5FEB4C9CFF2D0940BDB0148 = { isa = PBXBuildFile; fileRef = 1948018FBE957D91B06181B6; };
+		408B1495E81104B3F8AB83B6 = { isa = PBXBuildFile; fileRef = CC7E52FF37BFD24532B5050E; };
+		DC6280B51FBFEEADD98A8619 = { isa = PBXBuildFile; fileRef = 9347E62688BE41695AB1553D; };
+		1008DF67F3F4B5A3F9A65C16 = { isa = PBXBuildFile; fileRef = AB09C62E76891B9D849369ED; };
+		5479E9AF5A278959A29BA556 = { isa = PBXBuildFile; fileRef = B337BFADB2E5D29B125CEE24; };
+		ABECD1315A308CAF036A0A5B = { isa = PBXBuildFile; fileRef = 74240B2BFBE2BEB2813AE714; };
+		BC5EFA05B8B8528B485D910C = { isa = PBXBuildFile; fileRef = 5F7A2CD4CC478EC08D52E5E6; };
+		1D8DF7539D46C15D89EA896C = { isa = PBXBuildFile; fileRef = 07052BD7494CC91CD7C06E93; };
+		304D7C1AB494220609856F1C = { isa = PBXBuildFile; fileRef = B5BA20DB8C5D4793E4D38932; };
+		7A89C516266D7700D4AF1627 = { isa = PBXBuildFile; fileRef = 201A6087C8D1F38124BE041A; };
+		C0A3C1F8E70EC8B923B0726D = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (23948FA20AF1BA8D83FD2E55,F982873BB638B4BC9AB6974E,FC1F39E8A624559B49C6EFD9,07A438A88A4B0243395CC57E,3D9D1D832A110EE849DD759E,CB8248765ED3CD52B04BE586,D5FEB4C9CFF2D0940BDB0148,408B1495E81104B3F8AB83B6,DC6280B51FBFEEADD98A8619,1008DF67F3F4B5A3F9A65C16,5479E9AF5A278959A29BA556,ABECD1315A308CAF036A0A5B,BC5EFA05B8B8528B485D910C,1D8DF7539D46C15D89EA896C,304D7C1AB494220609856F1C,7A89C516266D7700D4AF1627,); runOnlyForDeploymentPostprocessing = 0; };
+		4CD32CE0C0D1E551CB3B38C9 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (3A2077369F001E4458727FE5,); runOnlyForDeploymentPostprocessing = 0; };
+		7CD4B9329658CF63A5C21C4C = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		942EB47A06B42BD8311FEE9C = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Embed verified development runtime"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/dependencies.py\" embed \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\n"; };
+		DFD274718681BC6758AB6000 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "Bomu"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.Bomu"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; }; name = Debug; };
+		8E0E8D75A248EF2502EB6B06 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "Bomu"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.Bomu"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; }; name = Release; };
+		52F00A31A051083D9115E44D = { isa = XCConfigurationList; buildConfigurations = (DFD274718681BC6758AB6000,8E0E8D75A248EF2502EB6B06,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		698B7C4C21ADBF2AB189EA37 = { isa = PBXNativeTarget; buildConfigurationList = 52F00A31A051083D9115E44D; buildPhases = (5860C92C969975D3AEBDF3AF,C0A3C1F8E70EC8B923B0726D,7CD4B9329658CF63A5C21C4C,4CD32CE0C0D1E551CB3B38C9,942EB47A06B42BD8311FEE9C,); buildRules = (); dependencies = (); name = Bomu; productName = Bomu; productReference = 52E26EDB6BA31E7F07C1F020; productType = "com.apple.product-type.application"; };
+		5C49545BA373E95F9FFB6934 = { isa = PBXBuildFile; fileRef = F0578E1D64AD05E7985453A2; };
+		30A12C1209A513C8E0B784CE = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (5C49545BA373E95F9FFB6934,); runOnlyForDeploymentPostprocessing = 0; };
+		59A4A5B3FF6B4A31180DB7E2 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (3A2077369F001E4458727FE5,); runOnlyForDeploymentPostprocessing = 0; };
+		10E5CC028BEE6725010B1510 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A9D9EC5D6655D918AC679F95 = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Copy generated test fixtures"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "set -euo pipefail\n/usr/bin/python3 \"$SRCROOT/scripts/media_fixtures.py\" \"$SRCROOT/.build/fixtures\"\n/bin/mkdir -p \"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Fixtures\"\n/bin/cp \"$SRCROOT/.build/fixtures/\"*.mp4 \"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Fixtures/\"\n"; };
+		F8717583C0B37EAF85BDD7EB = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuTests"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuTests"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks"; SWIFT_OBJC_BRIDGING_HEADER = ""; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bomu.app/Contents/MacOS/Bomu"; BUNDLE_LOADER = "$(TEST_HOST)"; }; name = Debug; };
+		8E0CC0AE9D3B1B6D00AC8EC0 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuTests"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuTests"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks"; SWIFT_OBJC_BRIDGING_HEADER = ""; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bomu.app/Contents/MacOS/Bomu"; BUNDLE_LOADER = "$(TEST_HOST)"; }; name = Release; };
+		BF24741ED02A4C0E9454BDBE = { isa = XCConfigurationList; buildConfigurations = (F8717583C0B37EAF85BDD7EB,8E0CC0AE9D3B1B6D00AC8EC0,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AB331F63D35EE1CA7365D225 = { isa = PBXTargetDependency; target = 698B7C4C21ADBF2AB189EA37; };
+		AF98108AC1FF057212DE77F1 = { isa = PBXNativeTarget; buildConfigurationList = BF24741ED02A4C0E9454BDBE; buildPhases = (88DD8C5D56AF5222AC58D2A2,30A12C1209A513C8E0B784CE,10E5CC028BEE6725010B1510,59A4A5B3FF6B4A31180DB7E2,A9D9EC5D6655D918AC679F95,); buildRules = (); dependencies = (AB331F63D35EE1CA7365D225); name = BomuTests; productName = BomuTests; productReference = 477D21AFD1C5E5438F50091F; productType = "com.apple.product-type.bundle.unit-test"; };
+		8386F060A88F4A85E49C3BBB = { isa = PBXBuildFile; fileRef = 23B035C81FB1BF800F37A9EF; };
+		5A8525EB690A3AC01005D891 = { isa = PBXBuildFile; fileRef = B1B24BCCF2F01EA47DDE8577; };
+		29CDF38DC176F76EA465BA50 = { isa = PBXBuildFile; fileRef = 3C2AF4C769DC27EE7BEC2900; };
+		54C7920BD001074A27D06F13 = { isa = PBXBuildFile; fileRef = 79D5304B3B0D66B10FB33482; };
+		D8EE39DC4614B6D0F6929F19 = { isa = PBXBuildFile; fileRef = 1948018FBE957D91B06181B6; };
+		4EB02CFC442ADB44220A65DF = { isa = PBXBuildFile; fileRef = CC7E52FF37BFD24532B5050E; };
+		0805528B36C367C54E9FAD95 = { isa = PBXBuildFile; fileRef = 9347E62688BE41695AB1553D; };
+		89EEF83EAE839D82813BA163 = { isa = PBXBuildFile; fileRef = AB09C62E76891B9D849369ED; };
+		500081552C78BC10849F015C = { isa = PBXBuildFile; fileRef = B337BFADB2E5D29B125CEE24; };
+		E8D01B51FB0EA9F33DDD3CA6 = { isa = PBXBuildFile; fileRef = 74240B2BFBE2BEB2813AE714; };
+		F2E507FA46883ADDD81D35ED = { isa = PBXBuildFile; fileRef = 5F7A2CD4CC478EC08D52E5E6; };
+		5AB1F5A6C09A0586A0BFF447 = { isa = PBXBuildFile; fileRef = 07052BD7494CC91CD7C06E93; };
+		2477C25027F1E8783F1946C3 = { isa = PBXBuildFile; fileRef = B5BA20DB8C5D4793E4D38932; };
+		D5C15CFB3F49D086FC14E82D = { isa = PBXBuildFile; fileRef = 201A6087C8D1F38124BE041A; };
+		F3085413E772B6872823AD6D = { isa = PBXBuildFile; fileRef = 7676400BB96223C21CEF42BB; };
+		98D23AA3E3F14497E1B19DAE = { isa = PBXBuildFile; fileRef = 2DF434193AE8683FA6894337; };
+		59DCA909FCDA7D1210050C53 = { isa = PBXBuildFile; fileRef = 889467E143C027917BC37C72; };
+		2BCB76165B584B87053EC5E3 = { isa = PBXBuildFile; fileRef = CEF2FC792F677D12281234A5; };
+		A5EA4B2BF9860349CC2850E0 = { isa = PBXBuildFile; fileRef = FE0667378B1705B87A4D7E3E; };
+		5A22880C8690FFA44C76A93C = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (20E0FDF9B920478FACD67CDE,8386F060A88F4A85E49C3BBB,5A8525EB690A3AC01005D891,29CDF38DC176F76EA465BA50,54C7920BD001074A27D06F13,D8EE39DC4614B6D0F6929F19,4EB02CFC442ADB44220A65DF,0805528B36C367C54E9FAD95,89EEF83EAE839D82813BA163,500081552C78BC10849F015C,E8D01B51FB0EA9F33DDD3CA6,F2E507FA46883ADDD81D35ED,5AB1F5A6C09A0586A0BFF447,2477C25027F1E8783F1946C3,D5C15CFB3F49D086FC14E82D,F3085413E772B6872823AD6D,98D23AA3E3F14497E1B19DAE,59DCA909FCDA7D1210050C53,2BCB76165B584B87053EC5E3,A5EA4B2BF9860349CC2850E0,); runOnlyForDeploymentPostprocessing = 0; };
+		574C68534CFCA5A64C7FB090 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (3A2077369F001E4458727FE5,); runOnlyForDeploymentPostprocessing = 0; };
+		1DE37CC71889FF1E45942A57 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		753BF4F97BA1CCF40D4D192F = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Embed verified development runtime"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/dependencies.py\" embed \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\n"; };
+		9234BB5A9FC44E56D43B3E30 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuBenchmark"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuBenchmark"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; INFOPLIST_KEY_CFBundleDisplayName = "Bomu Playback Benchmark"; INFOPLIST_KEY_NSHighResolutionCapable = "YES"; }; name = Debug; };
+		E876DAD15682072F8E4B3D10 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuBenchmark"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuBenchmark"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; INFOPLIST_KEY_CFBundleDisplayName = "Bomu Playback Benchmark"; INFOPLIST_KEY_NSHighResolutionCapable = "YES"; }; name = Release; };
+		43A4E74030A321F996243F3B = { isa = XCConfigurationList; buildConfigurations = (9234BB5A9FC44E56D43B3E30,E876DAD15682072F8E4B3D10,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		4C58417F8271A3A412523782 = { isa = PBXNativeTarget; buildConfigurationList = 43A4E74030A321F996243F3B; buildPhases = (63C1FC9A0E98A31790F0FFA5,5A22880C8690FFA44C76A93C,1DE37CC71889FF1E45942A57,574C68534CFCA5A64C7FB090,753BF4F97BA1CCF40D4D192F,); buildRules = (); dependencies = (); name = BomuBenchmark; productName = BomuBenchmark; productReference = 06A1584507626A84D46B83F2; productType = "com.apple.product-type.application"; };
+		7DC238A5E1A39A0F25801A92 = { isa = PBXBuildFile; fileRef = 9347E62688BE41695AB1553D; };
+		AED9D9EAD3184445F76EA4D4 = { isa = PBXBuildFile; fileRef = AB09C62E76891B9D849369ED; };
+		D29D7B2F8645B661C38B537C = { isa = PBXBuildFile; fileRef = 5F7A2CD4CC478EC08D52E5E6; };
+		D2040BF32792823D556997A7 = { isa = PBXBuildFile; fileRef = 38B5BACF675E55242CA6BE02; };
+		DFC77DDAD4B48865F4B45672 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (8C7500AFDF0E4FB0BA285C75,D684205745BF4B5496A5595A,7DC238A5E1A39A0F25801A92,AED9D9EAD3184445F76EA4D4,D29D7B2F8645B661C38B537C,D2040BF32792823D556997A7,); runOnlyForDeploymentPostprocessing = 0; };
+		D5E4F82A6964DCACBA76BED1 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		E3B9FB0301433E4E2D0109E3 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		BB39C341A84F152CEEB5EBFD = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; name = "Embed verified development runtime"; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "/usr/bin/python3 \"$SRCROOT/scripts/dependencies.py\" embed \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\n"; };
+		6F19423D7BE63BB9EC386334 = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuLogicTests"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuLogicTests"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; SWIFT_OBJC_BRIDGING_HEADER = ""; OTHER_LDFLAGS = ""; TEST_HOST = ""; BUNDLE_LOADER = ""; }; name = Debug; };
+		1866F7F4B71C148AA554F6FC = { isa = XCBuildConfiguration; baseConfigurationReference = DFBA7AADE0868074C2861C98; buildSettings = { PRODUCT_NAME = "BomuLogicTests"; PRODUCT_BUNDLE_IDENTIFIER = "io.github.tech-zjf.BomuLogicTests"; CODE_SIGN_STYLE = "Manual"; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = "NO"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = ""; SWIFT_OBJC_BRIDGING_HEADER = ""; OTHER_LDFLAGS = ""; TEST_HOST = ""; BUNDLE_LOADER = ""; }; name = Release; };
+		3166CA1186D61A26B6D82786 = { isa = XCConfigurationList; buildConfigurations = (6F19423D7BE63BB9EC386334,1866F7F4B71C148AA554F6FC,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		1606989B5F749F211B8D6564 = { isa = PBXNativeTarget; buildConfigurationList = 3166CA1186D61A26B6D82786; buildPhases = (EB5183A98149C64D35717C0A,DFC77DDAD4B48865F4B45672,E3B9FB0301433E4E2D0109E3,D5E4F82A6964DCACBA76BED1,); buildRules = (); dependencies = (); name = BomuLogicTests; productName = BomuLogicTests; productReference = 3D94C2F2C4D8E8B627E94424; productType = "com.apple.product-type.bundle.unit-test"; };
+		98F54143AB4E86B28C3AFEE0 = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 2600; }; buildConfigurationList = 6650A2B5E24FA7522CE6B81C; compatibilityVersion = "Xcode 14.0"; developmentRegion = "zh-Hans"; knownRegions = ("zh-Hans", en, Base); mainGroup = B28B7AF69320201D1CF206EB; productRefGroup = FBDC4F23F93125BBEEAE800C; projectDirPath = ""; projectRoot = ""; targets = (698B7C4C21ADBF2AB189EA37,AF98108AC1FF057212DE77F1,4C58417F8271A3A412523782,1606989B5F749F211B8D6564,); };
 	};
-	rootObject = 600000000000000000000001 /* Project object */;
+	rootObject = 98F54143AB4E86B28C3AFEE0;
 }

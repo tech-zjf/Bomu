@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-13",
+  "scope": "Toolchain enforcement and selected non-window-manipulating native regressions; not complete v0.0 acceptance.",
+  "baseCommit": "f8fb6ae21cb9aaa48c00b46d6a5be19739cdfff1",
+  "toolchain": {
+    "xcode": "26.1.1",
+    "xcodeBuild": "17B100",
+    "swift": "6.2.1",
+    "swiftBuild": "swiftlang-6.2.1.4.8 clang-1700.4.4.1",
+    "macOSSDK": "26.1",
+    "macOSSDKBuild": "25B74"
+  },
+  "toolchainBehaviorTests": {
+    "passed": 8,
+    "failed": 0,
+    "command": "python3 -m unittest discover -s Tests -p 'test_*.py'"
+  },
+  "rejectedBuild": {
+    "command": "./scripts/build-dev.sh MACOSX_DEPLOYMENT_TARGET=15.0",
+    "exitCode": 65,
+    "diagnostic": "MACOSX_DEPLOYMENT_TARGET: expected 14.0, found '15.0'",
+    "expectedFailure": true
+  },
+  "swiftTests": {
+    "logic": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceName": "My Mac",
+            "modelName": "MacBook Pro",
+            "osBuildNumber": "25A8353",
+            "osVersion": "26.0",
+            "platform": "macOS"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 7,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "BomuLogicTests · Built with macOS 26.0",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1791891303.85,
+      "passedTests": 7,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1791891298.541,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - BomuLogicTests",
+      "topInsights": [],
+      "totalTestCount": 7
+    },
+    "native": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceName": "My Mac",
+            "modelName": "MacBook Pro",
+            "osBuildNumber": "25A8353",
+            "osVersion": "26.0",
+            "platform": "macOS"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 3,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Bomu · Built with macOS 26.0",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1791891419.148,
+      "passedTests": 3,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1791891407.556,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Bomu",
+      "topInsights": [],
+      "totalTestCount": 3
+    }
+  },
+  "nativeSelection": [
+    "MPVIntegrationTests/testRapidReplacementKeepsLatestRequest",
+    "MPVIntegrationTests/testShutdownDuringFileOpening",
+    "MPVIntegrationTests/testUnavailableReplacementStopsPreviousFileAndCanRecover"
+  ],
+  "nativeLimitations": "App host only. Selected cases create no window and do not validate visible rendering, physical audio/video synchronization or color. The fourth native case, which opens/resizes a test window, was not run.",
+  "builds": {
+    "Bomu": "passed via scripts/build-dev.sh",
+    "BomuBenchmark": "passed, not launched"
+  },
+  "logSHA256": {
+    ".build/test-toolchain-logic.log": "5cc814911a4e4fcd883d071a1c296407d002c6caeee71f340ed07a94a0668241",
+    ".build/test-toolchain-rejection.log": "90c2dfcaeb3b5f6e6e437ee97b16e4798179a556edfd1a74a6b5ad612fd6b07e",
+    ".build/test-native-recovery.log": "12d0388a262edab8bc5b1cc0d1a664deed81893c274b2cf4bf4bb1f3a7844484",
+    ".build/build-toolchain-final.log": "73e9b8bf4ba23230f40a44d76922b7e071e1f5e118b566f815f37f5e8c820e6f",
+    ".build/build-benchmark-toolchain.log": "623753d544be56ccc6251ab7582e3579d9a0cc38ad9e5673aa7943ed8f8d9b10"
+  },
+  "sourceSHA256": {
+    "Sources/App/AppLifecycle.swift": "b75fad7c04b6bec499b58a4f95eae37014fd9ea01933c5f312b6fd4277c37a48",
+    "Sources/App/BomuApp.swift": "50d07ac3972ca1c4e71095039abd498ce8664b1ae2a9703f3ee659edd194d956",
+    "Sources/App/Brand.swift": "add12eef54d318eb4d7d5a222adb80ec502ac66f64dedd98810a429838b7e8a5",
+    "Sources/App/StartView.swift": "871af23362d86a7d85ff22ad4be3a689979c2d9c5156d36592e3119d8d689ca2",
+    "Sources/DesignSystem/AppTheme.swift": "f5bee6854786ad75f951ed49b5289b26e7e85d19269b008f70d227ba058e1748",
+    "Sources/Playback/MPV/BMMPVSession.h": "6e3fba0f1dd6bdac4bb5d10ef2d6ddbbbf89788161cb72b04397358f885810ef",
+    "Sources/Playback/MPV/BMMPVSession.m": "d8bfc38a121adedee0f6a351263e7db4496ba5e6ff5052c41f5c2130ec91d383",
+    "Sources/Playback/MPV/MPVPlaybackEngine.swift": "d8b65302ea57d27deed16e69d4de40bf32a6a64c5329497c617030e328f4e572",
+    "Sources/Playback/MPV/PlaybackDiagnostics.swift": "6fb43037d52c3d3c3a1793628a7b140f2240e4665b19725c5b9093fa683d36bc",
+    "Sources/Playback/PlaybackEngine.swift": "feb0da0d48d91d216d75cb0e1df34dd01577872ab81d2069f73e2232893ba7da",
+    "Sources/Playback/PlaybackState.swift": "a5acfca54b39433bc5b9ee02827e6c030275adf7d8b1eafbb787d4a8ba0c14d7",
+    "Sources/PlayerFeature/OpenMediaPanel.swift": "eb01bddaf29f36e02f28a71265d8c1d25fb22af0b92f5f30c600f5efae8fd4c8",
+    "Sources/PlayerFeature/PlaybackControls.swift": "f78690181b109cbb2fb9925de6ce023358855a07d12b256967295bff3617725d",
+    "Sources/PlayerFeature/PlayerModel.swift": "b5d0f30fd3013cd0f129cbf19bcb4338ff6ae6678ad231ed08c60d8685f3aa71",
+    "Sources/PlayerFeature/PlayerScreen.swift": "466aeaa55cb641d7fed732b73f42844e97dde96e1994a2120d8234ddf4048512",
+    "Sources/Rendering/BMVideoSurface.h": "827683214ce36b55e39a34a4e26758f9396eb83e4f5d18776632918a23823bcc",
+    "Sources/Rendering/BMVideoSurface.m": "73258831c9d444bdd4fb262014d3dcf13a16fbe5b3513e35018e0a62ea1dbbf8",
+    "Sources/Rendering/VideoHostView.swift": "dc1338cca1d642d00a50a539a8cda4d5aeb2def3b6bb353ef340474d84bf2ccd",
+    "Tests/MPVIntegrationTests.swift": "0513d55ec17d35116b38ba2889186cbfec27ef71793d2eacf1c535552e8eb940",
+    "Tests/PlaybackStateTests.swift": "6a031ef2b786f704bd8853fe614a501a629b32a54126504a0f8566138379bccf",
+    "Tests/test_toolchain.py": "9d75b144c9573b7287ee1624c8646d97b33d57ce3b44cc91144f77d8fdfded47",
+    "Tools/PlaybackBenchmark/BenchmarkApp.swift": "cd89fcb9b6963560727eb03d300a1d34eeb92cea2ba1e2042067e117c84691c7",
+    "Tools/PlaybackBenchmark/BenchmarkMeasurements.swift": "d32371c805f89eab28e6ab6f600fc9217fcb48bfec1a082f98376a780397c11b",
+    "Tools/PlaybackBenchmark/PlaybackBenchmark.swift": "dfb03bd2d56098d9ede8a0bdf7dda241aa49d80e50a6e5e297ab0b0afe335816",
+    "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "037e5986b3ce0581bb645eea76b4fa81837a51f7564d24359d127f83c06fdd68",
+    "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "1efe40d13f645e0b5e83afcc89527c01a350c9f6ef37ad92fec9c7fa8f65b083",
+    "Config/App.xcconfig": "b117ee0474f3a0d90a6e16e08cc986b4cdf4ab3b25592d5869571407d7ee3e18",
+    "Config/Bomu-Bridging-Header.h": "19619e7565827f775b1f22766aa730187122bde215972f10950beea30bfb776b",
+    "Config/Dependencies.lock.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+    "Config/Info.plist": "785c562459c4dfdffae307d581c5a8773f3e8853120dd554a8fc94715c3ccbad",
+    "scripts/benchmark-dev.sh": "0dacdf6d801a8cfe114f11a43cf94cf25a8df5f1174bf3471e5140d8c7558b11",
+    "scripts/build-dev.sh": "784d33145f11266147dac04530fa92c37846c89c1686a05938cde17220eda11f",
+    "scripts/dependencies.py": "8ee0c32ea588d3244f1b0d12d460d69f516b8dba0539d990412c05bc932adf25",
+    "scripts/generate-benchmark-media.sh": "0830b48ac84fc058086785a2c064dafb6a74f12a039bb8701d33e4f6c7352526",
+    "scripts/generate-fixtures.sh": "d130a3db504683f20d7b72ecc5aedf2d8e2735c4979bbddefc68d3d14e7ad8de",
+    "scripts/generate-sync-fixture.py": "a0e6a35a9836f6e6ea862c5e7df592ad21f0895f9e1b76b00b86e7aefee31e4f",
+    "scripts/generate-window-fixture.py": "f9e67f8d9a868e83a496eea36e8f7ba64cd5d52fe427219179ab2b905f853c82",
+    "scripts/summarize-benchmark.py": "de4011c3f41b1a068b227ced037799a267c6bd2c3b3b630a87c4fd259aaf0705",
+    "scripts/summarize-window-benchmark.py": "3383ffb06a6945eb02a58d8958fb8957807a165c05d182cf1342b1b4e7db3f0e",
+    "scripts/test-dev.sh": "d0a0cb7c4f2e4d32904eb78c46bf5fc7da66e3ae31f70b444bcb9e3cb2e3d7da",
+    "scripts/toolchain.py": "9bd61c8f0c340ae9e96c183663357e853866aed3d3a299e1381d5e7f0c7c6d12",
+    "Bomu.xcodeproj/project.pbxproj": "16e6f8c89bfb763dd3dbd4714e9d48984120b22252a417f04ec026d33b8848ff",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/Bomu.xcscheme": "7a6cb11171a4e35ad15f1e1edd3c7eec7f6eee540dc4fb26baffc0a120e1aeb6",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/BomuBenchmark.xcscheme": "b124720a93bb325fa2b6252229b7d6aee46c20fcbd9b2b0769a3376224d2e6df",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/BomuLogicTests.xcscheme": "a071b0c4f64784da0401428b0d03d3decdf7068f05b2d2b4ed5acbfdb467f132"
+  },
+  "note": "Hashes identify working files including uncommitted changes. Full local logs and xcresult bundles stay in ignored .build/. Device ID omitted from summaries."
+}

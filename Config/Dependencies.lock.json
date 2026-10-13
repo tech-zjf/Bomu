@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "usage": "development-poc-only",
+  "distributionReady": false,
+  "source": {
+    "project": "IINA",
+    "version": "1.5.0",
+    "url": "https://github.com/iina/iina/releases/download/v1.5.0/IINA.v1.5.0.dmg",
+    "sha256": "8fad50479b10e09645053457cec46bd53d054ced2242cfe68f74586735a20dc7"
+  },
+  "toolchain": {
+    "xcode": "26.1.1",
+    "xcodeBuild": "17B100",
+    "swift": "6.2.1",
+    "swiftBuild": "swiftlang-6.2.1.4.8 clang-1700.4.4.1",
+    "swiftLanguageVersion": "6.0",
+    "macOSSDK": "26.1",
+    "macOSSDKBuild": "25B74",
+    "deploymentTarget": "14.0",
+    "architecture": "arm64"
+  },
+  "runtime": {
+    "mpv-version": "mpv v0.41.0",
+    "ffmpeg-version": "9.0.1",
+    "mpv-configuration": "-Dbuildtype=release -Dprefix=/Users/uiryuu/Developer/iina-deps-build/install/arm64 -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dmacos-cocoa-cb=disabled -Dmacos-touchbar=disabled -Dmacos-media-player=disabled -Dmanpage-build=disabled -Dtests=false -Dlua=luajit -Djavascript=enabled -Dlcms2=enabled -Dvulkan=disabled -Dgl=enabled -Dzimg=enabled -Dlibbluray=enabled -Dlibarchive=enabled -Duchardet=enabled -Djpeg=enabled -Drubberband=enabled '-Dswift-flags=-target arm64-apple-macosx11.0' --native-file=/Users/uiryuu/Developer/iina-deps-build/extra/meson-arm64-darwin.ini",
+    "ffmpeg-configuration": "--prefix=/Users/runner/work/deps-buildscripts/deps-buildscripts/install/arm64 --arch=arm64 --target-os=darwin --cc=clang --cxx=clang++ --extra-cflags='-arch arm64 -mmacosx-version-min=11.0 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -O2 -I/Users/runner/work/deps-buildscripts/deps-buildscripts/install/arm64/include' --extra-ldflags='-arch arm64 -mmacosx-version-min=11.0 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -L/Users/runner/work/deps-buildscripts/deps-buildscripts/install/arm64/lib' --pkg-config=pkg-config --enable-gpl --enable-shared --disable-static --disable-programs --disable-doc --disable-debug --enable-network --enable-securetransport --enable-videotoolbox --enable-audiotoolbox --enable-libspeex --enable-libvorbis --enable-libdav1d --enable-libass --enable-libwebp --enable-libjxl --enable-libsvtav1 --enable-libbs2b --enable-libsoxr --enable-librubberband --enable-libzimg --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libharfbuzz"
+  },
+  "libraries": {
+    "libSvtAv1Enc.4.dylib": {
+      "sha256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "dependencies": []
+    },
+    "libarchive.13.dylib": {
+      "sha256": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "dependencies": [
+        "liblz4.1.dylib",
+        "libzstd.1.dylib"
+      ]
+    },
+    "libass.9.dylib": {
+      "sha256": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "dependencies": [
+        "libfontconfig.1.dylib",
+        "libfreetype.6.dylib",
+        "libfribidi.0.dylib",
+        "libharfbuzz.0.dylib",
+        "libunibreak.7.dylib"
+      ]
+    },
+    "libavcodec.63.dylib": {
+      "sha256": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "dependencies": [
+        "libSvtAv1Enc.4.dylib",
+        "libavutil.61.dylib",
+        "libdav1d.7.dylib",
+        "libjxl.0.11.dylib",
+        "libjxl_threads.0.11.dylib",
+        "libsoxr.0.dylib",
+        "libspeex.1.dylib",
+        "libswresample.7.dylib",
+        "libvorbis.0.dylib",
+        "libvorbisenc.2.dylib",
+        "libwebp.7.dylib",
+        "libwebpmux.3.dylib"
+      ]
+    },
+    "libavdevice.63.dylib": {
+      "sha256": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "dependencies": [
+        "libSvtAv1Enc.4.dylib",
+        "libass.9.dylib",
+        "libavcodec.63.dylib",
+        "libavfilter.12.dylib",
+        "libavformat.63.dylib",
+        "libavutil.61.dylib",
+        "libbs2b.0.dylib",
+        "libdav1d.7.dylib",
+        "libfontconfig.1.dylib",
+        "libfreetype.6.dylib",
+        "libfribidi.0.dylib",
+        "libharfbuzz.0.dylib",
+        "libjxl.0.11.dylib",
+        "libjxl_threads.0.11.dylib",
+        "librubberband.3.dylib",
+        "libsoxr.0.dylib",
+        "libspeex.1.dylib",
+        "libswresample.7.dylib",
+        "libswscale.10.dylib",
+        "libvorbis.0.dylib",
+        "libvorbisenc.2.dylib",
+        "libwebp.7.dylib",
+        "libwebpmux.3.dylib",
+        "libzimg.2.dylib"
+      ]
+    },
+    "libavfilter.12.dylib": {
+      "sha256": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "dependencies": [
+        "libSvtAv1Enc.4.dylib",
+        "libass.9.dylib",
+        "libavcodec.63.dylib",
+        "libavformat.63.dylib",
+        "libavutil.61.dylib",
+        "libbs2b.0.dylib",
+        "libdav1d.7.dylib",
+        "libfontconfig.1.dylib",
+        "libfreetype.6.dylib",
+        "libfribidi.0.dylib",
+        "libharfbuzz.0.dylib",
+        "libjxl.0.11.dylib",
+        "libjxl_threads.0.11.dylib",
+        "librubberband.3.dylib",
+        "libsoxr.0.dylib",
+        "libspeex.1.dylib",
+        "libswresample.7.dylib",
+        "libswscale.10.dylib",
+        "libvorbis.0.dylib",
+        "libvorbisenc.2.dylib",
+        "libwebp.7.dylib",
+        "libwebpmux.3.dylib",
+        "libzimg.2.dylib"
+      ]
+    },
+    "libavformat.63.dylib": {
+      "sha256": "b91e9827cd3190988135164a050674f716049fb7c6c8f996c904a03c236b1351",
+      "dependencies": [
+        "libSvtAv1Enc.4.dylib",
+        "libavcodec.63.dylib",
+        "libavutil.61.dylib",
+        "libdav1d.7.dylib",
+        "libjxl.0.11.dylib",
+        "libjxl_threads.0.11.dylib",
+        "libsoxr.0.dylib",
+        "libspeex.1.dylib",
+        "libswresample.7.dylib",
+        "libvorbis.0.dylib",
+        "libvorbisenc.2.dylib",
+        "libwebp.7.dylib",
+        "libwebpmux.3.dylib"
+      ]
+    },
+    "libavutil.61.dylib": {
+      "sha256": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "dependencies": []
+    },
+    "libbluray.3.dylib": {
+      "sha256": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "dependencies": [
+        "libfontconfig.1.dylib",
+        "libfreetype.6.dylib",
+        "libudfread.3.dylib"
+      ]
+    },
+    "libbrotlicommon.1.dylib": {
+      "sha256": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "dependencies": []
+    },
+    "libbrotlidec.1.dylib": {
+      "sha256": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "dependencies": [
+        "libbrotlicommon.1.dylib"
+      ]
+    },
+    "libbrotlienc.1.dylib": {
+      "sha256": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "dependencies": [
+        "libbrotlicommon.1.dylib"
+      ]
+    },
+    "libbs2b.0.dylib": {
+      "sha256": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "dependencies": []
+    },
+    "libdav1d.7.dylib": {
+      "sha256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "dependencies": []
+    },
+    "libfontconfig.1.dylib": {
+      "sha256": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "dependencies": [
+        "libfreetype.6.dylib"
+      ]
+    },
+    "libfreetype.6.dylib": {
+      "sha256": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "dependencies": []
+    },
+    "libfribidi.0.dylib": {
+      "sha256": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "dependencies": []
+    },
+    "libharfbuzz.0.dylib": {
+      "sha256": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "dependencies": [
+        "libfreetype.6.dylib"
+      ]
+    },
+    "libjpeg.62.dylib": {
+      "sha256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "dependencies": []
+    },
+    "libjxl.0.11.dylib": {
+      "sha256": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "dependencies": [
+        "libbrotlicommon.1.dylib",
+        "libbrotlidec.1.dylib",
+        "libbrotlienc.1.dylib",
+        "libjxl_cms.0.11.dylib"
+      ]
+    },
+    "libjxl_cms.0.11.dylib": {
+      "sha256": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "dependencies": []
+    },
+    "libjxl_threads.0.11.dylib": {
+      "sha256": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "dependencies": []
+    },
+    "liblcms2.2.dylib": {
+      "sha256": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "dependencies": []
+    },
+    "libluajit-5.1.2.dylib": {
+      "sha256": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "dependencies": []
+    },
+    "liblz4.1.dylib": {
+      "sha256": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "dependencies": []
+    },
+    "libmpv.2.dylib": {
+      "sha256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "dependencies": [
+        "libarchive.13.dylib",
+        "libass.9.dylib",
+        "libavcodec.63.dylib",
+        "libavdevice.63.dylib",
+        "libavfilter.12.dylib",
+        "libavformat.63.dylib",
+        "libavutil.61.dylib",
+        "libbluray.3.dylib",
+        "libjpeg.62.dylib",
+        "liblcms2.2.dylib",
+        "libluajit-5.1.2.dylib",
+        "libmujs.dylib",
+        "libplacebo.360.dylib",
+        "librubberband.3.dylib",
+        "libswresample.7.dylib",
+        "libswscale.10.dylib",
+        "libuchardet.0.dylib",
+        "libzimg.2.dylib"
+      ]
+    },
+    "libmujs.dylib": {
+      "sha256": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "dependencies": []
+    },
+    "libogg.0.dylib": {
+      "sha256": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "dependencies": []
+    },
+    "libplacebo.360.dylib": {
+      "sha256": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "dependencies": [
+        "liblcms2.2.dylib"
+      ]
+    },
+    "librubberband.3.dylib": {
+      "sha256": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "dependencies": []
+    },
+    "libsharpyuv.0.dylib": {
+      "sha256": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "dependencies": []
+    },
+    "libsoxr.0.dylib": {
+      "sha256": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "dependencies": []
+    },
+    "libspeex.1.dylib": {
+      "sha256": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "dependencies": []
+    },
+    "libswresample.7.dylib": {
+      "sha256": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "dependencies": [
+        "libavutil.61.dylib",
+        "libsoxr.0.dylib"
+      ]
+    },
+    "libswscale.10.dylib": {
+      "sha256": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "dependencies": [
+        "libavutil.61.dylib"
+      ]
+    },
+    "libuchardet.0.dylib": {
+      "sha256": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "dependencies": []
+    },
+    "libudfread.3.dylib": {
+      "sha256": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "dependencies": []
+    },
+    "libunibreak.7.dylib": {
+      "sha256": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "dependencies": []
+    },
+    "libvorbis.0.dylib": {
+      "sha256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "dependencies": [
+        "libogg.0.dylib"
+      ]
+    },
+    "libvorbisenc.2.dylib": {
+      "sha256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "dependencies": [
+        "libogg.0.dylib",
+        "libvorbis.0.dylib"
+      ]
+    },
+    "libwebp.7.dylib": {
+      "sha256": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "dependencies": [
+        "libsharpyuv.0.dylib"
+      ]
+    },
+    "libwebpmux.3.dylib": {
+      "sha256": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "dependencies": [
+        "libsharpyuv.0.dylib",
+        "libwebp.7.dylib"
+      ]
+    },
+    "libzimg.2.dylib": {
+      "sha256": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "dependencies": []
+    },
+    "libzstd.1.dylib": {
+      "sha256": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad",
+      "dependencies": []
+    }
+  },
+  "headers": {
+    "ThirdParty/libmpv/include/mpv/client.h": "3c073236a09cb456c6e80587d5523c8771c32fb22ca014e0f99cc3d43905b75c",
+    "ThirdParty/libmpv/include/mpv/render.h": "192691941602052f00df0587f126246c48785a1cf21de68d22a92ea1908d1c55",
+    "ThirdParty/libmpv/include/mpv/render_gl.h": "48662c0ed9872a14dd9e1684105c97f69f94a0414709c254c5d372adc41d2e69"
+  }
+}
