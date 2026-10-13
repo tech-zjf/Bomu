@@ -1,0 +1,108 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* BomuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* BomuApp.swift */; };
+		100000000000000000000002 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000002 /* Brand.swift */; };
+		100000000000000000000003 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000003 /* StartView.swift */; };
+		100000000000000000000004 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000004 /* AppTheme.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		200000000000000000000001 /* BomuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BomuApp.swift; sourceTree = "<group>"; };
+		200000000000000000000002 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
+		200000000000000000000003 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
+		200000000000000000000004 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		200000000000000000000005 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
+		200000000000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		200000000000000000000007 /* Bomu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bomu.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		300000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		400000000000000000000001 = {isa = PBXGroup; children = (400000000000000000000002 /* Sources */, 400000000000000000000005 /* Config */, 400000000000000000000006 /* Products */); sourceTree = "<group>"; };
+		400000000000000000000002 /* Sources */ = {isa = PBXGroup; children = (400000000000000000000003 /* App */, 400000000000000000000004 /* DesignSystem */); path = Sources; sourceTree = "<group>"; };
+		400000000000000000000003 /* App */ = {isa = PBXGroup; children = (200000000000000000000001, 200000000000000000000002, 200000000000000000000003); path = App; sourceTree = "<group>"; };
+		400000000000000000000004 /* DesignSystem */ = {isa = PBXGroup; children = (200000000000000000000004); path = DesignSystem; sourceTree = "<group>"; };
+		400000000000000000000005 /* Config */ = {isa = PBXGroup; children = (200000000000000000000005, 200000000000000000000006); path = Config; sourceTree = "<group>"; };
+		400000000000000000000006 /* Products */ = {isa = PBXGroup; children = (200000000000000000000007); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		500000000000000000000001 /* Bomu */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 800000000000000000000002;
+			buildPhases = (300000000000000000000002 /* Sources */, 300000000000000000000001 /* Frameworks */, 300000000000000000000003 /* Resources */);
+			buildRules = ();
+			dependencies = ();
+			name = Bomu;
+			productName = Bomu;
+			productReference = 200000000000000000000007 /* Bomu.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		600000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2600; LastUpgradeCheck = 2600; TargetAttributes = {500000000000000000000001 = {CreatedOnToolsVersion = 26.0; }; }; };
+			buildConfigurationList = 800000000000000000000001;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = ("zh-Hans", en, Base);
+			mainGroup = 400000000000000000000001;
+			productRefGroup = 400000000000000000000006;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (500000000000000000000001 /* Bomu */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		300000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		300000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000001, 100000000000000000000002, 100000000000000000000003, 100000000000000000000004); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		700000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)"); ONLY_ACTIVE_ARCH = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; };
+			name = Debug;
+		};
+		700000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; };
+			name = Release;
+		};
+		700000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000005 /* App.xcconfig */;
+			buildSettings = {CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; ENABLE_APP_SANDBOX = NO; };
+			name = Debug;
+		};
+		700000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000005 /* App.xcconfig */;
+			buildSettings = {ENABLE_APP_SANDBOX = NO; };
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		800000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (700000000000000000000001 /* Debug */, 700000000000000000000002 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		800000000000000000000002 = {isa = XCConfigurationList; buildConfigurations = (700000000000000000000003 /* Debug */, 700000000000000000000004 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = 600000000000000000000001 /* Project object */;
+}

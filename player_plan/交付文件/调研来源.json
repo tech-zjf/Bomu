@@ -1,0 +1,194 @@
+[
+  {
+    "id": "S01",
+    "title": "IINA 1.5.0 发布说明",
+    "url": "https://github.com/iina/iina/releases/tag/v1.5.0",
+    "type": "官方版本记录"
+  },
+  {
+    "id": "S02",
+    "title": "IINA 插件系统",
+    "url": "https://iina.io/plugin/",
+    "type": "官方功能"
+  },
+  {
+    "id": "S03",
+    "title": "IINA 项目",
+    "url": "https://github.com/iina/iina",
+    "type": "官方项目"
+  },
+  {
+    "id": "S04",
+    "title": "Infuse 官方功能",
+    "url": "https://firecore.com/infuse",
+    "type": "官方功能"
+  },
+  {
+    "id": "S05",
+    "title": "Movist Pro 官方功能",
+    "url": "https://movistprime.com/en/",
+    "type": "官方功能"
+  },
+  {
+    "id": "S06",
+    "title": "VidHub 正版应用页及评论",
+    "url": "https://apps.apple.com/us/app/vidhub-video-library-player/id1659622164",
+    "type": "开发者声明及用户反馈"
+  },
+  {
+    "id": "S07",
+    "title": "SenPlayer 官网",
+    "url": "https://www.senmuse.com/",
+    "type": "官方功能"
+  },
+  {
+    "id": "S08",
+    "title": "VideoLAN 项目介绍",
+    "url": "https://images.videolan.org/projects/",
+    "type": "官方功能"
+  },
+  {
+    "id": "S09",
+    "title": "MacLC 官网",
+    "url": "https://www.hazenstudio.com/maclc/",
+    "type": "项目方声明"
+  },
+  {
+    "id": "S10",
+    "title": "MacLC 开源仓库",
+    "url": "https://github.com/OZBM/MacLC",
+    "type": "官方项目"
+  },
+  {
+    "id": "S11",
+    "title": "Owl 开源仓库",
+    "url": "https://github.com/limboy/owl",
+    "type": "官方项目"
+  },
+  {
+    "id": "S12",
+    "title": "HorangPlayer 官网",
+    "url": "https://www.horangplayer.com/",
+    "type": "项目方声明"
+  },
+  {
+    "id": "S13",
+    "title": "Cinema Player 开源仓库",
+    "url": "https://github.com/hessennasser/cinema-player",
+    "type": "官方项目"
+  },
+  {
+    "id": "S14",
+    "title": "Infuse 用户关于文件夹结构的讨论",
+    "url": "https://community.firecore.com/t/hello-brand-new-user-pro-purchase-attempting-to-use-with-plex/59291",
+    "type": "个别用户反馈"
+  },
+  {
+    "id": "S15",
+    "title": "IINA HDR 问题汇总",
+    "url": "https://github.com/iina/iina/issues/6164",
+    "type": "问题记录 不代表当前全部仍可复现"
+  },
+  {
+    "id": "S16",
+    "title": "IINA 动态发现同目录文件请求",
+    "url": "https://github.com/iina/iina/issues/6258",
+    "type": "个别需求线索"
+  },
+  {
+    "id": "S17",
+    "title": "Mac 玩家使用场景讨论",
+    "url": "https://www.reddit.com/r/macbookpro/comments/1ikrt6q/macbook_pro_users_which_media_player_do_you/",
+    "type": "个别用户反馈"
+  },
+  {
+    "id": "S18",
+    "title": "mpv 官方能力介绍",
+    "url": "https://mpv.io/",
+    "type": "开发组件"
+  },
+  {
+    "id": "S19",
+    "title": "mpv 渲染 API",
+    "url": "https://github.com/mpv-player/mpv/blob/master/include/mpv/render.h",
+    "type": "接口源码"
+  },
+  {
+    "id": "S20",
+    "title": "mpv 控制 API",
+    "url": "https://github.com/mpv-player/mpv/blob/master/include/mpv/client.h",
+    "type": "接口源码"
+  },
+  {
+    "id": "S21",
+    "title": "FFmpeg 格式及编解码器支持",
+    "url": "https://ffmpeg.org/general.html#Supported-File-Formats_002c-Codecs-or-Features",
+    "type": "官方技术文档"
+  },
+  {
+    "id": "S22",
+    "title": "mpv 构建与许可说明",
+    "url": "https://github.com/mpv-player/mpv",
+    "type": "官方项目"
+  },
+  {
+    "id": "S23",
+    "title": "SwiftUI 与 AppKit 集成",
+    "url": "https://developer.apple.com/documentation/swiftui/appkit-integration",
+    "type": "苹果开发文档"
+  },
+  {
+    "id": "S24",
+    "title": "AVPlayerView",
+    "url": "https://developer.apple.com/documentation/avkit/avplayerview",
+    "type": "苹果开发文档"
+  },
+  {
+    "id": "S25",
+    "title": "Apple 网站直接分发应用",
+    "url": "https://developer.apple.com/documentation/technologyoverviews/distribution",
+    "type": "苹果分发规则"
+  },
+  {
+    "id": "S26",
+    "title": "Apple Developer Program 会员",
+    "url": "https://developer.apple.com/programs/whats-included/",
+    "type": "苹果会员说明"
+  },
+  {
+    "id": "S27",
+    "title": "Sparkle 更新文档",
+    "url": "https://sparkle-project.org/documentation/",
+    "type": "官方技术文档"
+  },
+  {
+    "id": "S28",
+    "title": "TMDB API FAQ",
+    "url": "https://developer.themoviedb.org/docs/faq",
+    "type": "服务方规则"
+  },
+  {
+    "id": "S29",
+    "title": "KSPlayer 项目及许可",
+    "url": "https://github.com/kingslay/KSPlayer",
+    "type": "候选组件"
+  },
+  {
+    "id": "S30",
+    "title": "Tauri 架构",
+    "url": "https://tauri.app/concept/architecture/",
+    "type": "候选组件"
+  },
+  {
+    "id": "S31",
+    "title": "Mole 发布页",
+    "url": "https://github.com/tw93/mole/releases",
+    "type": "分发参考"
+  },
+  {
+    "id": "S32",
+    "title": "mpv 完整使用文档",
+    "url": "https://mpv.io/manual/stable/",
+    "type": "官方技术文档"
+  }
+]

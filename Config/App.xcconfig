@@ -1,0 +1,22 @@
+// Brand and app identity. Keep the bundle identifier stable after the first release.
+BOMU_DISPLAY_NAME = Bomu
+PRODUCT_NAME = Bomu
+PRODUCT_BUNDLE_IDENTIFIER = io.github.tech-zjf.Bomu
+MARKETING_VERSION = 0.0.1
+CURRENT_PROJECT_VERSION = 1
+
+// First target platform from the approved plan.
+MACOSX_DEPLOYMENT_TARGET = 14.0
+SDKROOT = macosx
+ARCHS = arm64
+SUPPORTED_PLATFORMS = macosx
+SWIFT_VERSION = 6.0
+SWIFT_STRICT_CONCURRENCY = complete
+
+// Local bootstrap. Distribution signing is introduced with the release workflow.
+CODE_SIGN_STYLE = Automatic
+GENERATE_INFOPLIST_FILE = NO
+INFOPLIST_FILE = Config/Info.plist
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks
+ENABLE_HARDENED_RUNTIME = YES
+COMBINE_HIDPI_IMAGES = YES

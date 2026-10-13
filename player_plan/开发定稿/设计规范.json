@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "product": "Mori",
+  "status": "用户已确认视觉方向，原生实现待开发",
+  "platform": "macOS 14+ arm64",
+  "units": "pt for native layout",
+  "colors": {
+    "textPrimary": "#141D2D",
+    "textSecondary": "#647084",
+    "surface": "#FFFFFF",
+    "sidebar": "#F0F4F8",
+    "separator": "#E5EAF0",
+    "warmAccent": "#EFB98F",
+    "playerFallback": "#111722"
+  },
+  "typography": {
+    "family": "System SF / PingFang",
+    "pageTitle": 27,
+    "sectionTitle": 18,
+    "body": 14,
+    "metadata": 12,
+    "timeDigits": "monospaced"
+  },
+  "spacing": {
+    "sidebarWidth": 176,
+    "contentInset": 30,
+    "gridGap": 17,
+    "sectionGap": 28,
+    "playerHorizontalInset": 22
+  },
+  "radius": {
+    "windowVisual": 20,
+    "thumbnail": 14,
+    "menu": 16,
+    "dialog": 22
+  },
+  "player": {
+    "centralButton": 88,
+    "skipButton": 62,
+    "controlGap": 26,
+    "primaryIcon": 39,
+    "skipIcon": 27,
+    "autoHideSeconds": 2.5,
+    "preserveAspectRatio": true,
+    "defaultCrop": false
+  },
+  "window": {
+    "minimum": [
+      900,
+      600
+    ],
+    "testSizes": [
+      [
+        960,
+        640
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "nativeTitlebar": true
+  },
+  "behavior": {
+    "cardSingleClick": "select",
+    "cardDoubleClick": "play",
+    "returnToBrowse": "continue session and show now-playing bar",
+    "historySaveIntervalSeconds": 5
+  },
+  "appearance": {
+    "v02": "light",
+    "darkModeVersion": "v0.4",
+    "reduceTransparency": "opaque high-contrast fallback",
+    "reduceMotion": true
+  },
+  "prototypeExceptions": [
+    "示例素材不是实际视频",
+    "示例属性需改为真实探测",
+    "目录入口需补全真实子目录",
+    "浏览时补底部当前播放栏",
+    "演示切换器与模拟按钮不进入原生产品"
+  ]
+}

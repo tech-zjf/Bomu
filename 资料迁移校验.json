@@ -1,0 +1,553 @@
+{
+  "date": "2026-10-13",
+  "operation": "relocate-reference-folders",
+  "fileCount": 136,
+  "totalBytes": 55497485,
+  "sha256Verified": true,
+  "files": {
+    "player_naming/商标初筛记录.json": {
+      "bytes": 2620,
+      "sha256": "a3dca32704579fd0ca32a0495363271bdc15b4b08c2c1afc24ab69418afe7b7a"
+    },
+    "player_naming/播放器命名核查_2026-10-13.txt": {
+      "bytes": 7814,
+      "sha256": "36bce8f29eeaf31a69b20b14cf6781c35d7de714d1095fa28e282d1075254cd3"
+    },
+    "player_naming/domain-registry-check.json": {
+      "bytes": 32182,
+      "sha256": "6d0ab228600e2d93118a5c62657797e91d73ea72d0865da6e77de45a73cbe02d"
+    },
+    "player_plan/check_html.cjs": {
+      "bytes": 1440,
+      "sha256": "4ddee2de24271169ee9e91573e496587d131e711b6e786caa5c8ac34a2c8f1d4"
+    },
+    "player_plan/build_final.py": {
+      "bytes": 56021,
+      "sha256": "431c396e19545e029804e5098fa3abbeecad653d482762bcbcdbe2dd18d91344"
+    },
+    "player_plan/final-ui-offline.png": {
+      "bytes": 922681,
+      "sha256": "e045f1ee80a3aa8f94015ce42e2b727b00c6b8c00a5bc75398975cd2fd5bdade"
+    },
+    "player_plan/build_plan.py": {
+      "bytes": 72789,
+      "sha256": "6895dffbb9b6f8ffaa23cdae6f4243c2f44f789fb452f62777b5ad5453c943a3"
+    },
+    "player_plan/final-build-check.json": {
+      "bytes": 254,
+      "sha256": "1b0d8ca3eafb2fc38bd6db79fa7fd1de01695a6876e228e0d51b8ba5f08c913f"
+    },
+    "player_plan/qa_before_hashes.json": {
+      "bytes": 2647,
+      "sha256": "cca6493a1f78950d1b0f3b19783130a4a6822d6820fb0e68e5f2eff4302ee051"
+    },
+    "player_plan/final-plan-desktop.png": {
+      "bytes": 232677,
+      "sha256": "81a4c7735b4cfccf3698edc5bd0ba15b869cab1ce40248dd98fe3c9d7d2a20e9"
+    },
+    "player_plan/font-test.docx": {
+      "bytes": 36765,
+      "sha256": "9f030032221580dd846db1f637531572d4c864af7b0fc9d1258e60607a809067"
+    },
+    "player_plan/Mori_Mac播放器_开发定稿_2026-10-13.zip": {
+      "bytes": 5654061,
+      "sha256": "4ec5a9ef04f19c3bcb6b41f9bd71e57a7c9461f2075a13f0994ab75b7c23d0d7"
+    },
+    "player_plan/html-preview.png": {
+      "bytes": 338156,
+      "sha256": "539aac778d62f864348a32f9d89d22ada9baa2c7b292e6ef0205d04a15f77043"
+    },
+    "player_plan/fonts.conf": {
+      "bytes": 446,
+      "sha256": "16caf773d8ca60ef5c0c350a3a2ea719a1d3a59c7eca1fe4f89adba11a39e5b8"
+    },
+    "player_plan/build_check.json": {
+      "bytes": 355,
+      "sha256": "2dba1c84fe5c18e1e3ee437006f3ccd5d5bba2c5bfa53d196c313471460bc31d"
+    },
+    "player_plan/check_final.cjs": {
+      "bytes": 2398,
+      "sha256": "072837d242bf075afee6c35d9e6dbad87f16ba39eb6eeee087629fd34df4b6a7"
+    },
+    "player_plan/开发定稿/UI设计稿.html": {
+      "bytes": 1519771,
+      "sha256": "10389b4837f1c5e536cff115f6117275e6de701f1ea981b4bf5f156572576664"
+    },
+    "player_plan/开发定稿/设计规范.json": {
+      "bytes": 1875,
+      "sha256": "3761216e2f71fdd7a1b6f9c966407cd366bb48a01121772081e86ad03425522c"
+    },
+    "player_plan/开发定稿/开始开发.txt": {
+      "bytes": 1326,
+      "sha256": "caf463f29ef9e76d832290ae0ef9c481395f9ed97b05402b72d1f4ffebc42e0e"
+    },
+    "player_plan/开发定稿/开发任务.json": {
+      "bytes": 41068,
+      "sha256": "5587701e1121350824ee7779433f4c89ca7d579e67fdd81ea95e61a3f2ba6e5a"
+    },
+    "player_plan/开发定稿/调研来源.json": {
+      "bytes": 6094,
+      "sha256": "8a883d7078a558d01fea73441d45b2173031a333ad89d88b86e0593222547179"
+    },
+    "player_plan/开发定稿/背景研究_2026年10月12日.docx": {
+      "bytes": 75114,
+      "sha256": "e237d3b648bb0807e2923e820831d54fe283f7d0ff69e2d965ee1cf96ec73cc4"
+    },
+    "player_plan/开发定稿/Mori播放器开发定稿.html": {
+      "bytes": 1899803,
+      "sha256": "e693355dddb72658c0db75d00ac48e160ad57fd891a4c2c05480c63aab97758d"
+    },
+    "player_plan/开发定稿/文件校验SHA256.txt": {
+      "bytes": 1305,
+      "sha256": "26af8fc1722369d6a3687fd51c6af0bbe015df0d172c7d23b555118474dec3bb"
+    },
+    "player_plan/开发定稿/Mori播放器开发手册.docx": {
+      "bytes": 1397993,
+      "sha256": "c7e4834263f1928fcfac3b007687d37e732d02c6a06ebb5e74d68449a25e6c7e"
+    },
+    "player_plan/font-test-render/page-1.png": {
+      "bytes": 29300,
+      "sha256": "5c3da89d7a451c8a19f25828f2cc68a9ebf89e5c394d636c997e0e723f20250e"
+    },
+    "player_plan/font-test-render/font-test.pdf": {
+      "bytes": 16362,
+      "sha256": "df8e0a5402359d6ca95a741b30c4bb1eb7b22385261baa24141388ce6ece0fad"
+    },
+    "player_plan/font-test-render3/page-1.png": {
+      "bytes": 71125,
+      "sha256": "a083ef735585d885e278e1004154f7dfbc6e397d73494b73194f896b6b2245ee"
+    },
+    "player_plan/font-test-render3/font-test.pdf": {
+      "bytes": 54321,
+      "sha256": "854eb51d0a9de6ad0ed773fc72ed1b0c8d036df68844ad2f3ef0ec9ddbc51269"
+    },
+    "player_plan/font-test-render2/page-1.png": {
+      "bytes": 29300,
+      "sha256": "5c3da89d7a451c8a19f25828f2cc68a9ebf89e5c394d636c997e0e723f20250e"
+    },
+    "player_plan/font-test-render2/font-test.pdf": {
+      "bytes": 16362,
+      "sha256": "1714df0c49da4316348774f3fd71b91afa884a9ce491244290e3909ce68f5e17"
+    },
+    "player_plan/qa_render/page-15.png": {
+      "bytes": 96148,
+      "sha256": "920cd3d1dd2c4ca1c301b3b47cce7fed4551c6f356f9afd89909af60b61df248"
+    },
+    "player_plan/qa_render/page-14.png": {
+      "bytes": 94355,
+      "sha256": "55c93fc9bac878a2cd40b6a7f7372245fbac939eccac93f5421797f2d8bab225"
+    },
+    "player_plan/qa_render/Mac播放器_市场调研_PRD_技术方案_版本TODO.pdf": {
+      "bytes": 757174,
+      "sha256": "5942f675c02447bd7cedb875b0d685ab874ae8be86a16c59ea21e708e848225d"
+    },
+    "player_plan/qa_render/page-16.png": {
+      "bytes": 77818,
+      "sha256": "698f54665a60a05f38e7cdb1430c8e6cf48fddfdb6d8cfce7eb01b5fa0d16bdf"
+    },
+    "player_plan/qa_render/page-17.png": {
+      "bytes": 72445,
+      "sha256": "29078b3837f558fc86dace303ffbc6761763173d038e06dd5b5d363c4d46ab2c"
+    },
+    "player_plan/qa_render/page-13.png": {
+      "bytes": 96696,
+      "sha256": "06827ed5a887a4285b0c9f7d29fd047ebe02ee6a650921b138783b4bf3ce519c"
+    },
+    "player_plan/qa_render/page-12.png": {
+      "bytes": 62121,
+      "sha256": "32bd44efc7e516a695ace49fef01473d5a7912174773eb03985eb73117b7e95a"
+    },
+    "player_plan/qa_render/page-10.png": {
+      "bytes": 167593,
+      "sha256": "4e07e7c80d1f4011a6758dd9dd8824974dcd9c952db873523db1c939d695ddc8"
+    },
+    "player_plan/qa_render/page-11.png": {
+      "bytes": 152095,
+      "sha256": "0db80a20faee2fbb04881dd754acd58fae4645845c8d527022113f640e1c0563"
+    },
+    "player_plan/qa_render/page-1.png": {
+      "bytes": 28630,
+      "sha256": "ea60ca1087f47952c1236a5389e2b052915c9aa44932dd84103966e8706bae26"
+    },
+    "player_plan/qa_render/page-3.png": {
+      "bytes": 109690,
+      "sha256": "9c9d85f875f578e48b072453fce3513280cc0c06e7758ab8c6a8064ce58b21da"
+    },
+    "player_plan/qa_render/page-2.png": {
+      "bytes": 65768,
+      "sha256": "aa2afeb506caba245cad4a2829f7f205bf3264bc95ceea42ba93250a5471984c"
+    },
+    "player_plan/qa_render/page-6.png": {
+      "bytes": 81235,
+      "sha256": "f93991dbc96edfc41fe48cf3d651c593f679e152021d2a8d18139629395cd878"
+    },
+    "player_plan/qa_render/page-7.png": {
+      "bytes": 70325,
+      "sha256": "4c22a6483a2a618f606d9afbd5cfe9e9f5f34352af8ae87ae5dc38eb9d651866"
+    },
+    "player_plan/qa_render/page-5.png": {
+      "bytes": 52684,
+      "sha256": "9409dc005ccf12a6bce0cc481b6e4892b180d8efd54293fdb38066abb23782b9"
+    },
+    "player_plan/qa_render/page-4.png": {
+      "bytes": 38377,
+      "sha256": "996e77b4962e83884fcb618dd493bc93a9709fb97801ea3efbe95aaa977b4929"
+    },
+    "player_plan/qa_render/page-9.png": {
+      "bytes": 167394,
+      "sha256": "680c619954aeab2194e1b2a59f97905012d6f7f39da1180240199e4ca53d21d6"
+    },
+    "player_plan/qa_render/page-8.png": {
+      "bytes": 209878,
+      "sha256": "3ccd88474a80138483e436d8cb23c8eac6304fd848ed2c5e17b50957b4521271"
+    },
+    "player_plan/qa_render/page-20.png": {
+      "bytes": 45832,
+      "sha256": "1fb26726af96682f808f0efa7648d892b899057a89856cfbffe7c2eccdbea79f"
+    },
+    "player_plan/qa_render/page-21.png": {
+      "bytes": 126657,
+      "sha256": "869e1dc696dc54c456b7f19ef838ec33accbe5fa6e2436d3c4a0eae2a907d427"
+    },
+    "player_plan/qa_render/page-22.png": {
+      "bytes": 20585,
+      "sha256": "6f951a3a05016dd87c8dce3dad9e6147c6e9ea96657abf6334d0c12b06592650"
+    },
+    "player_plan/qa_render/page-19.png": {
+      "bytes": 75672,
+      "sha256": "eee23883b37f2d905825e888f62b572a15414fc35db3a17c08c7a0dc5861926d"
+    },
+    "player_plan/qa_render/page-18.png": {
+      "bytes": 96367,
+      "sha256": "e6a92648a98abb9ddafeb60794da32c1e541f60c204405126635b08a2e90b75a"
+    },
+    "player_plan/final-handbook-qa/page-15.png": {
+      "bytes": 380433,
+      "sha256": "4a70b3c00bcfbc2ea96dc0451a5a5f1d0136af4de2ef9061ad184c02b638b21b"
+    },
+    "player_plan/final-handbook-qa/page-14.png": {
+      "bytes": 349056,
+      "sha256": "16d2d933afb81a0c8c4c4d352eaf722049564bb46b69e17971c3a16fd1a74ca1"
+    },
+    "player_plan/final-handbook-qa/page-16.png": {
+      "bytes": 443835,
+      "sha256": "3a3875d6b410d7de6c0f77bae1dfa3aee854455d995ec45009625539962d32c7"
+    },
+    "player_plan/final-handbook-qa/page-17.png": {
+      "bytes": 467963,
+      "sha256": "1c643c41a25960ae058bf51e77d751b5aadd3c4fe7417e07bdfc2cb8dd38fe62"
+    },
+    "player_plan/final-handbook-qa/page-13.png": {
+      "bytes": 438039,
+      "sha256": "6e325e5177632053a7c01c9ffcaaa6ea08d71c00fde73ae4d9e59beed660988c"
+    },
+    "player_plan/final-handbook-qa/page-12.png": {
+      "bytes": 536864,
+      "sha256": "b52b065ac0f6d4bc5f56a340eef18dda3f75378fe816db3072fb2316ad590dfa"
+    },
+    "player_plan/final-handbook-qa/page-10.png": {
+      "bytes": 563308,
+      "sha256": "f347dd42e2902c6b92abeeaecdd09561b20653a1153065b56854c8b6f47d1983"
+    },
+    "player_plan/final-handbook-qa/page-11.png": {
+      "bytes": 313737,
+      "sha256": "357166ead2ea2953502dd8a237e3fe098fa3d62264389e1fbe67ac637abe1d61"
+    },
+    "player_plan/final-handbook-qa/page-1.png": {
+      "bytes": 467840,
+      "sha256": "ef12c693f27b59df20b41092115e135a150e6aa8597f7d1c09a5bfb504ae5c4f"
+    },
+    "player_plan/final-handbook-qa/page-3.png": {
+      "bytes": 331946,
+      "sha256": "2a461ceb2b20cc3b2c47d2404fbea942258763c95716370c6b68aff9dc8dfe12"
+    },
+    "player_plan/final-handbook-qa/page-2.png": {
+      "bytes": 433711,
+      "sha256": "694998d9ce6b5a445ce5f28b5828ec7aa5667c37c42e94714e256c23b52487b8"
+    },
+    "player_plan/final-handbook-qa/page-6.png": {
+      "bytes": 715396,
+      "sha256": "25bb51ffeb5c0ccb23f8b2f79a8d3c1dd9cf9d60f33582d1111a0793ab82bfb6"
+    },
+    "player_plan/final-handbook-qa/page-7.png": {
+      "bytes": 454519,
+      "sha256": "47d492c16aea8d7f788743c90e2dfe69392d371c433131eb62f43cadd2aa42cc"
+    },
+    "player_plan/final-handbook-qa/page-5.png": {
+      "bytes": 1254708,
+      "sha256": "3ef928f318f05b40b1ee1f61ebb0b1e5b636cfc241beb423ae28ccaefefa4508"
+    },
+    "player_plan/final-handbook-qa/page-4.png": {
+      "bytes": 442502,
+      "sha256": "7222594be519d903eba1eddd32de6cc5e4db7e9adc16347a4734f3e6f1cdcb62"
+    },
+    "player_plan/final-handbook-qa/page-9.png": {
+      "bytes": 399547,
+      "sha256": "61e21d9d0012d0842314fcfd213c5c2c4cfbf9d8827cf4261bfcc5f52f85bc63"
+    },
+    "player_plan/final-handbook-qa/page-8.png": {
+      "bytes": 373739,
+      "sha256": "de5fd1dc4c3c926ad357dc8aa12d6864c11be730ccf5979f1bce77fbfb24bc27"
+    },
+    "player_plan/final-handbook-qa/Mori播放器开发手册.pdf": {
+      "bytes": 1503870,
+      "sha256": "a216e1f38b98cffc7a02c4fbb7c0f63235752eba9f930fd80e5cac44080d5020"
+    },
+    "player_plan/final-handbook-qa/page-19.png": {
+      "bytes": 385654,
+      "sha256": "b2a0c300ab03a0852dcd0518b1c909747a72f265beddf830637811e65c354af6"
+    },
+    "player_plan/final-handbook-qa/page-18.png": {
+      "bytes": 487488,
+      "sha256": "ee19d0a26bda4edcf157a318d30b5bff38bd1f5a5950883e2292b93c54d835aa"
+    },
+    "player_plan/font-cache/b0a71e6bf6a8a1a908413a823d76e21f-le64.cache-9": {
+      "bytes": 4876336,
+      "sha256": "6445663185cadc8a11755c07f00693df606d188538f62161ae3648ce909ae85b"
+    },
+    "player_plan/font-cache/CACHEDIR.TAG": {
+      "bytes": 200,
+      "sha256": "05e7633fb31bf1f6f8d89020c16b9f24587fdf7638e951c9745b192f5fc3b682"
+    },
+    "player_plan/font-cache/f1338157e655c507561f464a4785940e-le64.cache-9": {
+      "bytes": 273856,
+      "sha256": "3aa95e4828adbdfde4ae47999283ee0430b41a022455d8a4e739b2adc7e0a707"
+    },
+    "player_plan/font-cache/83ee72e11d4c36f7283cae0d7e67dfb3-le64.cache-9": {
+      "bytes": 2936,
+      "sha256": "a37f8ee73eb3aab3a3f048e03700e45d278a8b678cf74e08a8616dc1c5d2f1ff"
+    },
+    "player_plan/font-cache/c6cafe6b1a56ed8b739253d6df90ca6a-le64.cache-9": {
+      "bytes": 1161736,
+      "sha256": "44c6a1d745d45b6fea7b5811f063765258073b5dc8e4cded3ebfa2c99f689804"
+    },
+    "player_plan/qa_final/page-29.png": {
+      "bytes": 369392,
+      "sha256": "b25eedea69e72304b6265248549624eb1e597322ede0ac23cc28976921873575"
+    },
+    "player_plan/qa_final/page-15.png": {
+      "bytes": 469458,
+      "sha256": "b7ea2ef06562374497ff3be35992690a43b642f76641a74e832e05fd446c083b"
+    },
+    "player_plan/qa_final/page-14.png": {
+      "bytes": 492984,
+      "sha256": "02e8d5532e08f7fc10dd9e62a4eff8834ded4f0d250220dda7181fb142819a1a"
+    },
+    "player_plan/qa_final/page-28.png": {
+      "bytes": 272378,
+      "sha256": "a502af9975eec4cc57d55fb7db3843a175e7f3a9af2c282820b522acef49a9b8"
+    },
+    "player_plan/qa_final/Mac播放器_市场调研_PRD_技术方案_版本TODO.pdf": {
+      "bytes": 1712858,
+      "sha256": "b0640aa572d54909fbcc72945e08ddba2669a9380fd2694422a943be90f70d3c"
+    },
+    "player_plan/qa_final/page-16.png": {
+      "bytes": 547614,
+      "sha256": "a11239ede834a2bb220ed348ccbb074df921052bd744a2410a4397d3945cf58d"
+    },
+    "player_plan/qa_final/page-17.png": {
+      "bytes": 520331,
+      "sha256": "35c8a3db5df37fdd6d30fb2288b1c5f831891e175ab681c1db7bf190bd3545ec"
+    },
+    "player_plan/qa_final/page-13.png": {
+      "bytes": 385695,
+      "sha256": "a434d302df710d5eecc72f53121459684fe67d6f677bbb5b1aca8a6e38119aaa"
+    },
+    "player_plan/qa_final/page-12.png": {
+      "bytes": 397149,
+      "sha256": "166412cded69d68c34258c7ca8b9e26841d21b01f02c3cca2a1b861a1e64fbb8"
+    },
+    "player_plan/qa_final/page-10.png": {
+      "bytes": 408251,
+      "sha256": "386620359436de60ad02a377e8fc77f3ca31c2bc30669ddd7c282c6f8a5e0640"
+    },
+    "player_plan/qa_final/page-11.png": {
+      "bytes": 138077,
+      "sha256": "bc654205ba31c9c3f37b2dcf3e6e2a44a086ed183a615d38fb0bc875bb7797e6"
+    },
+    "player_plan/qa_final/page-1.png": {
+      "bytes": 137048,
+      "sha256": "999a8b0adcd31a37d18355d114faf66df1dc67c772d683fa412a130616721a64"
+    },
+    "player_plan/qa_final/page-3.png": {
+      "bytes": 151063,
+      "sha256": "584acc166c9e6687b5b344bf8649a580d6867fb00f77223e8eddc53e846b27bf"
+    },
+    "player_plan/qa_final/page-2.png": {
+      "bytes": 456679,
+      "sha256": "fb67c9eb3e27daa7349573c6fe85d836977c09462727b4dfeaf6e8e8d09279e7"
+    },
+    "player_plan/qa_final/page-6.png": {
+      "bytes": 188833,
+      "sha256": "3ac037470b15a3a3d522af1eac0368bd2540ea431e9888cb0ba37ea6965cdfd8"
+    },
+    "player_plan/qa_final/page-7.png": {
+      "bytes": 378500,
+      "sha256": "ac2eb353841eb041bd96039fb312c72caeb5ba000a17cd873fd67e60d5ccadab"
+    },
+    "player_plan/qa_final/page-5.png": {
+      "bytes": 505412,
+      "sha256": "9035346826f19bb143281a46464785ccc932c57811b5250f267737ff89de4eb4"
+    },
+    "player_plan/qa_final/page-4.png": {
+      "bytes": 449734,
+      "sha256": "297a57c0ad0b87ae77715f18c9a9108d9f7052222d899aa0acc7d17766f9c419"
+    },
+    "player_plan/qa_final/page-9.png": {
+      "bytes": 457926,
+      "sha256": "2176ccedf5735621c927c4c6e8de1c8766a00ddbadb54ac8ef73a501b64b4690"
+    },
+    "player_plan/qa_final/page-8.png": {
+      "bytes": 444288,
+      "sha256": "c21d8e79e98dc156d4e9f3900ce6030281ffe0bfb8009b165613255d4e33d207"
+    },
+    "player_plan/qa_final/page-20.png": {
+      "bytes": 361429,
+      "sha256": "6cdff57fc213973a3bf23f6c84490c0bacfa76b8a7210efee7312effc3e398fd"
+    },
+    "player_plan/qa_final/page-21.png": {
+      "bytes": 342966,
+      "sha256": "63f5c2a7502867f141057971dc86d7444895902d49e827a9430b037b9e7acc2f"
+    },
+    "player_plan/qa_final/page-23.png": {
+      "bytes": 367347,
+      "sha256": "7c4ff712c808f3ecaebe9e754b5818eb8c78f1cb33c9d03fa4b9434f0f620dad"
+    },
+    "player_plan/qa_final/page-22.png": {
+      "bytes": 359758,
+      "sha256": "f3984c52ca4355313422b46a2fd8c4ee5f0229a586dd546f0d2082113a59487f"
+    },
+    "player_plan/qa_final/page-26.png": {
+      "bytes": 337562,
+      "sha256": "259207bfe60f5dfe6cc69148fffec5fd5ab3279aa2abe5cac64f910eb8e12017"
+    },
+    "player_plan/qa_final/page-32.png": {
+      "bytes": 135034,
+      "sha256": "5da6582f78eabe10d11f23ee5e55bfb270af011c729de11b6adf8a6e19a3cba9"
+    },
+    "player_plan/qa_final/page-27.png": {
+      "bytes": 355232,
+      "sha256": "e3dd8d2092c3ec4f70e9e5ea5e92c11934ab552f70a68c204c2e9281dc59712c"
+    },
+    "player_plan/qa_final/page-31.png": {
+      "bytes": 272749,
+      "sha256": "febd9eb27923b7ad1c72c7376810439bd641dd1b68adb83315a2abbd7c82caf6"
+    },
+    "player_plan/qa_final/page-25.png": {
+      "bytes": 342118,
+      "sha256": "ce217b4dee7a7ca1838f434be2e0c48f9a7dcba63f829cb1bf5f95987884c6f0"
+    },
+    "player_plan/qa_final/page-19.png": {
+      "bytes": 386025,
+      "sha256": "5581d925868985d096a434c2feff58503edec8f0defd50f9d9518b588bb67db3"
+    },
+    "player_plan/qa_final/page-18.png": {
+      "bytes": 349896,
+      "sha256": "4eb91dcfa64115fb1556b1121fe3eac903f0180e7513af3db0fefb413b7d23da"
+    },
+    "player_plan/qa_final/page-24.png": {
+      "bytes": 339717,
+      "sha256": "af8892a03c4f6d5c1bff2bba9506354434a0d8cb20c86cc0f647d21a1df3621d"
+    },
+    "player_plan/qa_final/page-30.png": {
+      "bytes": 182846,
+      "sha256": "5b8344019db2414fcb28cfb236d474dd084fba2cd24bd7e4c1d49158d07521a8"
+    },
+    "player_plan/交付文件/Mac播放器_市场调研_PRD_技术方案_版本TODO.docx": {
+      "bytes": 75114,
+      "sha256": "e237d3b648bb0807e2923e820831d54fe283f7d0ff69e2d965ee1cf96ec73cc4"
+    },
+    "player_plan/交付文件/调研来源.json": {
+      "bytes": 5004,
+      "sha256": "7afc5bfe5c1d68589292e9937b4927e9af613d3b40b30b0db75d8881305684b9"
+    },
+    "player_plan/交付文件/Mac播放器_版本TODO.json": {
+      "bytes": 25157,
+      "sha256": "b80d38b51ed8ee7bb13a4e56c0cf58d0c830d68a19979498615cd25c3da5a4f9"
+    },
+    "player_plan/交付文件/Mac播放器_完整方案.html": {
+      "bytes": 109018,
+      "sha256": "8d93c2b4dc354b82a518cbe9f6e25871afafc2981d5056b7d57f585ecc28f366"
+    },
+    "player_plan/开发定稿/设计资源/素材说明.txt": {
+      "bytes": 255,
+      "sha256": "51214bdf1d9dfd12b7226e0324ece4314f14e6aa0166ffc5d0c2c8da91dd95f0"
+    },
+    "player_plan/开发定稿/设计资源/UI设计稿源文件.html": {
+      "bytes": 596006,
+      "sha256": "1dae3121fc445585c74aa67395029f14dd4cbe673d95f1e2da4d41cdd4427329"
+    },
+    "player_plan/开发定稿/设计资源/示例画面.jpg": {
+      "bytes": 402560,
+      "sha256": "44d0e2b79dd31fe2e1e5c93360dd746f7e111de99391782b6b582c66c90790a4"
+    },
+    "player_plan/开发定稿/设计资源/player-final.png": {
+      "bytes": 921086,
+      "sha256": "b95063330242ccea96b9b6412add1cc881b5bbc39d6ed42213ba43c35855cc24"
+    },
+    "player_plan/开发定稿/设计资源/预览依赖许可.txt": {
+      "bytes": 5717,
+      "sha256": "048dfaca060af563048af65089a5f277483c84ed6250607276435fef41a97f2f"
+    },
+    "player_plan/开发定稿/设计资源/home-desktop.png": {
+      "bytes": 421179,
+      "sha256": "aea3ca3b97e5cac8f322ebc3f77848e3fb8cb62633a09f3ec608d10adaf02c80"
+    },
+    "player_ui/player-mobile.png": {
+      "bytes": 190954,
+      "sha256": "b5fbc3feb29beca175defc41b23df628a4ef5205c5de70f4aff5c4c4760a625f"
+    },
+    "player_ui/player-queue.png": {
+      "bytes": 637486,
+      "sha256": "622b01930a9d8b73b07de5d6a90bfb3306b3a8ed3524d8e727d4bbfc28c8b92f"
+    },
+    "player_ui/.DS_Store": {
+      "bytes": 6148,
+      "sha256": "4cc5111ede9fe940d4acf605b47a6635bc37c485e3ad045f0b6cf8740e2f3279"
+    },
+    "player_ui/preview-qa.html": {
+      "bytes": 687207,
+      "sha256": "4d7e847261b700c8e79783297aca657341f50d872d08abc515d75791e16c9354"
+    },
+    "player_ui/import-desktop.png": {
+      "bytes": 115744,
+      "sha256": "441119ac755e665446488c956d55e8e4d39e5bf742c109ed5c30d4da7890bee3"
+    },
+    "player_ui/player-final.png": {
+      "bytes": 921086,
+      "sha256": "b95063330242ccea96b9b6412add1cc881b5bbc39d6ed42213ba43c35855cc24"
+    },
+    "player_ui/settings-desktop.png": {
+      "bytes": 58997,
+      "sha256": "573a3758f1c24ca2e6409248c2b949c3e1ca42c6f0b54334ecf50f01ff263125"
+    },
+    "player_ui/check-preview.cjs": {
+      "bytes": 4135,
+      "sha256": "2d5249c08ae8f6c5bbb956b1f42164dce7586de8ab1301fdb6fdc8d02c904c2f"
+    },
+    "player_ui/home-desktop.png": {
+      "bytes": 421179,
+      "sha256": "aea3ca3b97e5cac8f322ebc3f77848e3fb8cb62633a09f3ec608d10adaf02c80"
+    },
+    "player_ui/welcome-desktop.png": {
+      "bytes": 304845,
+      "sha256": "ecb6d1c78ab74284fca9c09aad7f525da0037dd09eb6b4f75a40401c3bc4cab7"
+    },
+    "player_ui/library-desktop.png": {
+      "bytes": 301485,
+      "sha256": "1d69a5774d92f3607ba4750b72a5609400b85ef38ec989c3dc14aee9e63ad6da"
+    },
+    "player_ui/player-desktop.png": {
+      "bytes": 986012,
+      "sha256": "088420145581e9d42e1d6515667b7fa6b5a59aacf8cffffdb8cdcca4b43f1b24"
+    },
+    "player_ui/assets/mountain-tram.jpg": {
+      "bytes": 402560,
+      "sha256": "44d0e2b79dd31fe2e1e5c93360dd746f7e111de99391782b6b582c66c90790a4"
+    },
+    "player_ui/assets/mountain-tram.png": {
+      "bytes": 2533019,
+      "sha256": "80b35f4b1b3d357602a0560ea233adb4120a3c8df71e734685eca5965e7c0809"
+    }
+  }
+}

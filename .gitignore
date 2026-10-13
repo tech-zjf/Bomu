@@ -1,0 +1,44 @@
+# macOS / editors
+.DS_Store
+._*
+*.swp
+*.swo
+.idea/
+
+# Xcode / Swift build products and local state
+.build/
+DerivedData/
+build/
+*.xcuserstate
+**/xcuserdata/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+*.dSYM/
+*.xcarchive/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+
+# Document-production intermediates (preserved on this machine)
+/player_plan/font-cache/
+/player_plan/font-test*
+/player_plan/fonts.conf
+/player_plan/qa_render/
+/player_plan/qa_final/
+/player_plan/final-handbook-qa/
+/player_plan/html-preview.png
+/player_plan/final-plan-desktop.png
+/player_plan/final-ui-offline.png
+/player_plan/build_check.json
+/player_plan/final-build-check.json
+/player_plan/qa_before_hashes.json
+/player_plan/*.zip
+
+# Distribution artifacts
+*.dmg
+*.ipa

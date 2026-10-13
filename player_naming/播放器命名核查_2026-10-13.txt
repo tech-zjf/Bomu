@@ -1,0 +1,107 @@
+Mac 播放器命名建议与核查记录
+核查日期 2026 年 10 月 13 日
+
+结论
+
+放弃 Mori。第一候选为 Cinehush，第二候选为 Kineloft。两者目前只通过初筛，尚未完成中国商标近似检索、完整的跨地区商标清查和注册商的域名可购性确认，不应写成已经保证长期可用。已有开发方案中的 Mori 仍是占位名称，待名字确定后统一替换。
+
+命名标准
+
+名称应能独立检索、容易输入、不绑定 Mac 型号或某种编码，并与已经确认的安静、圆润、舒服的 UI 相符。优先区别于同类播放器和相近软件品牌。名字短并不优先于同类冲突和后续改名成本。不为了获得域名而采用大量连字符、数字或 Pro 后缀。
+
+Cinehush
+
+自创合成名，借用 cine 的电影联想和 hush 的少干扰氛围；8 个英文字母。界面可用小写 cinehush，正式名称写 Cinehush，副标题使用“Mac 本地视频播放器”。构词含义是本项目的命名意图，不是现成词汇的字典释义。
+
+优点：电影意象明确；不绑定 mpv、H.265 或单一格式；适合本地媒体与后续网络流。公开搜索本轮未发现同名播放器或明显同名软件产品。
+缺点：hush 容易让部分人联想到静音或降噪，应通过播放器副标题和应用图标解释；没有 Mori 那么短。
+
+Kineloft
+
+自创合成名，借用影像与 loft 私人空间的联想；8 个英文字母。品牌气质比 Cinehush 更有个人影像空间的意味。
+
+优点：与目录收藏库及舒服的 Mac 观看空间相符；本轮公开搜索未发现完全同名播放器。
+缺点：公开搜索存在 Cineloft Solutions、CineLoft Studios 等近似影视与数字服务名称。读音和拼写近似需要额外核查，因此本轮降低优先级。
+
+域名登记快照
+
+查询时间为北京时间 2026 年 10 月 13 日 11:46 左右。
+通过 IANA RDAP bootstrap 获取注册局地址；.com 查询 Verisign，.app 查询 Google Registry，.video 查询 Identity Digital。
+
+mori.com              HTTP 200 已有登记
+mori.app              HTTP 200 已有登记
+moriplayer.com        HTTP 200 已有登记
+mori.video            HTTP 404 未查到登记记录
+cinehush.com          HTTP 404 未查到登记记录
+cinehush.app          HTTP 404 未查到登记记录
+cinehush.video        HTTP 404 未查到登记记录
+kineloft.com          HTTP 404 未查到登记记录
+kineloft.app          HTTP 404 未查到登记记录
+kineloft.video        HTTP 404 未查到登记记录
+
+完整返回和检查时间在 domain-registry-check.json。
+交付前于北京时间 12:16 再次复核 Cinehush 与 Kineloft 的 .com、.app，四项均仍返回 HTTP 404 未查到登记记录。
+商标初筛结构化记录在 商标初筛记录.json。
+HTTP 404 不等于注册商保证可购，也不代表普通价格、无保留、无争议或永久可用。没有注册或购买任何域名。
+建议候选通过完整商标核查后，以 .app 作为产品网站，.com 作为统一入口或重定向；没有必要一开始购买很多后缀。
+
+商标初筛与未完成范围
+
+1. USPTO 美国官方 Trademark Search
+   在 Wordmark 模式搜索 CINEHUSH、KINELOFT。
+   未限定商品类别；Live、Registered、Pending、Dead、Cancelled、Abandoned 均在默认查询范围。
+   两次页面均显示 No results found。
+   这只说明本次文字查询未发现记录，不等于完整的美国近似与普通法使用清查完成。
+
+2. EUIPO 运营的 TMview
+   CINEHUSH、KINELOFT 的“包含”查询均未发现行，没有设置特定国家局或国际类别筛选。
+   CINEHUSH 模糊查询返回 1 项 CINERUSH，法国 INPI，申请号 963637，申请日期 1976-07-30，类别 9、16、40；TMview 显示到期。商品服务涉及摄影和电影设备、照片和电影胶片及处理服务。
+   CINERUSH 的历史到期状态不能自动证明所有地区都不存在相关权利；也不能直接据此认为 Cinehush 侵权。
+   KINELOFT 模糊查询返回 8 项：KINELIFT 英国与 EUIPO（7、11 类，已注册）；KINESOFT 美国两项（9 类、41 类，页面显示结束），法国一项（9、38、42 类，到期）；WineLoft 法国一项（32、33、43 类，到期）；WINELOFT BODEGAS BOUTIQUE 阿根廷一项（35 类，已注册）；WINELOFT ADEGAS CLIMATIZADAS 巴西一项（35 类，已注册）。模糊算法返回不代表法律上的相似或冲突，需结合具体商品服务判断。
+   TMview 不是各地法律上的官方注册簿，不足以替代目标地区核查。
+
+3. 中国商标网
+   已打开官方使用说明页，页面明确指出数据非实时、仅供参考。
+   当前浏览环境中点击查询入口后没有成功进入检索系统。因此没有取得中国第 9 类及相关服务类别的可验证记录，不能宣称中国商标可注册。
+
+4. WIPO Global Brand Database
+   页面出现验证入口，未完成数据库检索。本报告不把 WIPO 记为已查无冲突。
+
+5. 正式发行前的剩余确认
+   重点核查下载软件对应的第 9 类；根据实际提供的软件服务评估第 42 类及相关类别，而不是机械地要求所有软件都同时申请 9、41、42 类。
+   对选定名称进行连写、分词、近似拼写和读音、中文名称及图形标志的核查；有结果时比较具体商品服务、状态、地域和权利人。
+   域名完成注册商实时可购性和续费价确认。中文品牌尚未确定，不把“静映”等描述自动视为已核查的注册名称。
+
+主要淘汰依据
+
+Mori：已有 Mori Player，面向 Windows 和 macOS 的视频播放器；另有 heymori.app 的 Mori Mac 应用。直接同类名称重合，放弃。
+Rillio：已有原生视频播放器与本地媒体库项目，放弃。
+Reelcove：已有 Jellyfin 视频播放器及其他视频相关应用，放弃。
+Framelo：已有包含本地视频播放和抽帧功能的应用，放弃。
+Kinolume：已有 KinoLume 电影推荐应用及影视相关工作室，放弃。
+其他短候选中存在同名软件或相关服务，包括 Veylio、Orvilo、Oruvi、Velnori、Velimo、Lumlet 等，没有仅因域名某个后缀未登记而保留。
+
+主要来源
+
+Mori Player 官网 https://moriplayer.com/
+Mori Mac 应用 https://www.heymori.app/
+Rillio 官网 https://rillio.app/
+Reelcove 项目 https://github.com/frankliu2023/reelcove
+Framelo 官方介绍 https://sketching.tech/en/apps/framelo/
+KinoLume App Store https://apps.apple.com/us/app/id6811816654
+Cineloft Solutions https://cineloftsolutions.com/
+CineLoft Studios https://www.cineloftstudio.com/about
+IANA RDAP bootstrap https://data.iana.org/rdap/dns.json
+美国官方商标查询 https://tmsearch.uspto.gov/
+TMview Cinehush 包含查询 https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=C&basicSearch=CINEHUSH
+TMview Cinehush 模糊查询 https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=F&basicSearch=CINEHUSH
+TMview Kineloft 包含查询 https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=C&basicSearch=KINELOFT
+TMview Kineloft 模糊查询 https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=F&basicSearch=KINELOFT
+中国商标网 https://sbj.cnipa.gov.cn/trademark-query
+WIPO Global Brand Database https://branddb.wipo.int/
+USPTO 完整商标清查说明 https://www.uspto.gov/trademarks/search/comprehensive-clearance-search-similar-trademarks
+USPTO 混淆判断说明 https://www.uspto.gov/trademarks/search/likelihood-confusion
+
+建议决定
+
+Cinehush 可以进入下一步的品牌试用和正式检索；当前不是全球商标核准结论。Kineloft 作为备选，近似 Cineloft 名称的额外核查优先于域名购买。Mori 不再作为正式名称候选。

@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-13",
+  "method": "Read-only visible official search UI; initial screening only",
+  "results": [
+    {
+      "query": "CINEHUSH",
+      "system": "USPTO",
+      "mode": "Wordmark",
+      "classes": "not restricted",
+      "statuses": "all default status filters selected",
+      "visibleResult": "No results found",
+      "url": "https://tmsearch.uspto.gov/"
+    },
+    {
+      "query": "KINELOFT",
+      "system": "USPTO",
+      "mode": "Wordmark",
+      "classes": "not restricted",
+      "statuses": "all default status filters selected",
+      "visibleResult": "No results found",
+      "url": "https://tmsearch.uspto.gov/"
+    },
+    {
+      "query": "CINEHUSH",
+      "system": "TMview",
+      "mode": "contains",
+      "visibleResult": "没有发现行",
+      "url": "https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=C&basicSearch=CINEHUSH"
+    },
+    {
+      "query": "KINELOFT",
+      "system": "TMview",
+      "mode": "contains",
+      "visibleResult": "没有发现行",
+      "url": "https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=C&basicSearch=KINELOFT"
+    },
+    {
+      "query": "CINEHUSH",
+      "system": "TMview",
+      "mode": "fuzzy",
+      "resultCount": 1,
+      "matches": [
+        {
+          "mark": "CINERUSH",
+          "office": "France INPI",
+          "application": "963637",
+          "classes": [
+            9,
+            16,
+            40
+          ],
+          "displayedStatus": "到期"
+        }
+      ],
+      "url": "https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=F&basicSearch=CINEHUSH"
+    },
+    {
+      "query": "KINELOFT",
+      "system": "TMview",
+      "mode": "fuzzy",
+      "resultCount": 8,
+      "matches": [
+        "KINELIFT UK registered 7,11",
+        "KINESOFT US ended 9",
+        "KINESOFT France expired 9,38,42",
+        "KINELIFT EUIPO registered 7,11",
+        "KINESOFT US ended 41",
+        "WineLoft France expired 32,33,43",
+        "WINELOFT BODEGAS BOUTIQUE Argentina registered 35",
+        "WINELOFT ADEGAS CLIMATIZADAS Brazil registered 35"
+      ],
+      "url": "https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=30&criteria=F&basicSearch=KINELOFT"
+    }
+  ],
+  "notCompleted": [
+    "China official database search could not be entered from the query landing page",
+    "WIPO Global Brand Database verification not completed",
+    "Comprehensive phonetic/semantic/logo clearance and registry data freshness validation not completed"
+  ],
+  "recommendation": "Cinehush preferred provisional candidate; Kineloft backup; Mori rejected"
+}
