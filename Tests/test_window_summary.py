@@ -58,6 +58,55 @@ class WindowSummaryTests(unittest.TestCase):
         summary = self.summarize()
         self.assertIn('short occlusions between samples were not monitored', summary)
 
+    def add_native_probe(self):
+        self.report['schemaVersion'] = 4
+        self.report['occlusionProbe'] = {
+            'completed': True, 'notificationCount': 2,
+            'visibility': {'startedAtSeconds': 0, 'endedAtSeconds': 2, 'changes': [
+                {'elapsedSeconds': 0, 'isVisible': True},
+                {'elapsedSeconds': 0.5, 'isVisible': False},
+                {'elapsedSeconds': 1.5, 'isVisible': True}]},
+            'hidden': {'videoFrameCount': 20}, 'restored': {'videoFrameCount': 21},
+        }
+
+    def test_native_probe_requires_callback_and_frame_recovery(self):
+        self.add_native_probe()
+        self.report['occlusionProbe']['notificationCount'] = 0
+        with self.assertRaisesRegex(SystemExit, 'native notifications or frame recovery'):
+            self.summarize()
+        self.report['occlusionProbe']['notificationCount'] = 2
+        self.report['occlusionProbe']['restored']['videoFrameCount'] = 20
+        with self.assertRaisesRegex(SystemExit, 'native notifications or frame recovery'):
+            self.summarize()
+
+    def test_probe_interruption_is_separate_from_uninterrupted_soak(self):
+        self.add_native_probe()
+        self.assertIn('new video frames resumed', self.summarize())
+
+    def test_partial_media_suite_cannot_pass(self):
+        self.add_native_probe()
+        self.report['scenario'] = 'media-suite'
+        self.report['mediaSamples'] = []
+        with self.assertRaisesRegex(SystemExit, '30 passing cases'):
+            self.summarize()
+
+    def test_media_suite_rejects_window_switch_and_brief_occlusion(self):
+        self.add_native_probe()
+        self.report['scenario'] = 'media-suite'
+        self.report['mediaVisibility'] = self.report['soakVisibility']
+        self.report['mediaSamples'] = [
+            {'sample': {'file': str(index), 'coverage': 'test', 'expected': {'outcome': 'play'}},
+             'windowNumber': 1, 'displayID': 1, 'passed': True} for index in range(30)]
+        self.assertIn('Audio was muted', self.summarize())
+        self.report['mediaSamples'][-1]['windowNumber'] = 2
+        with self.assertRaisesRegex(SystemExit, 'one continuously visible window'):
+            self.summarize()
+        self.report['mediaSamples'][-1]['windowNumber'] = 1
+        self.report['mediaVisibility']['changes'].append({'elapsedSeconds': 5, 'isVisible': False})
+        self.report['mediaVisibility']['changes'].append({'elapsedSeconds': 6, 'isVisible': True})
+        with self.assertRaisesRegex(SystemExit, 'visibility evidence'):
+            self.summarize()
+
 
 if __name__ == '__main__':
     unittest.main()

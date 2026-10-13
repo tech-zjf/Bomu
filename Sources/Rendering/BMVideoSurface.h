@@ -11,6 +11,8 @@ typedef struct {
     uint64_t drawCount;
     uint64_t videoFrameCount;
     uint64_t skippedFrameCount;
+    uint64_t blankDrawCount;
+    BOOL lastDrawWasClearOnly;
     double firstVideoFrameUptime;
     uint64_t timedFrameCount;
     uint64_t earlySubmissionCount;
@@ -22,6 +24,8 @@ typedef struct {
 /// Adapter-internal view. The C handle never crosses into Swift or feature code.
 @interface BMVideoSurface : NSView
 - (void)attachCore:(struct mpv_handle *)core completion:(void (^)(NSError * _Nullable))completion;
+/// Main-thread boundary; the render queue owns the applied presentation state.
+- (void)setVideoOutputConfigured:(BOOL)configured;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion;
 @end

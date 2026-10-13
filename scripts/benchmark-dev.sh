@@ -5,11 +5,13 @@ MEDIA="$PROJECT_ROOT/.build/benchmark-media"
 SYNC_MEDIA="$PROJECT_ROOT/.build/sync-fixture"
 case "${1:-}" in
   --single-window) MODE=single-window ;;
+  --media-suite) MODE=media-suite ;;
   --playback) MODE=playback ;;
   --display-transitions) MODE=display-transitions ;;
   --help|-h|"")
     echo "Choose a visible test explicitly:"
     echo "  --single-window        One stationary ordinary window; no automatic fullscreen or display migration."
+    echo "  --media-suite          30 local media cases, then lifecycle checks in that same window."
     echo "  --playback             Renderer baseline; opens/closes test windows and performs resize tests."
     echo "  --display-transitions  Disruptive fullscreen and multi-display cycles; arrange desktop use first."
     exit 0 ;;
@@ -32,6 +34,12 @@ fi
 FIXTURES=("$MEDIA" "$SYNC_MEDIA")
 if [[ "$MODE" != playback ]]; then
   FIXTURES+=("$PROJECT_ROOT/.build/window-fixture")
+fi
+if [[ "$MODE" == media-suite ]]; then
+  if [[ ! -f "$PROJECT_ROOT/.build/media-suite/manifest.json" ]]; then
+    python3 "$PROJECT_ROOT/scripts/generate-media-suite.py"
+  fi
+  FIXTURES+=("$PROJECT_ROOT/.build/media-suite")
 fi
 python3 "$PROJECT_ROOT/scripts/media_fixtures.py" "${FIXTURES[@]}"
 python3 - "$PROJECT_ROOT" "$RESULTS" <<'PY'
@@ -58,6 +66,9 @@ cp "$MEDIA/manifest.json" "$RESULTS/media-manifest.json"
 cp "$SYNC_MEDIA/manifest.json" "$RESULTS/sync-manifest.json"
 if [[ "$MODE" != playback ]]; then
   cp "$PROJECT_ROOT/.build/window-fixture/manifest.json" "$RESULTS/window-manifest.json"
+fi
+if [[ "$MODE" == media-suite ]]; then
+  cp "$PROJECT_ROOT/.build/media-suite/manifest.json" "$RESULTS/suite-manifest.json"
 fi
 cp "$PROJECT_ROOT/Config/Dependencies.lock.json" "$RESULTS/dependencies.json"
 sysctl -n hw.model machdep.cpu.brand_string > "$RESULTS/hardware.txt"
@@ -88,6 +99,8 @@ if mode != 'playback':
     environment['BOMU_BENCHMARK_MEDIA'] = str(root / '.build/window-fixture/window-stress-1080p.mp4')
     environment['BOMU_BENCHMARK_OUTPUT'] = str(results / 'window-lifecycle.json')
     timeout = 1800
+if mode == 'media-suite':
+    environment['BOMU_BENCHMARK_SUITE'] = str(root / '.build/media-suite')
 binary = root / '.build/DerivedData/Build/Products/Debug/BomuBenchmark.app/Contents/MacOS/BomuBenchmark'
 with (results / 'process.log').open('w') as log:
     try:

@@ -35,11 +35,16 @@ typedef NS_ENUM(NSInteger, BMPlaybackUpdateKind) {
 @property(nonatomic, readonly, nullable) NSString *hardwareDecoder;
 @property(nonatomic, readonly, nullable) NSNumber *videoWidth;
 @property(nonatomic, readonly, nullable) NSNumber *videoHeight;
+@property(nonatomic, readonly, nullable) NSNumber *audioSampleRate;
+@property(nonatomic, readonly, nullable) NSNumber *audioChannelCount;
+@property(nonatomic, readonly, nullable) NSNumber *audioOutputSampleRate;
 @property(nonatomic, readonly) uint64_t openCount;
 @property(nonatomic, readonly) uint64_t snapshotCount;
 @property(nonatomic, readonly) uint64_t drawCount;
 @property(nonatomic, readonly) uint64_t videoFrameCount;
 @property(nonatomic, readonly) uint64_t skippedFrameCount;
+@property(nonatomic, readonly) uint64_t blankDrawCount;
+@property(nonatomic, readonly) BOOL lastDrawWasClearOnly;
 @property(nonatomic, readonly, nullable) NSNumber *firstVideoFrameUptime;
 @property(nonatomic, readonly, nullable) NSString *videoSyncMode;
 @property(nonatomic, readonly, nullable) NSNumber *videoTimingOffset;

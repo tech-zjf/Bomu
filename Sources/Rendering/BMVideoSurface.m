@@ -16,11 +16,13 @@
     // Borrowed only for mpv's render-thread-safe clock; cleared before the core can be destroyed.
     mpv_handle *clockCore;
     BOOL didDraw;
+    BOOL videoOutputConfigured;
     BMRenderStatistics statistics;
 }
 @property(nonatomic, weak) BMVideoLayer *layer;
 @property(nonatomic, readonly, nullable) NSError *creationError;
 - (void)attachCore:(mpv_handle *)core completion:(void (^)(NSError * _Nullable))completion;
+- (void)setVideoOutputConfigured:(BOOL)configured;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion;
 @end
@@ -104,6 +106,18 @@ static void BMRenderWakeup(void *source) {
             }];
         }
         dispatch_async(dispatch_get_main_queue(), ^{ completion(error); });
+    });
+}
+
+- (void)setVideoOutputConfigured:(BOOL)configured {
+    dispatch_async(_renderQueue, ^{
+        [self->lock lock];
+        BOOL changed = self->videoOutputConfigured != configured;
+        self->videoOutputConfigured = configured;
+        [self->lock unlock];
+        // libmpv can retain its previous texture after its VO closes. Clearing the
+        // layer is a presentation transition, not evidence of another media frame.
+        if (changed) [self.layer display];
     });
 }
 
@@ -227,11 +241,14 @@ static void BMRenderWakeup(void *source) {
     CGLLockContext(renderer->context);
     CGLSetCurrentContext(renderer->context);
     renderer->statistics.drawCount += 1;
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+    renderer->statistics.lastDrawWasClearOnly = !(renderer->renderContext && renderer->videoOutputConfigured);
     BOOL submittedVideoFrame = NO;
     int64_t frameTargetTime = 0;
-    if (renderer->renderContext) {
+    if (renderer->renderContext && renderer->videoOutputConfigured) {
         mpv_render_frame_info frame = {0};
         mpv_render_param info = {MPV_RENDER_PARAM_NEXT_FRAME_INFO, &frame};
         int infoResult = mpv_render_context_get_info(renderer->renderContext, info);
@@ -257,6 +274,7 @@ static void BMRenderWakeup(void *source) {
             frameTargetTime = frame.target_time;
         }
     }
+    if (renderer->statistics.lastDrawWasClearOnly) renderer->statistics.blankDrawCount += 1;
     glFlush();
     if (submittedVideoFrame && frameTargetTime > 0) {
         // Pinned mpv 0.41.0's vo_libmpv.c returns vo_frame.pts in nanoseconds,
@@ -286,6 +304,10 @@ static void BMRenderWakeup(void *source) {
 @end
 
 @implementation BMVideoSurface
+
+- (void)setVideoOutputConfigured:(BOOL)configured {
+    [_renderer setVideoOutputConfigured:configured];
+}
 
 - (instancetype)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];

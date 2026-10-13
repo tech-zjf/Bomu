@@ -9,6 +9,8 @@
 ## 当前状态
 
 - 当前开发里程碑为 **`v0.0.1-dev.1`**：最小原生播放器与审查修复快照。版本范围、验证结果和下一步见 [里程碑记录](docs/playback/native-poc/milestone.md)；v0.0 阶段验收尚未完成。
+- 后续已补齐 30 个 CC0 合成素材并实际跑完单窗口回归：29/30 通过，MPEG-TS 中途定位后无新视频帧的问题仍待修复。同窗口 100 次暂停/恢复、一次最小化恢复和 120 秒持续播放已取得证据，见 [媒体矩阵验证](docs/playback/media-suite/validation.md)。
+- 实际画面检查发现并修复了视频切到纯音频时残留上一帧的问题；渲染层按原生视频输出生命周期清屏，已复查音频/视频切换与资源释放。
 - 已实现 macOS 14+、Apple Silicon 的原生最小播放链路，固定 mpv 0.41.0 / FFmpeg 9.0.1。
 - 支持本地单文件打开、播放/暂停、定位、音量、原生全屏、停止和失败恢复。
 - 播放状态、内核适配和 AppKit 视频宿主分离；使用 OpenGL render API，当前验证 SDR。
@@ -43,11 +45,13 @@ python3 scripts/dependencies.py bootstrap
 
 工程脚本兼容 Python 3.9+。原生测试和基准运行前会逐文件核对素材 manifest 的 SHA-256；Xcode 复制测试素材时也执行相同校验。文件缺失或发生变化会明确失败，需要确认来源后重新生成。
 
-可见播放测试必须明确选择模式。日常使用同一个普通窗口，程序不会自动缩放、全屏或迁移屏幕：
+可见播放测试必须明确选择模式。日常使用同一个普通窗口，临时保持置顶以完成可见性测量；会最小化/恢复该窗口各一次，结束后自动关闭，不自动缩放、全屏或迁移屏幕：
 
 ```sh
 ./scripts/benchmark-dev.sh --single-window
 ```
+
+完整媒体矩阵使用 `./scripts/benchmark-dev.sh --media-suite`，在同一个窗口依次测试 30 个素材，再执行窗口生命周期检查。首次运行生成素材，也可单独执行 `python3 scripts/generate-media-suite.py`。整体运行会保留失败用例并返回非零；目前已知 TS 定位失败不能计为通过。素材来源、覆盖及调用链见 [A04 实现记录](docs/playback/media-suite/requirements.md)。
 
 此命令构建并运行独立开发工具，在一个静音窗口中承载正式播放控件，检查暂停恢复、持续出帧及停止后的资源。窗口被遮挡导致可见播放断言不成立时，记录失败并退出，不反复置前重试。完整证据保存到 `.build/benchmarks/`；测量口径和限制见 [播放性能与资源验证](docs/playback/native-poc/benchmark.md)。
 

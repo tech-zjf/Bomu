@@ -29,11 +29,16 @@
 @property(nonatomic, nullable) NSString *hardwareDecoder;
 @property(nonatomic, nullable) NSNumber *videoWidth;
 @property(nonatomic, nullable) NSNumber *videoHeight;
+@property(nonatomic, nullable) NSNumber *audioSampleRate;
+@property(nonatomic, nullable) NSNumber *audioChannelCount;
+@property(nonatomic, nullable) NSNumber *audioOutputSampleRate;
 @property(nonatomic) uint64_t openCount;
 @property(nonatomic) uint64_t snapshotCount;
 @property(nonatomic) uint64_t drawCount;
 @property(nonatomic) uint64_t videoFrameCount;
 @property(nonatomic) uint64_t skippedFrameCount;
+@property(nonatomic) uint64_t blankDrawCount;
+@property(nonatomic) BOOL lastDrawWasClearOnly;
 @property(nonatomic, nullable) NSNumber *firstVideoFrameUptime;
 @property(nonatomic, nullable) NSString *videoSyncMode;
 @property(nonatomic, nullable) NSNumber *videoTimingOffset;
@@ -69,6 +74,8 @@ static void BMMPVWakeup(void *context) {
     dispatch_source_merge_data((__bridge dispatch_source_t)context, 1);
 }
 
+static const uint64_t BMVideoOutputObservation = 1;
+
 @implementation BMMPVSession
 
 - (instancetype)init {
@@ -91,6 +98,8 @@ static void BMMPVWakeup(void *context) {
         if (self->_handle) self->_coreCreationCount += 1;
         int result = self->_handle ? [self configureCore] : MPV_ERROR_NOMEM;
         if (result >= 0) result = mpv_initialize(self->_handle);
+        if (result >= 0) result = mpv_observe_property(self->_handle, BMVideoOutputObservation,
+                                                     "vo-configured", MPV_FORMAT_FLAG);
         if (result < 0) {
             if (self->_handle) mpv_terminate_destroy(self->_handle);
             self->_handle = NULL;
@@ -227,6 +236,9 @@ static void BMMPVWakeup(void *context) {
             value.videoOutputConfigured = [self optionalFlagProperty:"vo-configured"];
             value.videoWidth = [self optionalIntegerProperty:"video-params/w"];
             value.videoHeight = [self optionalIntegerProperty:"video-params/h"];
+            value.audioSampleRate = [self optionalIntegerProperty:"audio-params/samplerate"];
+            value.audioChannelCount = [self optionalIntegerProperty:"audio-params/channel-count"];
+            value.audioOutputSampleRate = [self optionalIntegerProperty:"audio-out-params/samplerate"];
             char *decoder = mpv_get_property_string(self->_handle, "hwdec-current");
             if (decoder) {
                 value.hardwareDecoder = [NSString stringWithUTF8String:decoder];
@@ -250,6 +262,8 @@ static void BMMPVWakeup(void *context) {
                 value.drawCount = render.drawCount;
                 value.videoFrameCount = render.videoFrameCount;
                 value.skippedFrameCount = render.skippedFrameCount;
+                value.blankDrawCount = render.blankDrawCount;
+                value.lastDrawWasClearOnly = render.lastDrawWasClearOnly;
                 value.timedFrameCount = render.timedFrameCount;
                 value.earlySubmissionCount = render.earlySubmissionCount;
                 value.submissionErrorTotalUS = render.submissionErrorTotalUS;
@@ -301,6 +315,18 @@ static void BMMPVWakeup(void *context) {
         mpv_event *event = mpv_wait_event(_handle, 0);
         if (event->event_id == MPV_EVENT_NONE) break;
         switch (event->event_id) {
+            case MPV_EVENT_PROPERTY_CHANGE: {
+                if (event->reply_userdata != BMVideoOutputObservation) break;
+                mpv_event_property *property = event->data;
+                // Present video only while the core explicitly reports an active VO.
+                // An unavailable VO property also revokes permission to retain an old frame.
+                BOOL configured = property && property->format == MPV_FORMAT_FLAG && property->data &&
+                    *(int *)property->data != 0;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self->_surface setVideoOutputConfigured:configured];
+                });
+                break;
+            }
             case MPV_EVENT_START_FILE: {
                 mpv_event_start_file *start = event->data;
                 _activeEntryID = start->playlist_entry_id;

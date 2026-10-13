@@ -9,15 +9,19 @@ def cpu_percent(start, end):
     return 100 * (end['cpuSeconds'] - start['cpuSeconds']) / (end['uptime'] - start['uptime'])
 
 
+def uninterrupted(visibility):
+    return (visibility and visibility.get('endedAtSeconds') is not None and visibility.get('changes')
+            and all(change['isVisible'] for change in visibility['changes']))
+
+
 def main():
     root = Path(sys.argv[1])
     report = json.loads((root / 'window-lifecycle.json').read_text())
-    if report['schemaVersion'] not in {1, 2, 3} or not report['completed']:
+    if report['schemaVersion'] not in {1, 2, 3, 4} or not report['completed']:
         raise SystemExit('Window benchmark is incomplete. Inspect its partial JSON and process.log.')
     if report['schemaVersion'] >= 3:
         visibility = report.get('soakVisibility')
-        if (not visibility or visibility.get('endedAtSeconds') is None or not visibility.get('changes')
-                or any(not change['isVisible'] for change in visibility['changes'])):
+        if not uninterrupted(visibility):
             raise SystemExit('Continuous playback lacks completed, uninterrupted visibility evidence.')
         visibility_description = ('Soak visibility: AppKit occlusion transitions were observed throughout the interval; '
                                   'no reported occlusion. This does not establish full-frame physical visibility.')
@@ -26,7 +30,7 @@ def main():
                                   'short occlusions between samples were not monitored.')
     # Schema 1 predates single-window mode and always denotes display transitions.
     scenario = 'display-transitions' if report['schemaVersion'] == 1 else report['scenario']
-    if scenario == 'single-window':
+    if scenario in {'single-window', 'media-suite'}:
         actions = 'Each cycle: acknowledged pause/resume through PlayerModel and a new video frame after resume. '
         actions += 'Window geometry is unchanged by the driver; no automatic fullscreen or display migration.'
     elif scenario == 'display-transitions':
@@ -34,6 +38,25 @@ def main():
         actions += '+ native fullscreen entry/exit + new video frame after exit.'
     else:
         raise SystemExit(f'Unknown window scenario: {scenario}')
+    if report['schemaVersion'] >= 4:
+        probe = report.get('occlusionProbe') or {}
+        visibility = probe.get('visibility') or {}
+        changes = visibility.get('changes', [])
+        if (not probe.get('completed') or probe.get('notificationCount', 0) < 2
+                or visibility.get('endedAtSeconds') is None or not changes
+                or not changes[0]['isVisible'] or not changes[-1]['isVisible']
+                or all(change['isVisible'] for change in changes)
+                or probe.get('restored', {}).get('videoFrameCount', 0) <= probe.get('hidden', {}).get('videoFrameCount', 0)):
+            raise SystemExit('The minimize/restore probe lacks native notifications or frame recovery.')
+        actions += ' The same window was then minimized/restored once; native callbacks retained the hidden interval and new video frames resumed.'
+    if scenario == 'media-suite':
+        samples = report.get('mediaSamples', [])
+        if (len(samples) != 30 or any(not item['passed'] for item in samples)
+                or len({item['sample']['file'] for item in samples}) != 30
+                or len({item['windowNumber'] for item in samples}) != 1
+                or len({item['displayID'] for item in samples}) != 1
+                or not uninterrupted(report.get('mediaVisibility'))):
+            raise SystemExit('The media suite lacks 30 passing cases in one continuously visible window.')
     rounds, soak = report['rounds'], report['soak']
     lines = ['# Window lifecycle benchmark', '', report['measurement'], '',
              f'Completed {scenario} cycles: {len(rounds)}/{report["requestedCycles"]}.', actions,
@@ -44,6 +67,13 @@ def main():
         lines.append(f'| {screen["name"]} | {screen["isBuiltIn"]} | '
                      f'{screen["widthPoints"]:g} × {screen["heightPoints"]:g} | '
                      f'{screen["backingScale"]:g} | {screen["maximumFramesPerSecond"]} |')
+    if scenario == 'media-suite':
+        lines += ['', '| Media | Coverage | Expected / observed |', '| --- | --- | --- |']
+        for item in report['mediaSamples']:
+            sample = item['sample']
+            lines.append(f'| {sample["file"]} | {sample["coverage"]} | {sample["expected"]["outcome"]} / passed |')
+        lines += ['', 'Audio was muted: decoded sample rate, channel count and active audio output were checked; '
+                  'this does not verify listening quality. Media properties were checked against the decoded/probed fixture manifest.']
     lines += ['', '| Cycle | Elapsed s | Display ID | Backing scale | Footprint MiB | Frames | Core / render creations |',
               '| ---: | ---: | ---: | ---: | ---: | ---: | --- |']
     for row in rounds:

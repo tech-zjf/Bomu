@@ -1,0 +1,1295 @@
+{
+  "schemaVersion": 1,
+  "generator": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers",
+  "generatorSHA256": "f8cc0120045cda6ffab5028a430665da03503b5140acb586c5d0b0b265432566",
+  "samples": [
+    {
+      "file": "01-baseline-480p.mp4",
+      "sha256": "151483324bf0c5e93e784279e9d5c0b0e3387c9f3cabbd0d5c317ba179ebc97a",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "H.264 Constrained Baseline / 480p",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 854,
+          "height": 480
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "Constrained Baseline",
+          "codec_type": "video",
+          "width": 854,
+          "height": 480,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "427:240",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "02-main-720p25.mp4",
+      "sha256": "d82687516e26b2a0bbd6600f3e3da505e856dafe151f47c55bf486f832d9e7bf",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "H.264 Main / 720p / 25 fps",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1280,
+          "height": 720
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "Main",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "25/1",
+          "avg_frame_rate": "25/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "03-high-1080p30.mp4",
+      "sha256": "539b1faccdd5346f7a7870b0e667de582551730014c53049ca81f5aa00461eef",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "H.264 High / 1080p / 30 fps",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1920,
+          "height": 1080
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "04-high-1080p60.mp4",
+      "sha256": "d48971d77fb3c5a1a4b7085a84de2ea567dc96f2db5422acdd29ec0d62009fc6",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "H.264 High / 1080p / 60 fps",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1920,
+          "height": 1080
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "60/1",
+          "avg_frame_rate": "60/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "05-high-4k24.mp4",
+      "sha256": "482087a361b458a405d1038e2408749bab6464360e11a08f19f20ba69169c471",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "H.264 High / 4K / 24 fps",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 3840,
+          "height": 2160
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "06-portrait.mp4",
+      "sha256": "1b2a07a37dbb25c89912edff278778eaba41c086526bc3d026e1a2ad27c0c511",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "9:16 portrait",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 720,
+          "height": 1280
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 720,
+          "height": 1280,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "9:16",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "07-square.mp4",
+      "sha256": "619e901f2551db81e3c6953e5f74a9254c8af24f602c80ee941844bd21518a33",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "1:1 square",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 720,
+          "height": 720
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 720,
+          "height": 720,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "1:1",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "08-中文 宽银幕.mp4",
+      "sha256": "0b3948d0137c9effda7046f3214cb4ddefd556992ae2519ba35be16a1890c0cf",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "21:9 ultrawide / Unicode and space in filename",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1470,
+          "height": 630
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1470,
+          "height": 630,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "7:3",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "09-anamorphic.mp4",
+      "sha256": "e02b5dd193737ca0fd169c0a6beb50c6b144ce397ccdf19c4b69c9d5d3561f56",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "720×576 with 64:45 sample aspect ratio",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 720,
+          "height": 576
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 720,
+          "height": 576,
+          "sample_aspect_ratio": "64:45",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "25/1",
+          "avg_frame_rate": "25/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "10-rotation.mp4",
+      "sha256": "c19dbc994af34b79c2404df458d3dd1aa05aaa4cee0481b5934c1ca6efcffe0c",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "90° display matrix",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 640,
+          "height": 360
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 640,
+          "height": 360,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "side_data_list": [
+            {
+              "side_data_type": "Display Matrix",
+              "displaymatrix": "\n00000000:            0      -65536           0\n00000001:        65536           0           0\n00000002:            0           0  1073741824\n",
+              "rotation": 90
+            }
+          ]
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "11-variable-rate.mp4",
+      "sha256": "87e32c6624ffcee161215338fa27e2bd27e7f6b7fab67a3c26ef0e8f7145b2cf",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Variable frame intervals: 30 then 15 fps",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "1350/59"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded",
+      "decodedFrameIntervalsSeconds": [
+        0.0333,
+        0.0667
+      ]
+    },
+    {
+      "file": "12-fractional-rate.mp4",
+      "sha256": "4036476c0b0c5b1e9763b9ed242e161bc177a925bb67195d87f7a18abc8f4349",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "30000/1001 fractional frame rate",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.006,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30000/1001",
+          "avg_frame_rate": "30000/1001"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "13-hevc-main.mp4",
+      "sha256": "f68fad252662385543509d9703d427bec8583e3078c69e4b4ae7af0d6b447060",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "HEVC Main 8-bit / MP4",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1280,
+          "height": 720
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "profile": "Main",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "14-hevc-main10.mp4",
+      "sha256": "0052c01e60a84658019f3d459e88e61af45748aa27668e1612de1aef096d58f9",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "HEVC Main10 SDR / 1080p",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 1920,
+          "height": 1080
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "profile": "Main 10",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p10le",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "15-hevc-main10-4k.mp4",
+      "sha256": "3185243fbcabe4703b923ad0c73f990b4ebe6d18154a83e55141dfcf65530cb5",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "HEVC Main10 SDR / 4K",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 3840,
+          "height": 2160
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "profile": "Main 10",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p10le",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "16-invalid.mp4",
+      "sha256": "e0229dcae5e58f114fbb3c18e4b74553c6587ffa34d4bc6f30d738799ac9bd6c",
+      "source": "Bomu-generated plain text with an MP4 suffix",
+      "license": "CC0-1.0",
+      "coverage": "Invalid container / subsequent valid file must recover",
+      "expected": {
+        "outcome": "reject"
+      }
+    },
+    {
+      "file": "17-h264-flac.mkv",
+      "sha256": "89a1f0b6772b1998c686c9b12cfe0a63b376de4a53cd2c1b059c9f8d5dae1b4f",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Matroska / H.264 + FLAC",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "flac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "18-hevc-main10.mkv",
+      "sha256": "6e28575ad379407c28c82234eaa5ed18768180eda50d485f9aa0f72bbd115038",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Matroska / HEVC Main10 + AAC",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.021,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "profile": "Main 10",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p10le",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "19-h264-pcm.mov",
+      "sha256": "c476595a616d3e5c82817615056410c107ebd43ffd2bd591a657aa858c659491",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "QuickTime / H.264 + PCM16",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "20-h264-aac.ts",
+      "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "MPEG-TS / H.264 + AAC",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.021334,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "21-vp9-opus.webm",
+      "sha256": "4787a7561e2d54ec9a2436229ff724bfec3538d3533d07663e680babbb5257e5",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "WebM / VP9 + Opus",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.008,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "vp9",
+          "profile": "Profile 0",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "22-full-range.mp4",
+      "sha256": "91434f6ca93341d3c74542d4890b8acc8eb4b2788587dd0b6eba240c6631eff3",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Explicit full-range SDR",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuvj420p",
+          "color_range": "pc",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "23-silent.mp4",
+      "sha256": "08963f1d711fc0b37adf5bdfbfabae877e06bcd8c6df6d1fec10c8315ab30304",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Video without an audio track",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "video": {
+          "width": 960,
+          "height": 540
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "24-audio-aac.m4a",
+      "sha256": "309ed8ca20cff81e7689785c889b50f30c446ebf9e674696eb306db8a9797ef8",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Audio-only AAC / stereo / 44.1 kHz",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "audio": {
+          "sampleRate": 44100,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "25-audio-mono.mp3",
+      "sha256": "c12bfb9fcb174b4c032785ffc77a1fb1ce1c2b4e0e4ec33c3c110f8afa0f2833",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Audio-only MP3 / mono / 44.1 kHz",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "audio": {
+          "sampleRate": 44100,
+          "channels": 1
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 1,
+          "channel_layout": "mono",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "26-audio-flac.flac",
+      "sha256": "19fde8ec68b6ce7f304719d2c5ccb6f6f1a8bc844e9d3370e63ce76dee365353",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Audio-only lossless FLAC / stereo / 48 kHz",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "flac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "27-audio-pcm24.wav",
+      "sha256": "120c6abc33b6358b68dd934ff84df2e1fdd63d0661c925ea7f2b2e41fb19dbb5",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Audio-only PCM24 / stereo / 96 kHz",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.0,
+        "audio": {
+          "sampleRate": 96000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "pcm_s24le",
+          "codec_type": "audio",
+          "sample_rate": "96000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "28-two-audio-tracks.mkv",
+      "sha256": "413791cb7985a17663ae27db046698ac48c9e4d33b933dc178d20cdbf2afc171",
+      "source": "Bomu-generated geometric pattern and mathematical tones; no external media",
+      "license": "CC0-1.0",
+      "coverage": "Two distinct AAC tracks / default-track decoding",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 6.021,
+        "video": {
+          "width": 960,
+          "height": 540
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 2
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded"
+    },
+    {
+      "file": "29-sync.mov",
+      "sha256": "cca036e62fbbe5a139c8253d1b47407c7e76ee8442db7034e265103fb11b4ec4",
+      "source": "Bomu generated black background, 480x480 white flashes and 1 kHz PCM pulses",
+      "license": "CC0-1.0",
+      "coverage": "Decoded flash/pulse alignment / 1080p60",
+      "expected": {
+        "outcome": "play",
+        "durationSeconds": 30.0,
+        "video": {
+          "width": 1920,
+          "height": 1080
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "channels": 1
+        }
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "60/1",
+          "avg_frame_rate": "60/1"
+        },
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 1,
+          "channel_layout": "mono",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0"
+        }
+      ],
+      "decodeCheck": "ffmpeg -xerror: all A/V streams decoded",
+      "alignment": {
+        "flashDurationFrames": 6,
+        "pulseDurationSamples": 4800,
+        "decodedFlashStartsSeconds": [
+          1.0,
+          3.0,
+          5.0,
+          7.0,
+          9.0,
+          11.0,
+          13.0,
+          15.0,
+          17.0,
+          19.0,
+          21.0,
+          23.0,
+          25.0,
+          27.0,
+          29.0
+        ],
+        "decodedPulseStartsSeconds": [
+          1.0000208333333334,
+          3.000020833333333,
+          5.000020833333333,
+          7.000020833333333,
+          9.000020833333334,
+          11.000020833333334,
+          13.000020833333334,
+          15.000020833333334,
+          17.000020833333334,
+          19.000020833333334,
+          21.000020833333334,
+          23.000020833333334,
+          25.000020833333334,
+          27.000020833333334,
+          29.000020833333334
+        ],
+        "maximumSourceOffsetMilliseconds": 0.020833333334024928,
+        "scope": "Encoded media alignment only; screen and speaker latency are not measured."
+      },
+      "derivedFromSHA256": "cca036e62fbbe5a139c8253d1b47407c7e76ee8442db7034e265103fb11b4ec4"
+    },
+    {
+      "file": "30-truncated.mp4",
+      "sha256": "b1c35f1e6d75af66f96c70ff2572346caa6812dee411ad1134cffb50e33fba5c",
+      "source": "First 32 bytes of the generated baseline MP4; no media payload",
+      "license": "CC0-1.0",
+      "coverage": "MP4 truncated to its 32-byte header / recovery",
+      "expected": {
+        "outcome": "reject"
+      },
+      "derivedFromSHA256": "151483324bf0c5e93e784279e9d5c0b0e3387c9f3cabbd0d5c317ba179ebc97a"
+    }
+  ],
+  "fullManifest": {
+    "path": ".build/media-suite/manifest.json",
+    "bytes": 159579,
+    "sha256": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e"
+  },
+  "package": {
+    "path": ".build/Bomu-A04-media-suite.tar.gz",
+    "bytes": 57324170,
+    "sha256": "bba1c43a841a4019cdaa08c64db442b051901c95b51e9a61b6cd46ef8a724cd4"
+  }
+}

@@ -12,11 +12,16 @@ struct PlaybackDiagnostics: Codable, Sendable {
     let hardwareDecoder: String?
     let videoWidth: Int?
     let videoHeight: Int?
+    let audioSampleRate: Int?
+    let audioChannelCount: Int?
+    let audioOutputSampleRate: Int?
     let openCount: UInt64
     let snapshotCount: UInt64
     let drawCount: UInt64
     let videoFrameCount: UInt64
     let skippedFrameCount: UInt64
+    let blankDrawCount: UInt64
+    let lastDrawWasClearOnly: Bool
     let firstVideoFrameUptime: Double?
     let videoSyncMode: String?
     let videoTimingOffset: Double?
@@ -32,11 +37,16 @@ struct PlaybackDiagnostics: Codable, Sendable {
         hardwareDecoder = native.hardwareDecoder
         videoWidth = native.videoWidth?.intValue
         videoHeight = native.videoHeight?.intValue
+        audioSampleRate = native.audioSampleRate?.intValue
+        audioChannelCount = native.audioChannelCount?.intValue
+        audioOutputSampleRate = native.audioOutputSampleRate?.intValue
         openCount = native.openCount
         snapshotCount = native.snapshotCount
         drawCount = native.drawCount
         videoFrameCount = native.videoFrameCount
         skippedFrameCount = native.skippedFrameCount
+        blankDrawCount = native.blankDrawCount
+        lastDrawWasClearOnly = native.lastDrawWasClearOnly
         firstVideoFrameUptime = native.firstVideoFrameUptime?.doubleValue
         videoSyncMode = native.videoSyncMode
         videoTimingOffset = native.videoTimingOffset?.doubleValue

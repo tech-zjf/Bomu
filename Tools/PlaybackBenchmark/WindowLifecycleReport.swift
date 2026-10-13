@@ -3,12 +3,15 @@ import QuartzCore
 
 enum WindowScenario: String, Encodable {
     case singleWindow = "single-window"
+    case mediaSuite = "media-suite"
     case displayTransitions = "display-transitions"
 
     var measurement: String {
         switch self {
         case .singleWindow:
-            "Production PlayerScreen/PlayerModel; one stationary ordinary window; acknowledged pause/resume, then uninterrupted muted playback; no automatic resize, fullscreen or display migration"
+            "Production PlayerScreen/PlayerModel; one stationary ordinary window held at floating level for visibility; acknowledged pause/resume, one minimize/restore probe, then uninterrupted muted playback; no automatic resize, fullscreen or display migration"
+        case .mediaSuite:
+            "30 licensed media cases through the production PlayerScreen/PlayerModel in one stationary ordinary window held at floating level and one native session; then pause/resume, minimize/restore and uninterrupted muted playback"
         case .displayTransitions:
             "Production PlayerScreen/PlayerModel; one muted file; acknowledged native fullscreen transitions and display migrations, followed by uninterrupted playback"
         }
@@ -18,7 +21,7 @@ enum WindowScenario: String, Encodable {
 /// Separate evidence from the fixed-geometry CPU baseline: fullscreen animations
 /// and SwiftUI controls intentionally contribute work in this scenario.
 struct WindowLifecycleReport: Encodable {
-    let schemaVersion = 3
+    let schemaVersion = 4
     let recordedAt = Date()
     let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
     let logicalProcessors = ProcessInfo.processInfo.activeProcessorCount
@@ -27,9 +30,13 @@ struct WindowLifecycleReport: Encodable {
     let measurement: String
     let requestedCycles: Int
     let requestedSoakSeconds: Double
+    let requestedMediaPreviewSeconds: Double
     let screens: [DisplayMeasurement]
     var completed = false
     var failure: String?
+    var mediaSamples: [MediaSampleMeasurement] = []
+    var mediaVisibility: WindowVisibilityMeasurement?
+    var occlusionProbe: WindowOcclusionProbe?
     var rounds: [WindowRound] = []
     var soak: [WindowCheckpoint] = []
     var soakVisibility: WindowVisibilityMeasurement?
@@ -37,11 +44,12 @@ struct WindowLifecycleReport: Encodable {
     var shutdown: PlaybackDiagnostics?
 
     init(scenario: WindowScenario, requestedCycles: Int, requestedSoakSeconds: Double,
-         screens: [DisplayMeasurement]) {
+         screens: [DisplayMeasurement], requestedMediaPreviewSeconds: Double = 0) {
         self.scenario = scenario
         measurement = scenario.measurement
         self.requestedCycles = requestedCycles
         self.requestedSoakSeconds = requestedSoakSeconds
+        self.requestedMediaPreviewSeconds = requestedMediaPreviewSeconds
         self.screens = screens
     }
 
@@ -51,6 +59,16 @@ struct WindowLifecycleReport: Encodable {
         encoder.dateEncodingStrategy = .iso8601
         try encoder.encode(self).write(to: url, options: .atomic)
     }
+}
+
+struct WindowOcclusionProbe: Encodable {
+    let method = "Miniaturize and deminiaturize the same window once; require delegate notifications for both transitions and a new media frame after restoration"
+    var completed = false
+    var visibility: WindowVisibilityMeasurement?
+    var notificationCount = 0
+    var before: PlaybackDiagnostics?
+    var hidden: PlaybackDiagnostics?
+    var restored: PlaybackDiagnostics?
 }
 
 struct DisplayMeasurement: Encodable {
@@ -106,7 +124,7 @@ struct WindowCheckpoint: Encodable {
 
     @MainActor
     static func read(window: NSWindow, engine: MPVPlaybackEngine,
-                     player: PlayerModel, started: Double) async throws -> WindowCheckpoint {
+                     player: PlayerModel, started: Double, expectedOpenCount: UInt64) async throws -> WindowCheckpoint {
         guard let screen = window.screen, let content = window.contentView,
               let layer = engine.videoView.layer, let snapshot = player.state.snapshot else {
             throw BenchmarkError.failed("Window, surface or playback snapshot disappeared")
@@ -117,7 +135,7 @@ struct WindowCheckpoint: Encodable {
         let diagnostics = await engine.diagnostics()
         guard diagnostics.coreAlive && diagnostics.renderContextAlive,
               diagnostics.coreCreationCount == 1, diagnostics.renderContextCreationCount == 1,
-              diagnostics.openCount == 1 else {
+              diagnostics.openCount == expectedOpenCount else {
             throw BenchmarkError.failed("Window operations replaced or released the playback session")
         }
         guard layer.contentsScale == window.backingScaleFactor else {

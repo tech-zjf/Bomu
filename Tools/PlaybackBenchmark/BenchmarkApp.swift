@@ -45,19 +45,30 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     try await PlaybackBenchmark().run(
                         media: URL(fileURLWithPath: mediaPath, isDirectory: true),
                         syncMedia: URL(fileURLWithPath: syncPath), output: URL(fileURLWithPath: outputPath))
-                case "single-window", "display-transitions":
+                case "single-window", "media-suite", "display-transitions":
                     guard let rawScenario = environment["BOMU_BENCHMARK_MODE"],
                           let scenario = WindowScenario(rawValue: rawScenario) else {
                         throw BenchmarkError.failed("Unknown window scenario")
                     }
                     guard let cycles = Int(environment["BOMU_BENCHMARK_CYCLES"] ?? "100"), (1...100).contains(cycles),
                           let soak = Double(environment["BOMU_BENCHMARK_SOAK_SECONDS"] ?? "120"),
-                          soak.isFinite, (0...600).contains(soak) else {
-                        throw BenchmarkError.failed("Window cycles must be 1–100; soak seconds must be 0–600")
+                          soak.isFinite, (0...600).contains(soak),
+                          let preview = Double(environment["BOMU_BENCHMARK_PREVIEW_SECONDS"] ?? "0"),
+                          preview.isFinite, (0...10).contains(preview) else {
+                        throw BenchmarkError.failed("Window cycles must be 1–100; soak seconds 0–600; media preview seconds 0–10")
+                    }
+                    let suiteDirectory: URL?
+                    if scenario == .mediaSuite {
+                        guard let path = environment["BOMU_BENCHMARK_SUITE"] else {
+                            throw BenchmarkError.failed("Missing A04 media suite directory")
+                        }
+                        suiteDirectory = URL(fileURLWithPath: path, isDirectory: true)
+                    } else {
+                        suiteDirectory = nil
                     }
                     try await WindowLifecycleBenchmark().run(media: URL(fileURLWithPath: mediaPath),
                         output: URL(fileURLWithPath: outputPath), scenario: scenario,
-                        cycles: cycles, soakSeconds: soak)
+                        cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview)
                 default:
                     throw BenchmarkError.failed("Supply an explicit benchmark mode using scripts/benchmark-dev.sh")
                 }
