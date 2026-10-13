@@ -149,6 +149,11 @@ def assess_measurements(measurements, target, video):
     problems = []
     if not finite_number(restart.get('elapsedMS')) or not 0 <= restart['elapsedMS'] <= 10000:
         problems.append('Seek restart did not finish within its deadline')
+    return problems + assess_seek_states(before, paused, resumed, target, video)
+
+
+def assess_seek_states(before, paused, resumed, target, video):
+    problems = []
     for sample in [before, paused, resumed]:
         if type(sample.get('frames')) is not int or sample['frames'] < 0:
             return ['Invalid native frame counter']

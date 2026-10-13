@@ -1,0 +1,2502 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-13T15:07:43.160937+00:00",
+  "experimentReportSHA256": "ca038e309ece9e61f65f6f9d224823956f0d50f5100d6ed2cb229edb9a060e67",
+  "sourceSHA256": {
+    "Tools/SeekProbe/main.c": "e273bfd42f9360fc9d3087a299ce40d3c0cb3f9709f4e24bf8418761a41657a2",
+    "scripts/verify-seek-lifecycle.py": "c1c71175fcb900ac80ddbabeab8c99a415f6be7619de00c0c2b076209c9e5035",
+    "scripts/verify-seek-candidate.py": "99e9db746bbb55b4b474da8d1282dca9a582440f4b012af6f08dfa2d1275445c"
+  },
+  "mediaSHA256": {
+    "short": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6",
+    "long": "1584ade7e360a9db53fc91e1ec3fed563742b53667e08836d6da5bd87bf7ef30",
+    "replacement": "0946bd055f66cc5ba86e128500fdd220c10374e883f9a4f33636848694992604"
+  },
+  "promotedToApplication": false,
+  "desktopVerified": false,
+  "scope": "Software frames and null audio; native queue ordering and teardown, not application request IDs or physical playback",
+  "passed": true,
+  "originalFailureReproduced": true,
+  "rawReport": {
+    "path": ".build/seek-candidates/20261013-221627/lifecycle-20261013-230743/report.json",
+    "sha256": "2db470d5784bf23ca4757ff27a3ba1c6ff3ea6b1d1753f9ab2b76ba1ab36b304"
+  },
+  "runtimeSHA256": {
+    "pinned": {
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libavformat.63.dylib": "b91e9827cd3190988135164a050674f716049fb7c6c8f996c904a03c236b1351"
+    },
+    "candidate": {
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libavformat.63.dylib": "9ced9b06a41ab95cbcbfc66ca4831412569b0364d616f625444ba5ef946c6f00"
+    }
+  },
+  "runs": [
+    {
+      "variant": "pinned",
+      "case": "short-ts",
+      "passed": false,
+      "problems": [
+        "Incomplete or reordered lifecycle measurements",
+        "Native lifecycle process exited with code 2"
+      ],
+      "elapsedSeconds": 16.598933208000002,
+      "logSHA256": "589aee7092da8daec9995fbbde7047f0e5ff404d20c6fbfa2ae6ba26b317c9d4",
+      "measurementsSHA256": "2837f7796c096e427a2099a80dc13599fd581903ecbc2c487bd2389d1c35b254",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 22.306
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 3.572313,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 4.69727,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 4.756037,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 27.018
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 1.114683,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 2.201382,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 2.25151,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 19.779
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 4.104844,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 5.197712,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 5.254523,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 30.008
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 0.113189,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 1.24082,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 16,
+          "time-pos": 1.252761,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 2.864
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "long-ts",
+      "passed": false,
+      "problems": [
+        "Incomplete or reordered lifecycle measurements",
+        "Native lifecycle process exited with code 2"
+      ],
+      "elapsedSeconds": 16.10540775,
+      "logSHA256": "fa14706a6d6e14eeb2016f9883af92991a176ce089104ae54b5e0549a68d8c90",
+      "measurementsSHA256": "15f0d95abd52225a1b1bca8f23e7b5aa8f79109bd4ca0d9f6bd93b890c713f97",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.53
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 6.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 7.025,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 46,
+          "time-pos": 7.025,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 29.175
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 47,
+          "time-pos": 6.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 76,
+          "time-pos": 7.025,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 77,
+          "time-pos": 7.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 23.019
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 78,
+          "time-pos": 6.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 107,
+          "time-pos": 7.025,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 107,
+          "time-pos": 7.025,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.655
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 108,
+          "time-pos": 6.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 138,
+          "time-pos": 7.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 138,
+          "time-pos": 7.058333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 3.374
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "mp4-control",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 9.76701825,
+      "logSHA256": "807a9d61c6ea269003a762ed0111c7636a515d9eb137b1d673c271b264def786",
+      "measurementsSHA256": "b033678b91e0e5e5da8c69b00226c373283bb7faf1641c73e844827f63a0ca74",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 22.498
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 47,
+          "time-pos": 4.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 14.192
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 48,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 77,
+          "time-pos": 2.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 77,
+          "time-pos": 2.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.03
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 78,
+          "time-pos": 4.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 108,
+          "time-pos": 5.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 108,
+          "time-pos": 5.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 12.76
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 109,
+          "time-pos": 0.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 138,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 139,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-paused",
+          "frames": 141,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-resumed",
+          "frames": 170,
+          "time-pos": 3.987667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-playing",
+          "frames": 186,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-stable",
+          "frames": 201,
+          "time-pos": 1.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "stopped",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "quiet",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 1.062
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-0",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.02665458299999557,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "e3eaf84b304358c61dbb5f5cb470e95cf9470b6db3edab8d531752f51b97f2f1",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.422
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-1",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.025408874999996556,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "93f137afbb3859429e77ca454dc5789624e9bd975ce2dca677b68f4bfcc59b73",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.504
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-2",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.026981624999997678,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "4b5eab36715907a92450888e4550b1fa33a0064a1a7808769fb80569286df7b7",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.338
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-3",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.02345087500000176,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "44bbc7b7a88bcd65dedc5340a9417a8aff30196271972d21f376975259168008",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.388
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-4",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.018234333000002323,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "1b5dc2bbe25fd669591c17c631fc515ca4c9fd84d0fbda7054152e0296e031ad",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.277
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-5",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016907082999999545,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "ce858789dba63efdad3c770e9e8e0a8d75ded07022b937eedc59d8d2dc91b901",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.344
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-6",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.015928041000002224,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "82c54aed51effe6aec97e2d81746a9c3eba0945ad5be1162336e02a580f067a5",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.389
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-7",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016597292000000152,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "0c0a1f7a31966819248925031bbcd8a84673ee7d5ac2490bb90c0314aca5d3c3",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.386
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-8",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016120083000004115,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "21a188d6cd6376e27e4ed478b18740125f9621ad0470f8047ab2ddc154454449",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.256
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "opening-9",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016576083000003905,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "12d5cfcfe366184ff729e1a44d6f1e57552f31d2d048a3ef1b9add8dcb065509",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.35
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "short-ts",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 10.339618459,
+      "logSHA256": "408cb4e1762455eed7a456055a051a4a0a45197d57045e842bd57ec99f73fc42",
+      "measurementsSHA256": "1ac7601cc6f3153b812eb092676579d503e0a333c71ef9d676efcc8c9d7002d2",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 27.815
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.754667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 4.721333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 46,
+          "time-pos": 4.721333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 14.407
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 47,
+          "time-pos": 1.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 77,
+          "time-pos": 2.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 77,
+          "time-pos": 2.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 29.232
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 78,
+          "time-pos": 4.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 108,
+          "time-pos": 5.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 108,
+          "time-pos": 5.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 15.308
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 109,
+          "time-pos": 0.254667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 138,
+          "time-pos": 1.221333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 138,
+          "time-pos": 1.221333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-paused",
+          "frames": 140,
+          "time-pos": 3.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-resumed",
+          "frames": 169,
+          "time-pos": 4.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-playing",
+          "frames": 186,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-stable",
+          "frames": 201,
+          "time-pos": 1.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "stopped",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "quiet",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 2.728
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "long-ts",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 9.795840542000008,
+      "logSHA256": "563b29ae81a2e3a573ab35a5567478174955c4311bd9c140932cf89c4f2b44f9",
+      "measurementsSHA256": "885829dd5eb45550b2effb97527c6c59b519eb94a883c37d60af333a74b5def6",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 29.004
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 47,
+          "time-pos": 4.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 18.909
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 48,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 78,
+          "time-pos": 2.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 78,
+          "time-pos": 2.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 23.509
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 79,
+          "time-pos": 4.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 108,
+          "time-pos": 5.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 108,
+          "time-pos": 5.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 15.484
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 109,
+          "time-pos": 0.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 139,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 139,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-paused",
+          "frames": 141,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-resumed",
+          "frames": 170,
+          "time-pos": 3.987667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-playing",
+          "frames": 187,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-stable",
+          "frames": 201,
+          "time-pos": 0.987667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "stopped",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "quiet",
+          "frames": 201,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 1.017
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "mp4-control",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 9.78013995900001,
+      "logSHA256": "d9751bbd41bdd3cb3de99df811de5f34f988ea130889c9478c82442253d97b89",
+      "measurementsSHA256": "62fb1d0cb157a75d16913049a1e924a3ff3b8706eb1f11fbbe91e7824ac0f45e",
+      "measurements": [
+        {
+          "stage": "case",
+          "name": "sequential-0",
+          "target": 3.75
+        },
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 25.081
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.754333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 4.721,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-1",
+          "target": 1.25
+        },
+        {
+          "stage": "before",
+          "frames": 46,
+          "time-pos": 4.721,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 15.113
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 47,
+          "time-pos": 1.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 76,
+          "time-pos": 2.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-2",
+          "target": 4.25
+        },
+        {
+          "stage": "before",
+          "frames": 77,
+          "time-pos": 2.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 22.627
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 78,
+          "time-pos": 4.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 108,
+          "time-pos": 5.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "case",
+          "name": "sequential-3",
+          "target": 0.25
+        },
+        {
+          "stage": "before",
+          "frames": 108,
+          "time-pos": 5.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 7.529
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 109,
+          "time-pos": 0.254333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "resumed",
+          "frames": 138,
+          "time-pos": 1.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-before",
+          "frames": 138,
+          "time-pos": 1.221,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 0,
+          "commandReplies": 0,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-paused",
+          "frames": 140,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "burst-resumed",
+          "frames": 169,
+          "time-pos": 3.987667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 199,
+          "commandReplies": 100,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-playing",
+          "frames": 185,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "replacement-stable",
+          "frames": 200,
+          "time-pos": 1.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "idle-active": false,
+          "matchesFile": true,
+          "lastReplyID": 1000,
+          "commandReplies": 101,
+          "commandErrors": 0
+        },
+        {
+          "stage": "stopped",
+          "frames": 200,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "quiet",
+          "frames": 200,
+          "time-pos": null,
+          "audio-params/samplerate": null,
+          "audio-out-params/samplerate": null,
+          "pause": false,
+          "seeking": null,
+          "eof-reached": null,
+          "vo-configured": false,
+          "idle-active": true,
+          "matchesFile": false,
+          "lastReplyID": 2000,
+          "commandReplies": 102,
+          "commandErrors": 0
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.883
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-0",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.030258291999999187,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "f133fc717d1875afa9c5fe942548720f00d46384692f5fd7985d775c3295263e",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.394
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-1",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.028315125000005992,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "809080473ff01cbc03e6207052ef4d8031e11101bc45a9c1f80e6eeea7fb30d6",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.36
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-2",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.025444167000003404,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "2a91fda31ef0c81cbbe2e19b215dc75ce8fdcc6b0622c702bd7ff953ecc99a44",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.381
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-3",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.022996250000005602,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "529e92e937006f176926235f80d1289a7f3796e8cfe91a2c3bd083d01fdf7643",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.348
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-4",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.01703966699999171,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "2224a0e1b6beba66e6485c012f3fc1f9d70e3f746b78ea8b4c0ecc6490f9f8b8",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.345
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-5",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.01590975000000583,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "9b5382148de81dd80990bec659fca4f942dc8192bda11a6b2ba38027e9a0af4d",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.244
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-6",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016232459000008248,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "a2b32e4cd946d62f877b30fe8acab9793f03ec84bc11230120548d87a0c8361c",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.314
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-7",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016076999999995678,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "a7d1a6c982a542e3a592b691ca627d6f49aa7dae3e88b2a72b78cf2211e9980c",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.339
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-8",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.016064458000002446,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "1ddc1bdbd1668be7c73503333f1fd6c3a3ca0164f92abaa1e57411323a4f5fb1",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.351
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "opening-9",
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 0.015833999999998127,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measurementsSHA256": "11eba7ac511daa860ca055a3b6e15083d03681b81fc8010cf0ffffe660e38826",
+      "measurements": [
+        {
+          "stage": "opening-queued"
+        },
+        {
+          "stage": "released",
+          "coreAlive": false,
+          "renderAlive": false,
+          "threadAlive": false,
+          "elapsedMS": 0.323
+        }
+      ]
+    }
+  ],
+  "singleSeekRegression": {
+    "path": ".build/seek-candidates/20261013-221627/lifecycle-20261013-230236/single-seek-regression.json",
+    "sha256": "ba824cb331298f1ddbe2c110577394b0a061636e2381b69d68931d916b700ba9",
+    "probeSHA256": "e273bfd42f9360fc9d3087a299ce40d3c0cb3f9709f4e24bf8418761a41657a2",
+    "passed": true,
+    "results": [
+      {
+        "case": "short-ts",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "short-mp4",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "short-mkv",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "long-ts",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "long-mp4",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "hevc-ts",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "mpeg2-ts",
+        "passed": true,
+        "problems": []
+      },
+      {
+        "case": "audio-ts",
+        "passed": true,
+        "problems": []
+      }
+    ]
+  },
+  "pythonTests": {
+    "interpreter": "/usr/bin/python3 (3.9.6)",
+    "count": 44,
+    "passed": true,
+    "log": ".build/test-seek-lifecycle-python.log",
+    "logSHA256": "9a61b1f13d703aac745d5a1bf3538d164793effb37694929993ee1a4b672f7e9"
+  },
+  "runtimeCapabilityInspection": {
+    "method": "av_demuxer_iterate / av_muxer_iterate / avio_enum_protocols; separate process per runtime",
+    "scriptPath": ".build/seek-candidates/inspect-format-capabilities.py",
+    "scriptSHA256": "bac8bb930ba6e1abed914ce5580be49bb98cab400c803d09d03f84dd23ae1f69",
+    "pinnedReportSHA256": "e516e74d5784d9fb103e5d8d5feabb423a2dc8c7eb4fa34c8e0220ec9743fee2",
+    "candidateReportSHA256": "dc53bab7c37ff4516d1e4bbd60b8cfb05957ec675abaa169b7b1a245558a28b8",
+    "demuxerEntries": {
+      "pinned": 359,
+      "candidate": 359
+    },
+    "muxerEntries": {
+      "pinned": 183,
+      "candidate": 0
+    },
+    "inputProtocols": {
+      "pinned": 33,
+      "candidate": 26,
+      "missing": [
+        "gophers",
+        "https",
+        "ipfs",
+        "ipns",
+        "rtmps",
+        "rtmpts",
+        "tls"
+      ]
+    },
+    "note": "Registration names do not prove internal feature equivalence. The candidate is an experimental format component, not a distribution runtime."
+  }
+}

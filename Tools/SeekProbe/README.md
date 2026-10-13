@@ -27,6 +27,23 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
 
 当前修正与 15 分钟补充验证见 [定位调查](../../docs/playback/media-suite/seek-investigation.md)。正式接入还需要完整运行库能力/许可审计与应用层回归；不要把实验 dylib 覆盖到 `.build/dependencies/lib`。
 
+## 连续操作与关闭回归
+
+对已经成功的独立实验继续运行，不重新构建或替换其中的解封装库：
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
+  /usr/bin/python3 scripts/verify-seek-lifecycle.py .build/seek-candidates/<实验目录>
+```
+
+入口先核对原报告、正式依赖锁、候选修正、每个动态库和媒体的 SHA-256；任何身份变化都显式拒绝。新的 probe 以 `-Wall -Wextra -Werror` 编译，结果存入全新的 `lifecycle-*` 目录。
+
+- 短 TS、长 TS 和 MP4 对照各在一个 core/render context 中完成四次前后定位、100 条异步定位、定位请求后立即替换文件及停止。分别检查目标位置、暂停意图、新帧、全部命令回复、替换文件身份和停止后一秒无新增帧。
+- 固定运行库与候选各做 10 次 `loadfile` 排队后立即关闭；不等待 `FILE_LOADED`，关闭必须在五秒内返回，渲染线程已回收，render context 和 core 已释放。外层每个进程有 30 秒上限。
+- 未收到所有命令回复、未知资源状态、报告缺阶段、原生非零退出均不能通过。原版 TS 失败保留为对照。
+
+这是内核队列交错检查：没有运行 `PlayerModel` 或应用的 request ID 过滤，也没有证明取消发生在某个特定解码指令中途。释放记录说明销毁 API 返回和线程回收，不等同于泄漏分析。原来的单次定位 JSON 协议保持兼容。
+
 ## 上游代码与许可
 
 `ffmpeg-9.0.1-ts-keyframes.patch` 是对 [FFmpeg 9.0.1 `libavformat/mpegts.c`](https://github.com/FFmpeg/FFmpeg/blob/n9.0.1/libavformat/mpegts.c) 的候选修改，遵循该文件的 **LGPL-2.1-or-later** 许可。完整原始源码、版权声明和 `COPYING.LGPLv2.1` 随经校验的官方源码包保留在实验目录。尚未向上游提交，也未形成正式发行依赖。

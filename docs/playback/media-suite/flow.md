@@ -74,3 +74,39 @@ sequenceDiagram
 ```
 
 源码修正限定在 MPEG-TS 视频包的定位语义。脚本不会根据文件名或扩展名修改播放器策略，也不会改写正式 `Dependencies.lock.json`。任何构建、协议、超时或候选行为失败都会阻止实验整体通过；原版已知失败作为对照如实保留。
+
+## 候选内核的交错操作与释放
+
+该链路复用已经验证的实验运行库，单个子进程始终拥有自己的 core 和渲染线程；可见应用与正式依赖均不受修改。
+
+```mermaid
+sequenceDiagram
+    participant Dev as 开发者
+    participant Script as verify-seek-lifecycle.py
+    participant Probe as SeekProbe
+    participant MPV as libmpv / 候选 libavformat
+    participant Render as 软件渲染线程
+    Dev->>Script: 指定已成功的实验目录
+    Script->>Script: 核对报告、依赖锁、库文件、修正及 CC0 媒体 SHA
+    Script->>Probe: 编译并启动独立进程，30 秒期限
+    Probe->>MPV: loadfile，四次 pause / seek / resume
+    MPV->>Render: 定位帧与恢复后的新帧
+    Probe->>MPV: 100 条异步 seek
+    MPV-->>Probe: 全部命令回复、最终位置、保留暂停状态
+    Probe->>MPV: seek 后立即 loadfile replace
+    MPV-->>Probe: 新路径、从头播放位置与持续新帧
+    Probe->>MPV: seek 后立即 stop
+    MPV-->>Probe: idle-active=true，vo-configured=false
+    Probe->>Probe: 观察停止后一秒无新增媒体帧
+    Probe->>Render: 移除回调、通知退出并 join
+    Probe->>MPV: 释放 render context，再销毁 core
+    Probe-->>Script: 有序测量、退出状态与独立日志
+    Script->>Probe: 每种运行库另做 10 次 loadfile 排队后立即关闭
+    alt 断言失败、协议不完整或超时
+        Script-->>Dev: 保留失败证据，整体不通过
+    else 候选全部通过且原版对照符合预期
+        Script-->>Dev: 后台生命周期验证通过；桌面验收仍独立
+    end
+```
+
+该工具检查 libmpv 命令交错，不提供应用层 request ID、OpenGL、实际声音或物理同步证据。时间测量在 core 销毁后使用系统单调时钟，避免再次调用已失效的 mpv handle。
