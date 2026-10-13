@@ -1,0 +1,3227 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-13T14:16:27.820936+00:00",
+  "promotedToApplication": false,
+  "desktopVerified": false,
+  "measurementScope": "libmpv software render to memory; null audio output; no physical display/audio evidence",
+  "source": {
+    "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+    "configure": [
+      "--enable-shared",
+      "--disable-static",
+      "--disable-autodetect",
+      "--disable-doc",
+      "--disable-debug",
+      "--disable-programs",
+      "--disable-encoders",
+      "--disable-decoders",
+      "--disable-muxers",
+      "--disable-avfilter",
+      "--disable-avdevice",
+      "--disable-swscale",
+      "--disable-swresample",
+      "--install-name-dir=@rpath",
+      "--arch=arm64",
+      "--target-os=darwin",
+      "--extra-cflags=-mmacosx-version-min=14.0",
+      "--extra-ldflags=-mmacosx-version-min=14.0",
+      "--cc=xcrun clang"
+    ]
+  },
+  "sourceSHA256": {
+    "Tools/SeekProbe/main.c": "3950bbcd92d7c5d1e3dcc9c140ed8e7f7ab349a01adcdd8ba0e4726e93b3003c",
+    "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4",
+    "scripts/verify-seek-candidate.py": "22702c40d28c35f74ec9e771264b78ebc7f23098008e2f896f368ec9bae81cb9"
+  },
+  "dependencyLockSHA256": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+  "ffmpegFixtureGenerator": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers",
+  "experimentPassed": true,
+  "status": {
+    "applicationTSIssueClosed": false,
+    "candidateCoreChecksPassed": true,
+    "applicationA04Result": "29/30, unchanged",
+    "pending": "Visible single-window candidate playback; Mac locked. Production dependency integration remains pending."
+  },
+  "rawReport": {
+    "path": ".build/seek-candidates/20261013-221627/report.json",
+    "sha256": "ca038e309ece9e61f65f6f9d224823956f0d50f5100d6ed2cb229edb9a060e67"
+  },
+  "runtimeSHA256": {
+    "pinned": {
+      "libSvtAv1Enc.4.dylib": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "libarchive.13.dylib": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "libass.9.dylib": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "libavcodec.63.dylib": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "libavdevice.63.dylib": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "libavfilter.12.dylib": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "libavformat.63.dylib": "b91e9827cd3190988135164a050674f716049fb7c6c8f996c904a03c236b1351",
+      "libavutil.61.dylib": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "libbluray.3.dylib": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "libbrotlicommon.1.dylib": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "libbrotlidec.1.dylib": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "libbrotlienc.1.dylib": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "libbs2b.0.dylib": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "libdav1d.7.dylib": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "libfontconfig.1.dylib": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "libfreetype.6.dylib": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "libfribidi.0.dylib": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "libharfbuzz.0.dylib": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "libjpeg.62.dylib": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "libjxl.0.11.dylib": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "libjxl_cms.0.11.dylib": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "libjxl_threads.0.11.dylib": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "liblcms2.2.dylib": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "libluajit-5.1.2.dylib": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "liblz4.1.dylib": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libmujs.dylib": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "libogg.0.dylib": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "libplacebo.360.dylib": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "librubberband.3.dylib": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "libsharpyuv.0.dylib": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "libsoxr.0.dylib": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "libspeex.1.dylib": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "libswresample.7.dylib": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "libswscale.10.dylib": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "libuchardet.0.dylib": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "libudfread.3.dylib": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "libunibreak.7.dylib": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "libvorbis.0.dylib": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "libvorbisenc.2.dylib": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "libwebp.7.dylib": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "libwebpmux.3.dylib": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "libzimg.2.dylib": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "libzstd.1.dylib": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad"
+    },
+    "rebuilt": {
+      "libSvtAv1Enc.4.dylib": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "libarchive.13.dylib": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "libass.9.dylib": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "libavcodec.63.dylib": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "libavdevice.63.dylib": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "libavfilter.12.dylib": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "libavformat.63.dylib": "b44dcc6de5fcaef424503b4affc5dddc0e27a805b253db250706f157b6bf5057",
+      "libavutil.61.dylib": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "libbluray.3.dylib": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "libbrotlicommon.1.dylib": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "libbrotlidec.1.dylib": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "libbrotlienc.1.dylib": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "libbs2b.0.dylib": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "libdav1d.7.dylib": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "libfontconfig.1.dylib": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "libfreetype.6.dylib": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "libfribidi.0.dylib": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "libharfbuzz.0.dylib": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "libjpeg.62.dylib": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "libjxl.0.11.dylib": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "libjxl_cms.0.11.dylib": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "libjxl_threads.0.11.dylib": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "liblcms2.2.dylib": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "libluajit-5.1.2.dylib": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "liblz4.1.dylib": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libmujs.dylib": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "libogg.0.dylib": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "libplacebo.360.dylib": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "librubberband.3.dylib": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "libsharpyuv.0.dylib": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "libsoxr.0.dylib": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "libspeex.1.dylib": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "libswresample.7.dylib": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "libswscale.10.dylib": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "libuchardet.0.dylib": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "libudfread.3.dylib": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "libunibreak.7.dylib": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "libvorbis.0.dylib": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "libvorbisenc.2.dylib": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "libwebp.7.dylib": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "libwebpmux.3.dylib": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "libzimg.2.dylib": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "libzstd.1.dylib": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad"
+    },
+    "candidate": {
+      "libSvtAv1Enc.4.dylib": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "libarchive.13.dylib": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "libass.9.dylib": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "libavcodec.63.dylib": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "libavdevice.63.dylib": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "libavfilter.12.dylib": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "libavformat.63.dylib": "9ced9b06a41ab95cbcbfc66ca4831412569b0364d616f625444ba5ef946c6f00",
+      "libavutil.61.dylib": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "libbluray.3.dylib": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "libbrotlicommon.1.dylib": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "libbrotlidec.1.dylib": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "libbrotlienc.1.dylib": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "libbs2b.0.dylib": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "libdav1d.7.dylib": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "libfontconfig.1.dylib": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "libfreetype.6.dylib": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "libfribidi.0.dylib": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "libharfbuzz.0.dylib": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "libjpeg.62.dylib": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "libjxl.0.11.dylib": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "libjxl_cms.0.11.dylib": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "libjxl_threads.0.11.dylib": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "liblcms2.2.dylib": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "libluajit-5.1.2.dylib": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "liblz4.1.dylib": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libmujs.dylib": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "libogg.0.dylib": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "libplacebo.360.dylib": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "librubberband.3.dylib": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "libsharpyuv.0.dylib": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "libsoxr.0.dylib": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "libspeex.1.dylib": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "libswresample.7.dylib": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "libswscale.10.dylib": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "libuchardet.0.dylib": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "libudfread.3.dylib": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "libunibreak.7.dylib": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "libvorbis.0.dylib": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "libvorbisenc.2.dylib": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "libwebp.7.dylib": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "libwebpmux.3.dylib": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "libzimg.2.dylib": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "libzstd.1.dylib": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad"
+    }
+  },
+  "changedLibraries": {
+    "rebuilt": [
+      "libavformat.63.dylib"
+    ],
+    "candidate": [
+      "libavformat.63.dylib"
+    ]
+  },
+  "media": {
+    "files": [
+      {
+        "case": "short-ts",
+        "file": "20-h264-aac.ts",
+        "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [
+            {
+              "streams": [
+                {
+                  "index": 0,
+                  "codec_name": "h264",
+                  "profile": "High",
+                  "codec_type": "video",
+                  "width": 960,
+                  "height": 540,
+                  "pix_fmt": "yuv420p"
+                },
+                {
+                  "index": 1,
+                  "codec_name": "aac",
+                  "profile": "LC",
+                  "codec_type": "audio"
+                }
+              ]
+            }
+          ],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "profile": "High",
+              "codec_type": "video",
+              "width": 960,
+              "height": 540,
+              "pix_fmt": "yuv420p"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "1.445333",
+            "duration": "6.021334",
+            "size": "901836"
+          }
+        }
+      },
+      {
+        "case": "short-mp4",
+        "file": "same-payload.mp4",
+        "sha256": "0946bd055f66cc5ba86e128500fdd220c10374e883f9a4f33636848694992604",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "profile": "High",
+              "codec_type": "video",
+              "width": 960,
+              "height": 540,
+              "pix_fmt": "yuv420p"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "0.000000",
+            "duration": "6.037333",
+            "size": "836694"
+          }
+        }
+      },
+      {
+        "case": "short-mkv",
+        "file": "same-payload.mkv",
+        "sha256": "aa7503efd62d56d0e490496bc56ff835d402c32c570448410130c64d4bf9a9d1",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "profile": "High",
+              "codec_type": "video",
+              "width": 960,
+              "height": 540,
+              "pix_fmt": "yuv420p"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "0.000000",
+            "duration": "6.037000",
+            "size": "833044"
+          }
+        }
+      },
+      {
+        "case": "long-ts",
+        "file": "long.ts",
+        "sha256": "1584ade7e360a9db53fc91e1ec3fed563742b53667e08836d6da5bd87bf7ef30",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [
+            {
+              "streams": [
+                {
+                  "index": 0,
+                  "codec_name": "h264",
+                  "profile": "High",
+                  "codec_type": "video",
+                  "width": 960,
+                  "height": 540,
+                  "pix_fmt": "yuv420p"
+                },
+                {
+                  "index": 1,
+                  "codec_name": "aac",
+                  "profile": "LC",
+                  "codec_type": "audio"
+                }
+              ]
+            }
+          ],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "profile": "High",
+              "codec_type": "video",
+              "width": 960,
+              "height": 540,
+              "pix_fmt": "yuv420p"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "1.445667",
+            "duration": "144.879667",
+            "size": "21626016"
+          }
+        }
+      },
+      {
+        "case": "long-mp4",
+        "file": "long.mp4",
+        "sha256": "176a871caa11cbd653cae6344536ffeffbb5a88d4dc7d3fee399430023f150f6",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "profile": "High",
+              "codec_type": "video",
+              "width": 960,
+              "height": 540,
+              "pix_fmt": "yuv420p"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "0.000000",
+            "duration": "144.896000",
+            "size": "20048456"
+          }
+        }
+      },
+      {
+        "case": "hevc-ts",
+        "file": "hevc.ts",
+        "sha256": "53caaf5fc9e8a1b8050c1bf6e3bff5e21034e92bcb0cd638d06f21fe27962503",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [
+            {
+              "streams": [
+                {
+                  "index": 0,
+                  "codec_name": "hevc",
+                  "profile": "Main 10",
+                  "codec_type": "video",
+                  "width": 1920,
+                  "height": 1080,
+                  "pix_fmt": "yuv420p10le"
+                },
+                {
+                  "index": 1,
+                  "codec_name": "aac",
+                  "profile": "LC",
+                  "codec_type": "audio"
+                }
+              ]
+            }
+          ],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "width": 1920,
+              "height": 1080,
+              "pix_fmt": "yuv420p10le"
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "1.445333",
+            "duration": "6.021334",
+            "size": "4955680"
+          }
+        }
+      },
+      {
+        "case": "mpeg2-ts",
+        "file": "mpeg2.ts",
+        "sha256": "69a17b8369cb97048d21a1a5fafed600e4e88edd9441de9bfa26ea6fe2e5e6b5",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [
+            {
+              "streams": [
+                {
+                  "index": 0,
+                  "codec_name": "mpeg2video",
+                  "profile": "Main",
+                  "codec_type": "video",
+                  "width": 640,
+                  "height": 360,
+                  "pix_fmt": "yuv420p",
+                  "side_data_list": [
+                    {}
+                  ]
+                },
+                {
+                  "index": 1,
+                  "codec_name": "aac",
+                  "profile": "LC",
+                  "codec_type": "audio"
+                }
+              ]
+            }
+          ],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "mpeg2video",
+              "profile": "Main",
+              "codec_type": "video",
+              "width": 640,
+              "height": 360,
+              "pix_fmt": "yuv420p",
+              "side_data_list": [
+                {}
+              ]
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "1.412000",
+            "duration": "6.021333",
+            "size": "1955952"
+          }
+        }
+      },
+      {
+        "case": "audio-ts",
+        "file": "audio.ts",
+        "sha256": "09144fee4fd291885d6b3ab2d85aa2bec12766c454facf521139d78a13962721",
+        "license": "CC0-1.0",
+        "probe": {
+          "programs": [
+            {
+              "streams": [
+                {
+                  "index": 0,
+                  "codec_name": "aac",
+                  "profile": "LC",
+                  "codec_type": "audio"
+                }
+              ]
+            }
+          ],
+          "stream_groups": [],
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "aac",
+              "profile": "LC",
+              "codec_type": "audio"
+            }
+          ],
+          "format": {
+            "start_time": "1.400000",
+            "duration": "5.897867",
+            "size": "120320"
+          }
+        }
+      }
+    ],
+    "generationCommands": [
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/20-h264-aac.ts",
+        "-map",
+        "0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mp4"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/20-h264-aac.ts",
+        "-map",
+        "0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mkv"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "23",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mp4",
+        "-map",
+        "0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.mp4"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.mp4",
+        "-map",
+        "0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.ts"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/14-hevc-main10.mp4",
+        "-map",
+        "0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/hevc.ts"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/24-audio-aac.m4a",
+        "-map",
+        "0:a:0",
+        "-c",
+        "copy",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/audio.ts"
+      ],
+      [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "6",
+        "-c:v",
+        "mpeg2video",
+        "-g",
+        "60",
+        "-bf",
+        "2",
+        "-q:v",
+        "4",
+        "-c:a",
+        "aac",
+        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/mpeg2.ts"
+      ]
+    ],
+    "decodedVideoSHA256": "SHA256=81c4765b97faa2439d9cca3342ce2c45d21aa9d44d0dfc938efee10bc5305c83"
+  },
+  "runs": [
+    {
+      "variant": "pinned",
+      "case": "short-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Seek or resume produced no new video frames"
+      ],
+      "elapsedSeconds": 2.2795764170000012,
+      "logSHA256": "fae9022842870f1e5e045293b1e930e661195ddf5b400fcb6b5ec6972770e282",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 187488,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.293
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 2.81114,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 125728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 3.950618,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 73632,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "short-mp4",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9051238330000047,
+      "logSHA256": "c95c657bf07956700e214713624fd1aad42f817b9ff8248f6fcde9510b3f6c4a",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181856,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.958
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189680,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 177840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "short-mkv",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9227274170000044,
+      "logSHA256": "61bf58078727bca6325c7e0ea22f0e89087140c3f5ba967a1c1151256d81b4d4",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 17,
+          "time-pos": 0.534,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 173088,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 20.219
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 18,
+          "time-pos": 3.0,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 197744,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 3.967,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 179840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "long-ts",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Paused seek missed the target by more than 0.2 seconds",
+        "Playback did not resume near the requested target"
+      ],
+      "elapsedSeconds": 1.929743333999994,
+      "logSHA256": "d8f72aa5abd551bfbc9afb0f51eb813aec655cea3a4f93f225df6222e490167f",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 187504,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 29.037
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 126.805,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 185232,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 127.771667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 190032,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "long-mp4",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9099242080000067,
+      "logSHA256": "be006e8bc163396fd6d02cc1cd9792edee6d484ab5c07d27add94a5dcaa365ac",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 180048,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 20.029
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 123.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189792,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 124.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181552,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "hevc-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Seek or resume produced no new video frames"
+      ],
+      "elapsedSeconds": 1.9173138749999907,
+      "logSHA256": "7e1adfc2126db221b2c991a82b9c2386bbf042035f48420706bca6d5f17c1ae4",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 855024,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 12.665
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 2.846851,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 125728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 4.000714,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 71728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "mpeg2-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Paused seek missed the target by more than 0.2 seconds",
+        "Playback did not resume near the requested target"
+      ],
+      "elapsedSeconds": 1.891522749999993,
+      "logSHA256": "3101425f0b0959f149871c90f18cf10869d7b37e7c21f256fd3ad5b89a65647a",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 385312,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 7.234
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 4.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 433520,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 4.988,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 316240,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned",
+      "case": "audio-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.863893540999996,
+      "logSHA256": "8dfb1b3d4c31859031132ca13b49a81dfdd4ad9f923e78a821e232f931412788",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 0,
+          "time-pos": 0.506221,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43072,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 5.089
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 0,
+          "time-pos": 2.809622,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43024,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 0,
+          "time-pos": 4.000638,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43056,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "short-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Seek or resume produced no new video frames"
+      ],
+      "elapsedSeconds": 17.814302458,
+      "logSHA256": "d43ac8cc1d8085a62266b5576bcdee070ab4eaf0c694b26774877217f5310412",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 187520,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.718
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 2.847611,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 125728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 3.988689,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 71728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "short-mp4",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9161115410000065,
+      "logSHA256": "c95c657bf07956700e214713624fd1aad42f817b9ff8248f6fcde9510b3f6c4a",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181856,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 20.146
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189680,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 3.987667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 179840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "short-mkv",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9214577919999982,
+      "logSHA256": "e403f2256dd4f460236f53a383981997948547297a3cb155ba8be1d58e6ff596",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 17,
+          "time-pos": 0.534,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 173088,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 20.539
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 18,
+          "time-pos": 3.0,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 197744,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.0,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 179840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "long-ts",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Paused seek missed the target by more than 0.2 seconds",
+        "Playback did not resume near the requested target"
+      ],
+      "elapsedSeconds": 1.9191414169999916,
+      "logSHA256": "f1836f6e0efd7e25eb25c8f989ea892c5b5daf6cb49419a21a4f4b486fce286f",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 184112,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 26.309
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 126.805,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 185232,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 127.771667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 190048,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "long-mp4",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.912400708000007,
+      "logSHA256": "f2c7f20336806b571650f67d6e68654753e93c45026eae57d7f97fc27c29b362",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181856,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 22.598
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 123.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189792,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 124.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181552,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "hevc-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Seek or resume produced no new video frames"
+      ],
+      "elapsedSeconds": 1.9114612920000127,
+      "logSHA256": "b523e761cc44953606eda4b10ca0d265850f61aaca7c5a4138e8bf90689e118c",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 854992,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 13.579
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 16,
+          "time-pos": 2.808657,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 125728,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 16,
+          "time-pos": 3.96841,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 72672,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "mpeg2-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": false,
+      "problems": [
+        "Paused seek missed the target by more than 0.2 seconds",
+        "Playback did not resume near the requested target"
+      ],
+      "elapsedSeconds": 1.8921398750000122,
+      "logSHA256": "3101425f0b0959f149871c90f18cf10869d7b37e7c21f256fd3ad5b89a65647a",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 385312,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 13.813
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 4.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 433520,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 4.988,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 317024,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "rebuilt",
+      "case": "audio-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.8683559169999882,
+      "logSHA256": "99fcaefd9b78beeff2aed6b76df957297427204e256e66ea18b880d70dff5a49",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 0,
+          "time-pos": 0.508158,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43072,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 7.542
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 0,
+          "time-pos": 2.834779,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43024,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 0,
+          "time-pos": 4.004993,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43056,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "short-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 7.7005131250000005,
+      "logSHA256": "53e92db7f92ddcb705f51e6d208d390c7f08dc0dac487abfb2c6e791084cbf5d",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 187520,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 27.042
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 195984,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 3.988,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 183792,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "short-mp4",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9013740409999969,
+      "logSHA256": "c95c657bf07956700e214713624fd1aad42f817b9ff8248f6fcde9510b3f6c4a",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 182752,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 14.73
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189680,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.021,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 177840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "short-mkv",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9204486249999917,
+      "logSHA256": "468c9c55952211bb3cacee52bcb58040b2fcd1ecd313614c227d320b07d32a6b",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 17,
+          "time-pos": 0.534,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 173088,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 21.578
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 18,
+          "time-pos": 3.0,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 197744,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 3.967,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 179840,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "long-ts",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9248475410000054,
+      "logSHA256": "25a26e76382c5441361067884c10efdc82926c6a61060673c3dec5908a4710ae",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 187504,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 22.718
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 123.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 192224,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 123.967667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 195968,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "long-mp4",
+      "targetSeconds": 123,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9215285000000222,
+      "logSHA256": "f2c7f20336806b571650f67d6e68654753e93c45026eae57d7f97fc27c29b362",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181856,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 18.613
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 123.001,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 189792,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 123.967667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 181696,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "hevc-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 2.032161082999977,
+      "logSHA256": "243844e890a87dfda2c02978e5a75d6ec1d0d9834ea422bad36193888e680522",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 855024,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 123.592
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 862688,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 3.988,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 843856,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "mpeg2-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.911109166999978,
+      "logSHA256": "04d94b6f59690bcbd311186809ef704325368cea47f10ce07ccb2671202c8ad6",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 502256,
+            "debug-low-level-seeks": 0,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 15.168
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 489056,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 4.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 518288,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "case": "audio-ts",
+      "targetSeconds": 3,
+      "options": [],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.8700279580000085,
+      "logSHA256": "c4d881571c90e0e4310fe34a5ac40e2b05fc9cd459de72022fda4e5569b18ed5",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 0,
+          "time-pos": 0.505697,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43072,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 7.546
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 0,
+          "time-pos": 2.849732,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43024,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 0,
+          "time-pos": 3.99114,
+          "audio-params/samplerate": 44100.0,
+          "audio-out-params/samplerate": 44100.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": false,
+          "cache": {
+            "total-bytes": 43056,
+            "debug-low-level-seeks": 2,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned-full-cache",
+      "case": "short-ts",
+      "targetSeconds": 3,
+      "options": [
+        "cache=yes"
+      ],
+      "passed": true,
+      "problems": [],
+      "elapsedSeconds": 1.9445902089999834,
+      "logSHA256": "649bd60784fd7d8fdf76226ba0573fe18f69b017c4d8560073922a5152d53c9f",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 1112144,
+            "debug-low-level-seeks": 0,
+            "bof-cached": true,
+            "eof-cached": true,
+            "seekable-ranges": [
+              {
+                "start": 0.0,
+                "end": 6.016
+              }
+            ]
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 15.38
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 3.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 1112144,
+            "debug-low-level-seeks": 0,
+            "bof-cached": true,
+            "eof-cached": true,
+            "seekable-ranges": [
+              {
+                "start": 0.0,
+                "end": 6.016
+              }
+            ]
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 47,
+          "time-pos": 4.021333,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 1112144,
+            "debug-low-level-seeks": 0,
+            "bof-cached": true,
+            "eof-cached": true,
+            "seekable-ranges": [
+              {
+                "start": 0.0,
+                "end": 6.016
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "variant": "pinned-bounded-cache",
+      "case": "long-ts",
+      "targetSeconds": 123,
+      "options": [
+        "cache=yes",
+        "cache-secs=10",
+        "demuxer-max-bytes=2MiB",
+        "demuxer-max-back-bytes=1MiB"
+      ],
+      "passed": false,
+      "problems": [
+        "Paused seek missed the target by more than 0.2 seconds",
+        "Playback did not resume near the requested target"
+      ],
+      "elapsedSeconds": 1.921735333999976,
+      "logSHA256": "9613cd1ccfd938be0e67b6bb537184f8e38eb036783e884e9f9f58c17e8df9b0",
+      "measurements": [
+        {
+          "stage": "before",
+          "frames": 16,
+          "time-pos": 0.521,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 2030592,
+            "debug-low-level-seeks": 0,
+            "bof-cached": true,
+            "eof-cached": false,
+            "seekable-ranges": [
+              {
+                "start": -0.0,
+                "end": 5.987666
+              }
+            ]
+          }
+        },
+        {
+          "stage": "restart",
+          "elapsedMS": 29.119
+        },
+        {
+          "stage": "paused-seek",
+          "frames": 17,
+          "time-pos": 126.805,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": true,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 2621296,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": [
+              {
+                "start": 126.805,
+                "end": 132.771666
+              }
+            ]
+          }
+        },
+        {
+          "stage": "resumed",
+          "frames": 46,
+          "time-pos": 127.771667,
+          "audio-params/samplerate": 48000.0,
+          "audio-out-params/samplerate": 48000.0,
+          "pause": false,
+          "seeking": false,
+          "eof-reached": false,
+          "vo-configured": true,
+          "cache": {
+            "total-bytes": 2818336,
+            "debug-low-level-seeks": 1,
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": [
+              {
+                "start": 126.805,
+                "end": 132.771666
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "largeFile": {
+    "schemaVersion": 1,
+    "experimentReportSHA256": "ca038e309ece9e61f65f6f9d224823956f0d50f5100d6ed2cb229edb9a060e67",
+    "promotedToApplication": false,
+    "desktopVerified": false,
+    "sourceFileSHA256": "a158e334ecd7004cbaa789077f7d18a2fa1754a1b8ad06c4f6c99c2a5c70682a",
+    "tsSHA256": "24da50cb88538c0d52c3898cb96cadcb7df4d296fb2a4a134b962d2fcbf9383a",
+    "tsBytes": 811889844,
+    "generationCommand": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-y",
+      "-i",
+      "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/window-fixture/window-stress-1080p.mp4",
+      "-map",
+      "0",
+      "-c",
+      "copy",
+      "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/large-file/window-stress-1080p.ts"
+    ],
+    "license": "CC0-1.0",
+    "fullDecodePassed": true,
+    "rawReport": {
+      "path": ".build/seek-candidates/20261013-221627/large-file/report.json",
+      "sha256": "0b2f26682937ca811c6f351254d05e7e01fbe5b887208ac71d91333aae5cd7cb"
+    },
+    "runs": [
+      {
+        "variant": "pinned",
+        "case": "ts-673.123",
+        "targetSeconds": 673.123,
+        "options": [],
+        "passed": false,
+        "problems": [
+          "Paused seek missed the target by more than 0.2 seconds",
+          "Playback did not resume near the requested target"
+        ],
+        "elapsedSeconds": 2.0257714580000012,
+        "logSHA256": "138f8a718b5e39865d801b1ac762c4b2f945c9e44908b5b2f4b9c34e04c599e7",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 1016448,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 73.958
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 677.157789,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 930096,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 47,
+            "time-pos": 678.157789,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 991552,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "ts-673.123",
+        "targetSeconds": 673.123,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 2.0365588750000008,
+        "logSHA256": "18bbb8ea5c7f511e269939bd6dfde439b2ef0906cbe58604638f4c621b0f6a1b",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 921072,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 71.452
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 673.124456,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 933120,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 46,
+            "time-pos": 674.091122,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 948096,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "mp4-673.123",
+        "targetSeconds": 673.123,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 2.006548875,
+        "logSHA256": "0c2c9bc59b667ad62ced0863c4f0e69203877850a15b29c2ed63c6251649356d",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 17,
+            "time-pos": 0.533333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 916240,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 65.051
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 18,
+            "time-pos": 673.136458,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 915456,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 47,
+            "time-pos": 674.103125,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 954080,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "pinned",
+        "case": "ts-17.4",
+        "targetSeconds": 17.4,
+        "options": [],
+        "passed": false,
+        "problems": [
+          "Paused seek missed the target by more than 0.2 seconds",
+          "Playback did not resume near the requested target"
+        ],
+        "elapsedSeconds": 2.2207563330000006,
+        "logSHA256": "94bb022704662dbce9bb20eaa4dba24f4475e2f079743cf6603e06751189d222",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 921072,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 119.397
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 25.021333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 948208,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 46,
+            "time-pos": 25.988,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 985552,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "ts-17.4",
+        "targetSeconds": 17.4,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 1.9780830409999979,
+        "logSHA256": "dfad16d2b7631fbdc2a21026e682c72612289ee407c4f14c37771ee622161a57",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 920160,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 34.608
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 17.421333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 993328,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 46,
+            "time-pos": 18.388,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 952912,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "mp4-17.4",
+        "targetSeconds": 17.4,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 1.9655214580000049,
+        "logSHA256": "f6a42f36481c10e4c31f141498b01e6816a114e979b35abb9e62b61198605d50",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 17,
+            "time-pos": 0.533333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 917120,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 26.675
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 18,
+            "time-pos": 17.4,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 987728,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 47,
+            "time-pos": 18.366667,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 946816,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "pinned",
+        "case": "ts-891.7",
+        "targetSeconds": 891.7,
+        "options": [],
+        "passed": false,
+        "problems": [
+          "Paused seek missed the target by more than 0.2 seconds",
+          "Playback did not resume near the requested target"
+        ],
+        "elapsedSeconds": 1.9767462080000016,
+        "logSHA256": "b85b57b2106aa9e8ae8b3a6e9d5a70e091fd0996d78f9290364fc4bda44de662",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 921072,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 71.599
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 895.6406,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 949120,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 46,
+            "time-pos": 896.607267,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 1016976,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "ts-891.7",
+        "targetSeconds": 891.7,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 2.0238643750000023,
+        "logSHA256": "2c625b341a4481a29627bd3dc8e2119bfd2d0858863faeb66d07a2195ff68a01",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 16,
+            "time-pos": 0.521333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 1016448,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 101.547
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 17,
+            "time-pos": 891.707267,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 947200,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 46,
+            "time-pos": 892.673933,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 927488,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      },
+      {
+        "variant": "candidate",
+        "case": "mp4-891.7",
+        "targetSeconds": 891.7,
+        "options": [],
+        "passed": true,
+        "problems": [],
+        "elapsedSeconds": 2.2045577499999993,
+        "logSHA256": "674c80f3819929c7ec3dcf0c3d62dbd57efeb0ae78759b77daaaccb859172945",
+        "measurements": [
+          {
+            "stage": "before",
+            "frames": 17,
+            "time-pos": 0.533333,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 916240,
+              "debug-low-level-seeks": 0,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "restart",
+            "elapsedMS": 69.252
+          },
+          {
+            "stage": "paused-seek",
+            "frames": 18,
+            "time-pos": 891.719271,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": true,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 952640,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          },
+          {
+            "stage": "resumed",
+            "frames": 47,
+            "time-pos": 892.685938,
+            "audio-params/samplerate": 48000.0,
+            "audio-out-params/samplerate": 48000.0,
+            "pause": false,
+            "seeking": false,
+            "eof-reached": false,
+            "vo-configured": true,
+            "cache": {
+              "total-bytes": 947792,
+              "debug-low-level-seeks": 1,
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "pythonVersion": "3.9.6",
+    "pythonTestsPassed": 33,
+    "pythonTestLogSHA256": "a928928a71c50ac9956e74b71a6b4bfb56acd3e9ee6542844b9ed4140ad11af1",
+    "testSourceSHA256": "8b92a9e3898d63f9c6621d6bdac7a406df6cc53078e23db01591efc59c8f040f",
+    "probeCompilation": "Three variants passed -Wall -Wextra -Werror",
+    "applicationBenchmarkBuild": "BUILD SUCCEEDED; candidate not launched",
+    "desktopCandidateReceipt": {
+      "path": ".build/seek-candidates/20261013-221627/desktop-candidate.json",
+      "sha256": "7394bcb0090dce758bd0745941d29d60bc8823f12aaa6f78665b0e048fa96b43"
+    }
+  }
+}
