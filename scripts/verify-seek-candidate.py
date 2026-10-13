@@ -10,12 +10,15 @@ import json
 import math
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 import tarfile
 import time
+import zlib
 
 from media_fixtures import sha256_file, verify_manifest
+from runtime_capabilities import compare_capabilities
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_URL = 'https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz'
@@ -29,6 +32,11 @@ CONFIGURE = [
     '--disable-swresample', '--install-name-dir=@rpath', '--arch=arm64', '--target-os=darwin',
     '--extra-cflags=-mmacosx-version-min=14.0', '--extra-ldflags=-mmacosx-version-min=14.0',
     '--cc=xcrun clang',
+]
+PLAYBACK_FORMAT_CONFIGURE = [argument for argument in CONFIGURE
+                             if argument not in ['--disable-muxers', '--disable-decoders']] + [
+    '--enable-gpl', '--enable-bzlib', '--enable-zlib', '--enable-iconv', '--enable-securetransport',
+    '--extra-libs=-liconv',
 ]
 
 
@@ -53,7 +61,7 @@ def source_archive():
     return archive
 
 
-def build_variant(output, archive, candidate):
+def build_variant(output, archive, candidate, configure=CONFIGURE):
     name = 'candidate' if candidate else 'rebuilt'
     directory = output / name
     directory.mkdir()
@@ -67,7 +75,7 @@ def build_variant(output, archive, candidate):
     source = directory / 'ffmpeg-9.0.1'
     if candidate:
         run_logged(['patch', '--batch', '--fuzz=0', '-p1', '-i', PATCH], directory / 'patch.log', cwd=source)
-    run_logged([source / 'configure', *CONFIGURE], directory / 'configure.log', cwd=source)
+    run_logged([source / 'configure', *configure], directory / 'configure.log', cwd=source)
     run_logged(['make', '-j4', 'libavformat/libavformat.63.dylib'], directory / 'build.log', cwd=source)
     runtime = directory / 'runtime'
     shutil.copytree(ROOT / '.build/dependencies/lib', runtime)
@@ -86,11 +94,39 @@ def build_probe(output, name, runtime):
     return binary
 
 
-def generate_media(output):
+def compressed_mov_header(data):
+    def atom(kind, payload):
+        return struct.pack('>I4s', len(payload) + 8, kind) + payload
+
+    atoms, offset = [], 0
+    while offset < len(data):
+        if len(data) - offset < 8:
+            raise ValueError('Truncated MOV atom')
+        size, kind = struct.unpack_from('>I4s', data, offset)
+        if size < 8 or size > len(data) - offset:
+            raise ValueError('Fixture requires bounded 32-bit MOV atoms')
+        atoms.append((offset, size, kind))
+        offset += size
+    headers = [(offset, size) for offset, size, kind in atoms if kind == b'moov']
+    if len(headers) != 1 or not any(kind == b'mdat' for _, _, kind in atoms):
+        raise ValueError('Fixture requires one moov and existing media data')
+    offset, size = headers[0]
+    payload = data[offset + 8:offset + size]
+    compressed = atom(b'cmov', atom(b'dcom', b'zlib')
+                      + atom(b'cmvd', struct.pack('>I', len(payload)) + zlib.compress(payload)))
+    padding = len(payload) - len(compressed)
+    if padding < 8:
+        raise ValueError('Compressed header cannot preserve media offsets')
+    # 保持原 moov 长度与所有 mdat 偏移；只压缩头部，不改动或重新编码音视频负载。
+    replacement = atom(b'moov', compressed + atom(b'free', bytes(padding - 8)))
+    return data[:offset] + replacement + data[offset + size:]
+
+
+def generate_media(output, include_compressed_header=False):
     suite = ROOT / '.build/media-suite'
     verify_manifest(suite)
     manifest = json.loads((suite / 'manifest.json').read_text())
-    for filename in ['20-h264-aac.ts', '14-hevc-main10.mp4', '24-audio-aac.m4a']:
+    for filename in ['20-h264-aac.ts', '14-hevc-main10.mp4', '24-audio-aac.m4a', '19-h264-pcm.mov']:
         sample = next(item for item in manifest['samples'] if item['file'] == filename)
         if sample['license'] != 'CC0-1.0':
             raise ValueError('Unlicensed test input')
@@ -121,6 +157,18 @@ def generate_media(output):
         ('long-mp4', long_mp4, 123, 'video'), ('hevc-ts', hevc_ts, 3, 'video'),
         ('mpeg2-ts', mpeg2_ts, 3, 'video'), ('audio-ts', audio_ts, 3, 'audio'),
     ]
+    compressed_control = None
+    if include_compressed_header:
+        original = suite / '19-h264-pcm.mov'
+        compressed = media / 'compressed-header.mov'
+        compressed.write_bytes(compressed_mov_header(original.read_bytes()))
+        hashes = [subprocess.check_output(['ffmpeg', '-nostdin', '-v', 'error', '-xerror',
+            '-i', str(path), '-map', '0', '-f', 'hash', '-hash', 'sha256', '-'], text=True, timeout=60).strip()
+            for path in [original, compressed]]
+        if len(set(hashes)) != 1:
+            raise ValueError('Compressed MOV changed decoded video or audio')
+        compressed_control = dict(sourceSHA256=sha256_file(original), decodedAudioVideoSHA256=hashes[0])
+        cases.append(('compressed-mov', compressed, 3, 'video'))
     identities = []
     for name, path, target, kind in cases:
         subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-xerror', '-err_detect', 'explode',
@@ -135,7 +183,8 @@ def generate_media(output):
                     for path in [short_ts, short_mp4, short_mkv]]
     if len(set(pixel_hashes)) != 1:
         raise ValueError('Remux controls do not contain the same decoded video')
-    return cases, dict(files=identities, generationCommands=commands, decodedVideoSHA256=pixel_hashes[0])
+    return cases, dict(files=identities, generationCommands=commands, decodedVideoSHA256=pixel_hashes[0],
+                       compressedMOVControl=compressed_control)
 
 
 def finite_number(value):
@@ -202,7 +251,10 @@ def measure_case(output, name, binary, case, options=()):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, help='New experiment directory (must not already exist)')
+    parser.add_argument('--profile', choices=['diagnostic', 'playback-format'], default='diagnostic',
+                        help='playback-format preserves format registries and system compression/TLS support')
     args = parser.parse_args()
+    configure = PLAYBACK_FORMAT_CONFIGURE if args.profile == 'playback-format' else CONFIGURE
     subprocess.run([sys.executable, str(ROOT / 'scripts/toolchain.py')], check=True)
     subprocess.run([sys.executable, str(ROOT / 'scripts/dependencies.py'), 'check'], check=True)
     output = (args.output or ROOT / '.build/seek-candidates' / datetime.now().strftime('%Y%m%d-%H%M%S')).resolve()
@@ -211,8 +263,9 @@ def main():
     report = dict(schemaVersion=1, createdAt=datetime.now(timezone.utc).isoformat(),
         promotedToApplication=False, desktopVerified=False,
         measurementScope='libmpv software render to memory; null audio output; no physical display/audio evidence',
-        source=dict(url=SOURCE_URL, sha256=SOURCE_SHA256, configure=CONFIGURE),
-        sourceSHA256={str(path.relative_to(ROOT)): sha256_file(path) for path in [PROBE, PATCH, Path(__file__)]},
+        source=dict(url=SOURCE_URL, sha256=SOURCE_SHA256, configure=configure, profile=args.profile),
+        sourceSHA256={str(path.relative_to(ROOT)): sha256_file(path)
+                      for path in [PROBE, PATCH, Path(__file__), ROOT / 'scripts/runtime_capabilities.py']},
         dependencyLockSHA256=sha256_file(ROOT / 'Config/Dependencies.lock.json'),
         ffmpegFixtureGenerator=subprocess.check_output(['ffmpeg', '-version'], text=True).splitlines()[0],
         runs=[], experimentPassed=False)
@@ -221,10 +274,19 @@ def main():
         for candidate in [False, True]:
             name = 'candidate' if candidate else 'rebuilt'
             print('Building isolated ' + name + ' format library', flush=True)
-            runtimes[name] = build_variant(output, archive, candidate)
+            runtimes[name] = build_variant(output, archive, candidate, configure)
         report['runtimeSHA256'] = {name: {path.name: sha256_file(path) for path in sorted(runtime.glob('*.dylib'))}
                                    for name, runtime in runtimes.items()}
-        cases, report['media'] = generate_media(output)
+        report['capabilities'] = {}
+        for name, runtime in runtimes.items():
+            raw = subprocess.check_output([sys.executable, str(ROOT / 'scripts/runtime_capabilities.py'),
+                                           str(runtime)], text=True, timeout=30)
+            report['capabilities'][name] = json.loads(raw)
+        report['capabilityDifferences'] = {name: compare_capabilities(report['capabilities']['pinned'],
+            report['capabilities'][name]) for name in ['rebuilt', 'candidate']}
+        if args.profile == 'playback-format' and any(report['capabilityDifferences'].values()):
+            raise ValueError('Playback format capabilities differ from the pinned runtime; inspect report.json')
+        cases, report['media'] = generate_media(output, include_compressed_header=args.profile == 'playback-format')
         binaries = {name: build_probe(output, name, runtime) for name, runtime in runtimes.items()}
         for name, binary in binaries.items():
             for case in cases:
@@ -241,7 +303,8 @@ def main():
         report['experimentPassed'] = (
             all(results['candidate', case[0]] for case in cases)
             and all(results[variant, name] for variant in ['pinned', 'rebuilt']
-                    for name in ['short-mp4', 'short-mkv', 'long-mp4'])
+                    for name in ['short-mp4', 'short-mkv', 'long-mp4']
+                    + (['compressed-mov'] if args.profile == 'playback-format' else []))
             and all(not results[variant, name] for variant in ['pinned', 'rebuilt']
                     for name in ['short-ts', 'long-ts'])
             and results['pinned-full-cache', 'short-ts']

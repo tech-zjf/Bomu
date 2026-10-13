@@ -3,7 +3,9 @@ from copy import deepcopy
 import importlib.util
 from pathlib import Path
 import sys
+import struct
 import unittest
+import zlib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 SPEC = importlib.util.spec_from_file_location('seek_candidate',
@@ -64,6 +66,39 @@ class SeekCandidateTests(unittest.TestCase):
     def test_ended_playback_does_not_pass_as_resume(self):
         self.samples[3]['eof-reached'] = True
         self.assertTrue(candidate.assess_measurements(self.samples, 3, True))
+
+
+class CompressedMOVFixtureTests(unittest.TestCase):
+    @staticmethod
+    def atom(kind, payload):
+        return struct.pack('>I4s', len(payload) + 8, kind) + payload
+
+    def test_compressed_header_round_trips_without_moving_or_changing_media(self):
+        payload = b'track sample table metadata' * 128
+        header = self.atom(b'moov', payload)
+        media = self.atom(b'mdat', bytes(range(256)))
+        source = header + media
+        compressed = candidate.compressed_mov_header(source)
+        self.assertEqual(len(source), len(compressed))
+        self.assertEqual(compressed[len(header):], media)
+        self.assertEqual(source, header + media)
+        self.assertEqual(compressed[12:16], b'cmov')
+        self.assertEqual(compressed[20:28], b'dcomzlib')
+        size = struct.unpack_from('>I', compressed, 28)[0]
+        self.assertEqual(struct.unpack_from('>I', compressed, 36)[0], len(payload))
+        self.assertEqual(zlib.decompress(compressed[40:28 + size]), payload)
+
+    def test_missing_duplicate_and_truncated_headers_fail_explicitly(self):
+        header = self.atom(b'moov', b'header' * 128)
+        media = self.atom(b'mdat', b'media')
+        for invalid in [media, header, header + header + media, header + media[:-1], b'moov']:
+            with self.subTest(length=len(invalid)):
+                with self.assertRaises(ValueError):
+                    candidate.compressed_mov_header(invalid)
+
+    def test_header_that_cannot_keep_media_offsets_is_rejected(self):
+        with self.assertRaises(ValueError):
+            candidate.compressed_mov_header(self.atom(b'moov', b'ab') + self.atom(b'mdat', b'frame'))
 
 
 if __name__ == '__main__':

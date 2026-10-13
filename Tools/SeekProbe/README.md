@@ -27,6 +27,30 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
 
 当前修正与 15 分钟补充验证见 [定位调查](../../docs/playback/media-suite/seek-investigation.md)。正式接入还需要完整运行库能力/许可审计与应用层回归；不要把实验 dylib 覆盖到 `.build/dependencies/lib`。
 
+## 播放用解封装配置与候选应用
+
+原来的 `diagnostic` 配置用于最小对照，会关闭压缩头读取、TLS、封装器和解封装内部依赖的部分解码配置，不能直接替代应用运行库。面向应用验证时使用明确的播放配置：
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
+  /usr/bin/python3 scripts/verify-seek-candidate.py --profile playback-format
+```
+
+它保留原版和候选同参数构建的对照，恢复原生解码配置、封装器、系统 zlib/bzip2/iconv 和 Secure Transport；macOS 的 iconv 链接显式声明。运行时仍只替换实验目录的 `libavformat`，实际解码器等其他库保持原始固定字节。
+
+`runtime_capabilities.py` 对每个运行库使用独立进程读取版本、库许可、解封装器、封装器、输入/输出协议和 arm64 导出符号。它保留重复注册项，按身份和数量比较，不能以总数相同掩盖缺失项。播放配置有任何清单差异就失败。清单相同仍不等于所有格式内部行为、编码默认值或发行依赖完整等价。
+
+该配置额外验证第 9 组压缩 MOV：只将已有 CC0 MOV 的 `moov` 头压缩为 `cmov`，保持文件长度、媒体偏移和音视频负载不变。生成后完整解码，要求音视频的解码校验值与原文件相同，再执行真实内核定位和出帧检查。
+
+实验通过后可准备独立测试应用：
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
+  /usr/bin/python3 scripts/prepare-seek-candidate-app.py .build/seek-candidates/<实验目录>
+```
+
+准备工具只接受通过当前播放配置的完整实验，重新核验运行库、媒体、修正与构建源文件身份，构建 `BomuBenchmark` 后克隆 `BomuSeekCandidate.app`。只替换克隆中的解封装库并做本地临时签名；其他库必须与原基准应用逐字节一致。`desktop-candidate.json` 记录源文件、执行文件和库文件哈希。工具不启动窗口、不覆盖已有候选、不修改正式缓存，也不把准备成功计为桌面验收。
+
 ## 连续操作与关闭回归
 
 对已经成功的独立实验继续运行，不重新构建或替换其中的解封装库：

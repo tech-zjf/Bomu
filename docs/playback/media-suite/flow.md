@@ -110,3 +110,40 @@ sequenceDiagram
 ```
 
 该工具检查 libmpv 命令交错，不提供应用层 request ID、OpenGL、实际声音或物理同步证据。时间测量在 core 销毁后使用系统单调时钟，避免再次调用已失效的 mpv handle。
+
+## 播放用候选构建与独立应用准备
+
+该链路补齐最小诊断配置不覆盖的读取能力，先核验运行库清单和实际媒体行为，再准备供单窗口验收的应用。准备应用的步骤不会启动它。
+
+```mermaid
+sequenceDiagram
+    participant Dev as 开发者
+    participant Verify as verify-seek-candidate.py
+    participant Inspect as runtime_capabilities.py
+    participant Probe as SeekProbe
+    participant Prepare as prepare-seek-candidate-app.py
+    participant Xcode as BomuBenchmark 构建
+    Dev->>Verify: --profile playback-format
+    Verify->>Verify: 核验固定源码与运行库；同参数构建原版和 TS 候选
+    loop 每种运行库使用独立进程
+        Verify->>Inspect: 核验版本、库许可、格式/协议注册及导出符号
+        Inspect-->>Verify: 逐项清单，保留重复注册项
+    end
+    alt 与固定运行库存在清单差异
+        Verify-->>Dev: 保存失败报告并停止
+    else 清单一致
+        Verify->>Verify: 生成压缩 MOV，保持媒体偏移，核对完整解码校验值
+        Verify->>Probe: 9 组候选/原版/未修改重编真实内核对照
+        Probe-->>Verify: 定位位置、暂停意图和新帧记录
+        Verify-->>Dev: 完整报告、源文件和运行库身份
+    end
+    Dev->>Prepare: 指定成功的播放配置实验
+    Prepare->>Prepare: 重新核验实验、媒体、源码与运行库
+    Prepare->>Xcode: 构建当前生产播放界面的基准 target
+    Xcode-->>Prepare: BomuBenchmark.app
+    Prepare->>Prepare: 克隆候选，仅替换 libavformat，临时签名并验证
+    Prepare->>Prepare: 核对其他动态库不变，保存 desktop-candidate.json
+    Prepare-->>Dev: 独立 BomuSeekCandidate.app，未启动、未计为桌面通过
+```
+
+正式依赖缓存和 `Dependencies.lock.json` 不参与修改。清单比较、内存帧、应用构建和临时签名分别提供有限证据；可见播放、物理声音和发行条件仍有独立验收边界。
