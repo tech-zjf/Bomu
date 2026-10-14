@@ -76,6 +76,540 @@
         "window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e"
       },
       "coreAnimationWarningLines": []
+    },
+    {
+      "directory": ".build/benchmarks/20261014-startup-diagnostic",
+      "recordedAt": "2026-10-14T04:10:30.571338+00:00",
+      "scenario": "single-window",
+      "completed": true,
+      "failure": null,
+      "processExitCode": 0,
+      "desktopControlAttachedDuringRun": false,
+      "sourceIdentityCount": 52,
+      "binaryIdentityCount": 47,
+      "identityVerifiedBeforeAndAfter": true,
+      "samples": [],
+      "roundsRequested": 1,
+      "roundsCompleted": 1,
+      "checkpointDisplayIDs": [
+        3
+      ],
+      "checkpointContentSizes": [
+        "960x600"
+      ],
+      "windowLocationEvents": [
+        "Window location: event=created, uptime=624.0692030416668, number=438, frame={{1512, -187}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+        "Window location: event=moved, uptime=624.0694721666669, number=438, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+        "Window location: event=orderedFront, uptime=624.0787301666668, number=438, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false"
+      ],
+      "coreCreationCount": 1,
+      "renderContextCreationCount": 1,
+      "openCount": 1,
+      "occlusionProbe": {
+        "completed": true,
+        "notificationCount": 2,
+        "visibility": {
+          "changes": [
+            {
+              "elapsedSeconds": 2.0553173749999587,
+              "isVisible": true
+            },
+            {
+              "elapsedSeconds": 2.6592777083333203,
+              "isVisible": false
+            },
+            {
+              "elapsedSeconds": 3.723619708333331,
+              "isVisible": true
+            }
+          ],
+          "endedAtSeconds": 3.7288851249999198,
+          "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+          "startedAtSeconds": 2.0553173749999587
+        },
+        "framesAfterRestoration": 16
+      },
+      "soakVisibility": {
+        "changes": [
+          {
+            "elapsedSeconds": 3.7299532083333133,
+            "isVisible": true
+          }
+        ],
+        "endedAtSeconds": 3.7301034999999274,
+        "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+        "startedAtSeconds": 3.7299532083333133
+      },
+      "stopped": {
+        "elapsedSeconds": 5.023540916666661,
+        "cpuPercentOfOneLogicalCore": 0.08380542867745897,
+        "deltas": {
+          "videoFrameCount": 0,
+          "drawCount": 0,
+          "snapshotCount": 0
+        }
+      },
+      "shutdown": {
+        "coreAlive": false,
+        "renderContextAlive": false
+      },
+      "rawFileSHA256": {
+        "desktop-candidate.json": "bd1f6e97b477ca590de1128da90f4bf61a7b9b7f8c96de758391ac84229c7df3",
+        "invocation.json": "1142a2bc6b61888cfafec244405c3d313ba64413679262fb80d47429eade4fbc",
+        "invocation.py": "41acda1fbd6cfcc8478f1ff46f70b10d57fa2b4b4d29911f76a31f3e53e29a92",
+        "process.log": "4cc1d705f8fb09ce14143dc4a7677320b0d4972835e6c13e42e7b203d6847d68",
+        "window-lifecycle.json": "6a1059ed7d1dd860ba965f2dab450a2a1b0c005682e1c803b98a09bbb3d8d292",
+        "window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e"
+      },
+      "coreAnimationWarningLines": []
+    },
+    {
+      "directory": ".build/benchmarks/20261014-ts-candidate-unassisted",
+      "recordedAt": "2026-10-14T04:10:30.617407+00:00",
+      "scenario": "media-suite",
+      "completed": true,
+      "failure": null,
+      "processExitCode": 0,
+      "desktopControlAttachedDuringRun": false,
+      "sourceIdentityCount": 52,
+      "binaryIdentityCount": 47,
+      "identityVerifiedBeforeAndAfter": true,
+      "samples": [
+        {
+          "file": "01-baseline-480p.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "02-main-720p25.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "03-high-1080p30.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "04-high-1080p60.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "05-high-4k24.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "06-portrait.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "07-square.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "08-中文 宽银幕.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "09-anamorphic.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "10-rotation.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "11-variable-rate.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "12-fractional-rate.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "13-hevc-main.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "14-hevc-main10.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "15-hevc-main10-4k.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "16-invalid.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "17-h264-flac.mkv",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "18-hevc-main10.mkv",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "19-h264-pcm.mov",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "20-h264-aac.ts",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "21-vp9-opus.webm",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "22-full-range.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "23-silent.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "24-audio-aac.m4a",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "25-audio-mono.mp3",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "26-audio-flac.flac",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "27-audio-pcm24.wav",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "28-two-audio-tracks.mkv",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "29-sync.mov",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        },
+        {
+          "file": "30-truncated.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 3,
+          "windowNumber": 449
+        }
+      ],
+      "roundsRequested": 100,
+      "roundsCompleted": 100,
+      "checkpointDisplayIDs": [
+        3
+      ],
+      "checkpointContentSizes": [
+        "960x600"
+      ],
+      "windowLocationEvents": [
+        "Window location: event=created, uptime=677.2793092500001, number=449, frame={{1512, -187}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+        "Window location: event=moved, uptime=677.2794922500002, number=449, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+        "Window location: event=orderedFront, uptime=677.2857745416668, number=449, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false"
+      ],
+      "coreCreationCount": 1,
+      "renderContextCreationCount": 1,
+      "openCount": 31,
+      "occlusionProbe": {
+        "completed": true,
+        "notificationCount": 2,
+        "visibility": {
+          "changes": [
+            {
+              "elapsedSeconds": 115.6765480416667,
+              "isVisible": true
+            },
+            {
+              "elapsedSeconds": 116.26059895833328,
+              "isVisible": false
+            },
+            {
+              "elapsedSeconds": 117.34436770833338,
+              "isVisible": true
+            }
+          ],
+          "endedAtSeconds": 117.35337304166671,
+          "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+          "startedAtSeconds": 115.6765480416667
+        },
+        "framesAfterRestoration": 16
+      },
+      "soakVisibility": {
+        "changes": [
+          {
+            "elapsedSeconds": 117.36428208333336,
+            "isVisible": true
+          }
+        ],
+        "endedAtSeconds": 237.4147617916667,
+        "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+        "startedAtSeconds": 117.36428208333336
+      },
+      "stopped": {
+        "elapsedSeconds": 5.199979249999956,
+        "cpuPercentOfOneLogicalCore": 0.04221170690249215,
+        "deltas": {
+          "videoFrameCount": 0,
+          "drawCount": 0,
+          "snapshotCount": 0
+        }
+      },
+      "shutdown": {
+        "coreAlive": false,
+        "renderContextAlive": false
+      },
+      "rawFileSHA256": {
+        "dependencies.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+        "desktop-candidate.json": "bd1f6e97b477ca590de1128da90f4bf61a7b9b7f8c96de758391ac84229c7df3",
+        "invocation.json": "1cf32e042f46c9d72be1f2f44bb537d464638a723c30c706a49d3f087dfaaeee",
+        "invocation.py": "924138f3fdd82f72baa9cf79a2bebbc2f0fc4621f143c37e7bee943ddda7b16b",
+        "process.log": "72cb2c26a2390c0523ca6858a76135f68ba3dbba6d0edef8f42945a018b8face",
+        "suite-manifest.json": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e",
+        "summary.md": "d5a94f2a981c53f833d26eac5b16ec6841b70c48cf3e33a24ec0e90196620b64",
+        "window-lifecycle.json": "330a8c61550f0bd9a687d1b21cdf948763c385a569c89e3a5b343a9f187e9cb7",
+        "window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e"
+      },
+      "coreAnimationWarningLines": [],
+      "mediaVisibility": {
+        "changes": [
+          {
+            "elapsedSeconds": 1.1296519999999646,
+            "isVisible": true
+          }
+        ],
+        "endedAtSeconds": 95.78507679166671,
+        "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+        "startedAtSeconds": 1.1296519999999646
+      },
+      "tsMeasurement": {
+        "before": {
+          "audioChannelCount": 2,
+          "audioOutputSampleRate": 48000,
+          "audioSampleRate": 48000,
+          "blankDrawCount": 7,
+          "coreAlive": true,
+          "coreCreationCount": 1,
+          "drawCount": 1650,
+          "firstVideoFrameUptime": 678.6870533750001,
+          "frameTiming": {
+            "averageErrorMilliseconds": 3.633477686989315,
+            "earlyFrameCount": 0,
+            "maximumErrorMilliseconds": 68.665,
+            "minimumErrorMilliseconds": 0.436,
+            "sampleCount": 1591
+          },
+          "hardwareDecoder": "videotoolbox",
+          "idle": false,
+          "lastDrawWasClearOnly": false,
+          "openCount": 19,
+          "renderContextAlive": true,
+          "renderContextCreationCount": 1,
+          "skippedFrameCount": 6,
+          "snapshotCount": 645,
+          "videoFrameCount": 1591,
+          "videoHeight": 540,
+          "videoOutputConfigured": true,
+          "videoSyncMode": "audio",
+          "videoTimingOffset": 0,
+          "videoWidth": 960
+        },
+        "displayID": 3,
+        "elapsedSeconds": 1.155579791666696,
+        "finalPlayback": {
+          "audioChannelCount": 2,
+          "audioOutputSampleRate": 48000,
+          "audioSampleRate": 48000,
+          "blankDrawCount": 7,
+          "coreAlive": true,
+          "coreCreationCount": 1,
+          "drawCount": 1678,
+          "firstVideoFrameUptime": 678.6870533750001,
+          "frameTiming": {
+            "averageErrorMilliseconds": 3.627394801980198,
+            "earlyFrameCount": 0,
+            "maximumErrorMilliseconds": 68.665,
+            "minimumErrorMilliseconds": 0.436,
+            "sampleCount": 1616
+          },
+          "hardwareDecoder": "videotoolbox",
+          "idle": false,
+          "lastDrawWasClearOnly": false,
+          "openCount": 20,
+          "renderContextAlive": true,
+          "renderContextCreationCount": 1,
+          "skippedFrameCount": 6,
+          "snapshotCount": 660,
+          "videoFrameCount": 1616,
+          "videoHeight": 540,
+          "videoOutputConfigured": true,
+          "videoSyncMode": "audio",
+          "videoTimingOffset": 0,
+          "videoWidth": 960
+        },
+        "passed": true,
+        "pausedSeekPositionSeconds": 3.0213333333333336,
+        "playing": {
+          "audioChannelCount": 2,
+          "audioOutputSampleRate": 48000,
+          "audioSampleRate": 48000,
+          "blankDrawCount": 7,
+          "coreAlive": true,
+          "coreCreationCount": 1,
+          "drawCount": 1668,
+          "firstVideoFrameUptime": 678.6870533750001,
+          "frameTiming": {
+            "averageErrorMilliseconds": 3.6293687810945277,
+            "earlyFrameCount": 0,
+            "maximumErrorMilliseconds": 68.665,
+            "minimumErrorMilliseconds": 0.436,
+            "sampleCount": 1608
+          },
+          "hardwareDecoder": "videotoolbox",
+          "idle": false,
+          "lastDrawWasClearOnly": false,
+          "openCount": 20,
+          "renderContextAlive": true,
+          "renderContextCreationCount": 1,
+          "skippedFrameCount": 6,
+          "snapshotCount": 653,
+          "videoFrameCount": 1608,
+          "videoHeight": 540,
+          "videoOutputConfigured": true,
+          "videoSyncMode": "audio",
+          "videoTimingOffset": 0,
+          "videoWidth": 960
+        },
+        "requestID": 20,
+        "resumedPositionSeconds": 3.254666666666667,
+        "sample": {
+          "coverage": "MPEG-TS / H.264 + AAC",
+          "expected": {
+            "audio": {
+              "channels": 2,
+              "sampleRate": 48000
+            },
+            "durationSeconds": 6.021334,
+            "outcome": "play",
+            "video": {
+              "height": 540,
+              "width": 960
+            }
+          },
+          "file": "20-h264-aac.ts",
+          "license": "CC0-1.0",
+          "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6"
+        },
+        "seekTargetSeconds": 3,
+        "startedAtSeconds": 61.14314849999994,
+        "windowNumber": 449
+      },
+      "soak": {
+        "elapsedSeconds": 120.02790300000004,
+        "positionAdvancedSeconds": 119.91875,
+        "newVideoFrames": 3596,
+        "submittedFramesPerSecond": 29.95970028735734,
+        "cpuPercentOfOneLogicalCore": 19.308182864779365,
+        "physicalFootprintMiB": {
+          "first": 363.7511672973633,
+          "last": 227.57929229736328,
+          "minimum": 224.79804229736328,
+          "maximum": 363.7511672973633
+        },
+        "meanFrameSubmissionErrorMilliseconds": 4.578127085650723,
+        "framesMoreThanTwoMillisecondsEarly": 0
+      }
     }
   ],
   "latestPreparation": {
@@ -139,10 +673,48 @@
     "launched": false,
     "desktopVerified": false,
     "binaryIdentityCount": 47,
-    "codesignVerified": true
+    "codesignVerified": true,
+    "note": "Immutable preparation snapshot; launched/desktopVerified describe preparation time only. Actual later execution is recorded separately."
   },
   "productionRuntimeChanged": false,
   "productionA04Passed": 29,
   "productionA04Total": 30,
-  "pythonTestsPassed": 52
+  "pythonTestsPassed": 52,
+  "latestExecution": {
+    "directory": ".build/benchmarks/20261014-ts-candidate-unassisted",
+    "automatedWindowChecksPassed": true,
+    "mediaPassed": 30,
+    "mediaTotal": 30,
+    "manualVisualObservation": "pending-user-confirmation",
+    "physicalAVSynchronizationVerified": false,
+    "listeningQualityVerified": false,
+    "applicationExited": true,
+    "productionRuntimeChanged": false
+  },
+  "toolchainEnvironment": {
+    "observedAt": "2026-10-14T04:06:43.231535+00:00",
+    "installedXcode": "27.0",
+    "installedXcodeBuild": "27A266a",
+    "lockedToolchain": {
+      "xcode": "26.1.1",
+      "xcodeBuild": "17B100",
+      "swift": "6.2.1",
+      "swiftBuild": "swiftlang-6.2.1.4.8 clang-1700.4.4.1",
+      "swiftLanguageVersion": "6.0",
+      "macOSSDK": "26.1",
+      "macOSSDKBuild": "25B74",
+      "deploymentTarget": "14.0",
+      "architecture": "arm64"
+    },
+    "checkExitCode": 69,
+    "licenseAcceptedByAgent": false,
+    "buildPerformedAfterUpgrade": false,
+    "benchmarkUsesPreviouslyPreparedApplication": true,
+    "rawFileSHA256": {
+      "check.log": "411522ec89779639df259fa9f595942811c505c31bc2eb85696023376304b203",
+      "observation.json": "b40134fb801d2082ac71969dbc271e276d7ea18cb8dfcaa311681d7f5fbc4f4c"
+    },
+    "choiceStatus": "pending-user-preference"
+  },
+  "pythonTestsNote": "52 passing tests belong to the earlier preparation/code change; this turn changed documentation only and did not rerun that suite."
 }

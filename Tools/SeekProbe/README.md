@@ -53,7 +53,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer SDKROOT=macosx \
 
 应用源码更新而运行库实验仍有效时，可使用 `--output .build/seek-candidates/<新的应用目录>` 重新准备应用，复用同一个已核验的原生实验。输出目录必须尚不存在，旧应用及其证据保持原样；新 receipt 同时记录原实验路径和报告哈希。不能仅为更新 Swift 界面就伪造一次原生运行库重编记录。
 
-2026-10-14 的可见运行在前两个 MP4 素材间检测到屏幕变化并停止，未到达 TS 用例。单窗口模式已移除 `.moveToActiveSpace` 并等待激活，但第二次仍失败；新增窗口创建、显示、移动和换屏日志的候选仅完成构建，尚未运行。失败证据及后续诊断边界见 [候选可见验证](../../docs/playback/media-suite/desktop-candidate-validation.md)。
+2026-10-14 的前两次可见运行在 MP4 素材间检测到屏幕变化并停止。随后使用带位置日志的应用、不接入桌面操控工具，短时诊断及完整矩阵均保持同屏；候选 30/30 素材、100 次暂停恢复、120 秒持续播放及停止/退出自动检查通过，人工观感尚待确认。没有放宽窗口断言或认定桌面工具就是换屏根因。应用由此前的固定 Xcode 26.1.1 构建；本机已出现 Xcode 27.0 及待确认许可，后续新构建须先统一工具链。完整证据见 [候选可见验证](../../docs/playback/media-suite/desktop-candidate-validation.md)。
 
 ## 连续操作与关闭回归
 

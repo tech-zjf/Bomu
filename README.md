@@ -10,7 +10,7 @@
 
 - 当前开发里程碑为 **`v0.0.1-dev.2`**：媒体矩阵、渲染清屏、定位候选验证与文件打开入口修复快照。版本范围、验证结果和下一步见 [本轮里程碑](docs/playback/native-poc/milestone-dev2.md)；[dev.1 记录](docs/playback/native-poc/milestone.md) 保留，v0.0 阶段验收尚未完成。
 - 后续已补齐 30 个 CC0 合成素材并实际跑完单窗口回归：29/30 通过，MPEG-TS 中途定位后无新视频帧的问题仍待修复。同窗口 100 次暂停/恢复、一次最小化恢复和 120 秒持续播放已取得证据，见 [媒体矩阵验证](docs/playback/media-suite/validation.md)。
-- TS 问题已定位到解封装层，独立候选通过内核、15 分钟文件对照及连续定位/替换/退出回归；尚未接入正式运行库，候选可见播放验收待完成，见 [定位调查](docs/playback/media-suite/seek-investigation.md)。
+- TS 问题已定位到解封装层，独立候选通过内核、15 分钟文件对照及连续定位/替换/退出回归；进一步通过单窗口 30/30 素材、100 次暂停恢复和 120 秒持续播放自动检查。人工观感待确认，尚未接入正式运行库，见 [候选验证](docs/playback/media-suite/desktop-candidate-validation.md)。
 - 播放用候选已补齐读取配置，通过格式/协议/符号清单比较、9 组内核回归与重复构建一致性检查，独立测试应用已备好，见 [运行库候选](docs/playback/media-suite/runtime-candidate.md)。
 - 实际画面检查发现并修复了视频切到纯音频时残留上一帧的问题；渲染层按原生视频输出生命周期清屏，已复查音频/视频切换与资源释放。
 - 已实现 macOS 14+、Apple Silicon 的原生最小播放链路，固定 mpv 0.41.0 / FFmpeg 9.0.1。
@@ -32,7 +32,7 @@ python3 scripts/dependencies.py bootstrap
 
 也可以在依赖准备后使用 Xcode 打开 [Bomu.xcodeproj](Bomu.xcodeproj)，选择 **Bomu** scheme，在本机 Mac 上运行。
 
-脚本与 Xcode 构建均检查 [Dependencies.lock.json](Config/Dependencies.lock.json) 中的 Xcode、Swift 和 SDK 版本/build，以及实际架构和部署目标；不匹配时明确失败。当前使用 Xcode 26.1.1（17B100）、Swift 6.2.1、macOS SDK 26.1（25B74），应用最低支持 macOS 14。工具链选择与校验范围见 [依赖说明](ThirdParty/libmpv/README.md)。
+脚本与 Xcode 构建均检查 [Dependencies.lock.json](Config/Dependencies.lock.json) 中的 Xcode、Swift 和 SDK 版本/build，以及实际架构和部署目标；不匹配时明确失败。工程锁定 Xcode 26.1.1（17B100）、Swift 6.2.1、macOS SDK 26.1（25B74），应用最低支持 macOS 14。工具链选择与校验范围见 [依赖说明](ThirdParty/libmpv/README.md)。
 
 该脚本构建无分发签名的本地开发版本，产物位于 `.build/DerivedData/Build/Products/Debug/Bomu.app`。应用内携带运行库，不依赖本机 Homebrew 的 libmpv。它不是经过签名公证的发布包；当前依赖配置会阻止 Release 构建，详见 [依赖来源与许可边界](ThirdParty/libmpv/README.md)。
 

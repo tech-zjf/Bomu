@@ -34,6 +34,6 @@ A04 的素材准备与播放器兼容性通过率是两件不同的事。30 个�
 
 ## 实现状态与完整链路
 
-媒体生成、真实参数校验、单窗口播放验证与结果归档已实现，调用链见 [flow.md](flow.md)。正式运行库的 TS 定位故障仍未关闭。独立解封装候选修正已通过后台内核对照、长文件定位，以及连续定位、替换/停止、加载后立即关闭的交错回归；尚未接入应用、未取得候选 OpenGL 可见画面或真实声音证据，见 [seek-investigation.md](seek-investigation.md)。
+媒体生成、真实参数校验、单窗口播放验证与结果归档已实现，调用链见 [flow.md](flow.md)。正式运行库的 TS 定位故障仍未关闭。独立解封装候选修正已通过后台内核对照、长文件定位，以及连续定位、替换/停止、加载后立即关闭的交错回归，见 [seek-investigation.md](seek-investigation.md)。
 
-播放用候选进一步恢复压缩头、字符转换、TLS 和解封装依赖的解码配置；清单/导出符号核验、9 组媒体回归及重复构建一致性检查通过。独立应用已准备，正式依赖仍未切换，见 [runtime-candidate.md](runtime-candidate.md)。
+播放用候选进一步恢复压缩头、字符转换、TLS 和解封装依赖的解码配置；清单/导出符号核验、9 组媒体回归及重复构建一致性检查通过，见 [runtime-candidate.md](runtime-candidate.md)。2026-10-14 进一步完成候选单窗口 OpenGL 自动场景：30/30 素材、100 次暂停恢复、120 秒持续播放与停止/退出检查通过。人工观感待确认，正式依赖未切换；工具链升级后的新构建证据也未取得，边界与原始记录见 [desktop-candidate-validation.md](desktop-candidate-validation.md)。

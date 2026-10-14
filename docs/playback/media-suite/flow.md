@@ -147,3 +147,39 @@ sequenceDiagram
 ```
 
 正式依赖缓存和 `Dependencies.lock.json` 不参与修改。清单比较、内存帧、应用构建和临时签名分别提供有限证据；可见播放、物理声音和发行条件仍有独立验收边界。
+
+## 候选应用的单窗口运行与归档
+
+2026-10-14 的运行复用已准备的应用，通过各结果目录保留的 `invocation.py` 启动。运行期间仅读取进程日志，不接入桌面操控工具；短时诊断与完整矩阵分别保存，不改变准备时 receipt。
+
+```mermaid
+sequenceDiagram
+    participant Dev as 开发者
+    participant Run as invocation.py
+    participant App as BomuSeekCandidate.app
+    participant Window as WindowLifecycleBenchmark
+    participant Player as PlayerModel / MPVPlaybackEngine
+    participant Report as window-lifecycle.json / process.log
+    Dev->>Run: 明确选择 single-window 或 media-suite
+    Run->>Run: 核对 receipt 的源码/二进制身份与素材 SHA
+    Run->>Run: 创建独立结果目录，保留 receipt、参数与素材清单
+    Run->>App: 启动已有候选，可见、静音、一个窗口
+    App->>Window: 等待激活与可见，记录创建/移动/换屏事件
+    opt media-suite
+        loop 30 个独立素材
+            Window->>Player: 打开、暂停、定位、恢复或预期拒绝
+            Player-->>Window: 内核状态、实际新帧、音视频参数
+            Window->>Report: 保存结果及窗口/屏幕身份
+        end
+    end
+    Window->>Player: 暂停恢复、同窗口最小化恢复、持续播放、停止
+    Player-->>Window: 命令确认、新帧、停止静默与资源释放
+    Window->>Report: 保存完成或失败状态，不抹去此前失败
+    App-->>Run: 自动关闭自己的窗口并退出
+    Run-->>Dev: 退出码与原始证据
+    Dev->>Report: 核对汇总断言、身份与哈希后归档
+```
+
+- 完整矩阵的 100 次暂停恢复及 120 秒持续播放与短诊断分开记录；短诊断不计作完整验收。
+- 同屏、可见性及新帧断言保留；窗口发生变化时不能通过强制搬回或抢焦点修饰结果。
+- 自动报告、用户实际观感和物理音画同步各有证据边界。正式运行库仍未替换，工具链升级后的重建也需独立验证。
