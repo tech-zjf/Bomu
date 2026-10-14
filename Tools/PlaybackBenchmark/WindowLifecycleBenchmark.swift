@@ -16,7 +16,8 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
     func run(media: URL, output: URL, scenario: WindowScenario,
              cycles: Int, soakSeconds: Double, suiteDirectory: URL? = nil,
              previewSeconds: Double = 0, initialDisplayID: UInt32? = nil,
-             replacementMedia: URL? = nil) async throws {
+             replacementMedia: URL? = nil, activationGraceSeconds: Double = 0,
+             minimizeRestoreProbe: Bool = true) async throws {
         let manifest = try suiteDirectory.map { try MediaSuiteManifest.read(from: $0) }
         let expectedOpenCount = UInt64((manifest?.samples.count ?? 0) + 1)
         let screens = NSScreen.screens
@@ -77,6 +78,13 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             try await waitUntil("active visible test window", timeout: 60) {
                 NSApplication.shared.isActive && window.isKeyWindow
                     && window.occlusionState.contains(.visible) && window.isOnActiveSpace
+            }
+            if activationGraceSeconds > 0 {
+                print("Visible test window ready for desktop handoff: \(activationGraceSeconds) seconds")
+                fflush(nil)
+                try await Task.sleep(for: .seconds(activationGraceSeconds))
+                try require(window.occlusionState.contains(.visible) && window.isOnActiveSpace,
+                    "Test window became occluded during the desktop handoff")
             }
             try await Task.sleep(for: .seconds(1))
             guard let activeScreen = window.screen,
@@ -168,7 +176,12 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 }
             }
             window.title = "Bomu · 最小化 / 恢复检查（只操作当前窗口）"
-            try await probeOcclusion(window: window, engine: engine, started: started, report: &report)
+            if minimizeRestoreProbe {
+                try await probeOcclusion(window: window, engine: engine, started: started, report: &report)
+            } else {
+                report.minimizeRestoreProbeSkippedReason =
+                    "Skipped for same-display soak; the independent minimize/restore probe moved an external-display window to display 1."
+            }
             try report.save(to: output)
             window.title = "Bomu · 持续播放测试（\(Int(soakSeconds)) 秒，静音）"
             print("Uninterrupted production-UI playback: \(soakSeconds) seconds")

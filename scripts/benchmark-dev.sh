@@ -96,7 +96,9 @@ configuration = dict(mode=mode, media=str(media), output=str(output),
     syncMedia=str(sync_media / 'av-sync-1080p60.mov'),
     cycles=os.environ.get('BOMU_BENCHMARK_CYCLES', '100'),
     soakSeconds=os.environ.get('BOMU_BENCHMARK_SOAK_SECONDS', '120'),
-    previewSeconds=os.environ.get('BOMU_BENCHMARK_PREVIEW_SECONDS', '0'))
+    previewSeconds=os.environ.get('BOMU_BENCHMARK_PREVIEW_SECONDS', '0'),
+    activationGraceSeconds=os.environ.get('BOMU_BENCHMARK_ACTIVATION_GRACE_SECONDS', '0'),
+    minimizeRestoreProbe=os.environ.get('BOMU_BENCHMARK_MINIMIZE_RESTORE_PROBE', '1') != '0')
 if os.environ.get('BOMU_BENCHMARK_DISPLAY_ID'):
     configuration['displayID'] = os.environ['BOMU_BENCHMARK_DISPLAY_ID']
 timeout = 300

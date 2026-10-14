@@ -30,6 +30,10 @@ def main():
                                   'short occlusions between samples were not monitored.')
     # Schema 1 predates single-window mode and always denotes display transitions.
     scenario = 'display-transitions' if report['schemaVersion'] == 1 else report['scenario']
+    measurement = report['measurement']
+    if report.get('minimizeRestoreProbeSkippedReason'):
+        measurement = measurement.replace('one minimize/restore probe, then',
+            'minimize/restore probe skipped for this run, then')
     if scenario in {'single-window', 'media-suite'}:
         actions = 'Each cycle: acknowledged pause/resume through PlayerModel and a new video frame after resume. '
         actions += 'Window geometry is unchanged by the driver; no automatic fullscreen or display migration.'
@@ -46,15 +50,20 @@ def main():
             raise SystemExit('The stationary benchmark did not remain on its requested initial display.')
     if report['schemaVersion'] >= 4:
         probe = report.get('occlusionProbe') or {}
-        visibility = probe.get('visibility') or {}
-        changes = visibility.get('changes', [])
-        if (not probe.get('completed') or probe.get('notificationCount', 0) < 2
-                or visibility.get('endedAtSeconds') is None or not changes
-                or not changes[0]['isVisible'] or not changes[-1]['isVisible']
-                or all(change['isVisible'] for change in changes)
-                or probe.get('restored', {}).get('videoFrameCount', 0) <= probe.get('hidden', {}).get('videoFrameCount', 0)):
-            raise SystemExit('The minimize/restore probe lacks native notifications or frame recovery.')
-        actions += ' The same window was then minimized/restored once; native callbacks retained the hidden interval and new video frames resumed.'
+        if report.get('minimizeRestoreProbeSkippedReason'):
+            if probe:
+                raise SystemExit('A skipped minimize/restore probe must not also contain probe results.')
+            actions += ' Minimize/restore probe skipped: ' + report['minimizeRestoreProbeSkippedReason']
+        else:
+            visibility = probe.get('visibility') or {}
+            changes = visibility.get('changes', [])
+            if (not probe.get('completed') or probe.get('notificationCount', 0) < 2
+                    or visibility.get('endedAtSeconds') is None or not changes
+                    or not changes[0]['isVisible'] or not changes[-1]['isVisible']
+                    or all(change['isVisible'] for change in changes)
+                    or probe.get('restored', {}).get('videoFrameCount', 0) <= probe.get('hidden', {}).get('videoFrameCount', 0)):
+                raise SystemExit('The minimize/restore probe lacks native notifications or frame recovery.')
+            actions += ' The same window was then minimized/restored once; native callbacks retained the hidden interval and new video frames resumed.'
     if scenario == 'media-suite':
         samples = report.get('mediaSamples', [])
         if (len(samples) != 30 or any(not item['passed'] for item in samples)
@@ -64,7 +73,7 @@ def main():
                 or not uninterrupted(report.get('mediaVisibility'))):
             raise SystemExit('The media suite lacks 30 passing cases in one continuously visible window.')
     rounds, soak = report['rounds'], report['soak']
-    lines = ['# Window lifecycle benchmark', '', report['measurement'], '',
+    lines = ['# Window lifecycle benchmark', '', measurement, '',
              f'Completed {scenario} cycles: {len(rounds)}/{report["requestedCycles"]}.', actions,
              visibility_description, '',
              '| Display | Built in | Points | Backing scale | Maximum fps |',

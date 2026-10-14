@@ -12,6 +12,8 @@ private struct BenchmarkLaunchConfiguration: Decodable {
     let cycles: String?
     let soakSeconds: String?
     let previewSeconds: String?
+    let activationGraceSeconds: String?
+    let minimizeRestoreProbe: Bool?
 }
 
 /// Development-only executable. The shipping app has no benchmark entry point.
@@ -77,8 +79,11 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                           let soak = Double(configuration?.soakSeconds ?? environment["BOMU_BENCHMARK_SOAK_SECONDS"] ?? "120"),
                           soak.isFinite, (0...600).contains(soak),
                           let preview = Double(configuration?.previewSeconds ?? environment["BOMU_BENCHMARK_PREVIEW_SECONDS"] ?? "0"),
-                          preview.isFinite, (0...10).contains(preview) else {
-                        throw BenchmarkError.failed("Window cycles must be 1–100; soak seconds 0–600; media preview seconds 0–10")
+                          preview.isFinite, (0...10).contains(preview),
+                          let activationGrace = Double(configuration?.activationGraceSeconds
+                            ?? environment["BOMU_BENCHMARK_ACTIVATION_GRACE_SECONDS"] ?? "0"),
+                          activationGrace.isFinite, (0...30).contains(activationGrace) else {
+                        throw BenchmarkError.failed("Window cycles must be 1–100; soak seconds 0–600; media preview seconds 0–10; activation grace 0–30")
                     }
                     let suiteDirectory: URL?
                     if scenario == .mediaSuite {
@@ -108,7 +113,9 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     try await WindowLifecycleBenchmark().run(media: URL(fileURLWithPath: mediaPath),
                         output: URL(fileURLWithPath: outputPath), scenario: scenario,
                         cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview,
-                        initialDisplayID: initialDisplayID, replacementMedia: replacementMedia)
+                        initialDisplayID: initialDisplayID, replacementMedia: replacementMedia,
+                        activationGraceSeconds: activationGrace,
+                        minimizeRestoreProbe: configuration?.minimizeRestoreProbe ?? true)
                 default:
                     throw BenchmarkError.failed("Supply an explicit benchmark mode using scripts/benchmark-dev.sh")
                 }

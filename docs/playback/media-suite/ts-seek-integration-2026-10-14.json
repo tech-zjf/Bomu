@@ -108,18 +108,45 @@
       "failure": "The same ordinary window became occluded after cycle 6; no foreground or display changes were made",
       "shutdownReleasedCore": true,
       "shutdownReleasedRenderContext": true
-    }
+    },
+    "lifecycleFinalRun": {
+      "report": ".build/benchmarks/20261014-154944/window-lifecycle.json",
+      "reportSHA256": "0c07514881e23928b078d2459bbba9557948877c5b26d474582b61dd1aea973d",
+      "summary": ".build/benchmarks/20261014-154944/summary.md",
+      "cyclesPassed": 100,
+      "cyclesRequested": 100,
+      "initialDisplayID": 3,
+      "observedDisplayIDs": [
+        3
+      ],
+      "soakSeconds": 120.08743958333253,
+      "positionAdvancedSeconds": 119.95208333333333,
+      "submittedFrames": 3598,
+      "submittedFramesPerSecond": 29.96150148994752,
+      "cpuPercentOfOneLogicalCore": 24.572302567516463,
+      "windowOccludedDuringSoak": false,
+      "minimizeRestoreProbe": "skipped in this run; separately passed frame recovery but macOS restored an external-display test window from display 3 to display 1",
+      "stoppedFrameDrawSnapshotIncrements": [
+        0,
+        0,
+        0
+      ],
+      "resourcesReleased": true,
+      "summarySHA256": "2943baa81f6c06da6e06f47431f42bf88f74f6d0043130b7f9619be9b31d59f6"
+    },
+    "benchmarkTargetBuild": "passed after clean build with Xcode 27.0 / Swift 6.4"
   },
   "sourceSHA256": {
     "Config/Dependencies.lock.json": "d2c368c738899b808f8f4ce0ab537412783aefec314198da4ae2042b771d9e26",
     "scripts/dependencies.py": "1f33e91169c91235dec95a6fceaffc848e09c859baf20c329c062452a5f11576",
     "scripts/ffmpeg_overlay.py": "b4deafda364bdda70957024e27a1a2fcddcc66df3c3b279f065c34391a1d2d9b",
     "scripts/verify-seek-candidate.py": "71a753acfad5009ec3a835cf75273eb5aca2f8a71fe1ce8dccab7862b442141f",
-    "scripts/benchmark-dev.sh": "3b5ac3903b0fd71f03a4db7ad51da5998ae93d67652d938606bd2b710f098114",
-    "Tools/PlaybackBenchmark/BenchmarkApp.swift": "e669ee1f5bce36e97d8d7605cb320aafed9622f9e72c688b04395045946d379a",
-    "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "1ebe0a05cd1b75c3c949b5e6cb70254336c90413ac58866ac4c42d8f3e336c54",
-    "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "3c391646ff75bf646b28a25cce6bc25ed2ec96178237e1f205cdb77fa5102bd7",
+    "scripts/benchmark-dev.sh": "b444993e6a709f9d60a2e72da445eed22b78c0be9dd3dc80443e297278592500",
+    "Tools/PlaybackBenchmark/BenchmarkApp.swift": "fdf1931338645c9d69382ffd4c6a4766e18fcc417848195bae9540ad26ffa2b4",
+    "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "b128da0007cbc36dafd05640fad575bd50cadc73c2074cee65eb1eef6911ee43",
+    "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "864d8c568baccbd419b21327b8ac3710a4ce9d05783d7cc44d4771397696e495",
     "Tests/test_ffmpeg_overlay.py": "dc0af96c89edc263a3d78c3e02d0396b84e3bfc3d1b997113b3764015e8bd914",
-    "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4"
+    "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4",
+    "scripts/summarize-window-benchmark.py": "3d83e1ff378143638b39e48e03fd0600a88adc1285b3abe511d8fa566853c41e"
   }
 }
