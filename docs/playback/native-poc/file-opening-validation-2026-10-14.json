@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-14",
+  "version": "v0.0.1-dev.2",
+  "build": 2,
+  "buildPassed": true,
+  "pythonTestsPassed": 52,
+  "swiftLogicTestsPassed": 12,
+  "sourceSHA256": {
+    "Sources/App/AppLifecycle.swift": "b75fad7c04b6bec499b58a4f95eae37014fd9ea01933c5f312b6fd4277c37a48",
+    "Sources/App/BomuApp.swift": "d9ea07e28dbe33fbb970f7a8e03753c889d8595fd6bce22004c6a698e7905841",
+    "Sources/App/Brand.swift": "add12eef54d318eb4d7d5a222adb80ec502ac66f64dedd98810a429838b7e8a5",
+    "Sources/App/StartView.swift": "871af23362d86a7d85ff22ad4be3a689979c2d9c5156d36592e3119d8d689ca2",
+    "Sources/DesignSystem/AppTheme.swift": "f5bee6854786ad75f951ed49b5289b26e7e85d19269b008f70d227ba058e1748",
+    "Sources/Playback/MPV/BMMPVSession.h": "b65fc125872a7d31cf25250abbdd82a017caeb3ba60e94f167ea707a46c8af63",
+    "Sources/Playback/MPV/BMMPVSession.m": "9869aa1b10e3cede6cc52de55a3f918aff8c825c282aae75810c8baeba4ccb2b",
+    "Sources/Playback/MPV/MPVPlaybackEngine.swift": "1bc712dc7a5a19108f97b5a70b7d7b97491a4711fafd5179dfd2bada17da328a",
+    "Sources/Playback/MPV/PlaybackDiagnostics.swift": "962a9403d8fe21660c77866834c9204a814af61ddb4b6d1c8823a246df1a2fde",
+    "Sources/Playback/PlaybackEngine.swift": "e7cdbd8ffa4b1eadb3472bd8e329efb586f479e4b5585db4a8a7cd3e4e8cd88f",
+    "Sources/Playback/PlaybackState.swift": "7f2f05e1e22ecc56a24cc20f6033dd6e2549c24852a2fb21a996dd245d5f4353",
+    "Sources/PlayerFeature/OpenMediaPanel.swift": "10a8ec5a2b5d5a22a16a36e349f99e43239a4cfe1a4a86e5b884af4676e9395d",
+    "Sources/PlayerFeature/PlaybackControls.swift": "3676a3f005abf82f65b514cddb6c79f3045a98649134105c925d39235377144f",
+    "Sources/PlayerFeature/PlayerModel.swift": "1e52ee30acf75c1432b71480e008e0de8ec170d19ee72bd42925a3e2f0406e91",
+    "Sources/PlayerFeature/PlayerScreen.swift": "466aeaa55cb641d7fed732b73f42844e97dde96e1994a2120d8234ddf4048512",
+    "Sources/Rendering/BMVideoSurface.h": "e6d1b195cec51b9db034ce3903ab7d7cd07fd1f3b9521fc36cbda38b8fbd95db",
+    "Sources/Rendering/BMVideoSurface.m": "d6336ee4cc1a1da0d3967ba88f77cd1741a26cd45d58daca9f7232f9ebdbf5fe",
+    "Sources/Rendering/VideoHostView.swift": "dc1338cca1d642d00a50a539a8cda4d5aeb2def3b6bb353ef340474d84bf2ccd",
+    "Sources/Resources/en.lproj/Localizable.strings": "33638c7d526a55a251ae712e0a39dd9e6604c0b2c5b226d768b78dce0599d5f9",
+    "Sources/Resources/zh-Hans.lproj/Localizable.strings": "de1c544a43bf3a585acac96d62b8ead43dc2b21bd32596e3c62e34c591509086",
+    "Config/App.xcconfig": "0ce38e113178b7a46c15fa5a149cb1ad6fbaba534fcb2334c558457e3f357c54",
+    "Config/Bomu-Bridging-Header.h": "19619e7565827f775b1f22766aa730187122bde215972f10950beea30bfb776b",
+    "Config/Dependencies.lock.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+    "Config/Info.plist": "b710617c79031d5d1048c1fba4421987a513de905459eb866ec168bec91aaca0"
+  },
+  "artifactSHA256": {
+    ".build/DerivedData/Build/Products/Debug/Bomu.app/Contents/MacOS/Bomu": "d5f91a81c166bdfa90678e64666b83937add6b3697e921b03ef0016f2639d44b",
+    ".build/DerivedData/Build/Products/Debug/Bomu.app/Contents/Info.plist": "4a22cc665f73d502862a54121e0a550e27458f217f0dca4e128f5417c1368eb8",
+    ".build/media-suite/manifest.json": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e"
+  },
+  "logSHA256": {
+    ".build/dev2-validation/build.log": "fc6ac73d5578ba6e7f95600727436db637aa4663299365f3d298824fdd30f448",
+    ".build/dev2-validation/logicTests.log": "019cb10097b219ee52adead85a69f886577504e960a4dd39fb50a7c12d3091fb",
+    ".build/dev2-validation/fileTypes.log": "197094252cdd82059d14d891d2bb8e1edfff62900a921f38371acfa52956107a"
+  },
+  "manualUI": {
+    "samePlayerWindow": true,
+    "filePickerMKVSelection": [
+      "17-h264-flac.mkv",
+      "18-hevc-main10.mkv",
+      "28-two-audio-tracks.mkv"
+    ],
+    "visiblePlayback": [
+      "17-h264-flac.mkv",
+      "18-hevc-main10.mkv",
+      "28-two-audio-tracks.mkv",
+      "03-high-1080p30.mp4"
+    ],
+    "repeatedOpenSingleSheet": true,
+    "cancelRetainedPausedFileAndPosition": true,
+    "ordinaryListRejectedTextSelection": true,
+    "fullPathMayPreselectFilteredFile": true
+  },
+  "systemRegistration": {
+    "refreshedBuiltApp": true,
+    "changedDefaultHandler": false,
+    "matroskaType": "org.matroska.mkv",
+    "bomuListedForMKV": true
+  },
+  "productionRuntimeChanged": false,
+  "physicalSyncVerified": false
+}

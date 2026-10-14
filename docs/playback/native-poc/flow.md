@@ -43,6 +43,8 @@ sequenceDiagram
 
 系统文件入口和选择面板汇入同一模型。图中将原生内部串行队列标在相应参与者后，体现异步命令与结果的区别。
 
+`OpenMediaPanel` 仅在主窗口存在且没有附着 sheet 时创建选择面板，取消不提交 `open`。MKV 的导入类型在 `Info.plist` 中归属 `public.movie`，系统完成类型解析，播放层不按扩展名分支。选择器与系统打开方式的具体回归见 [file-opening.md](file-opening.md)。
+
 ```mermaid
 sequenceDiagram
     actor User as 用户
