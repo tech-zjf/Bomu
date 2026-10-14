@@ -18,12 +18,14 @@ import time
 import zlib
 
 from media_fixtures import sha256_file, verify_manifest
+import ffmpeg_overlay
+import dependencies as dependency_builder
 from runtime_capabilities import compare_capabilities
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_URL = 'https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz'
-SOURCE_SHA256 = 'cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635'
-PATCH = ROOT / 'Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch'
+SOURCE_URL = ffmpeg_overlay.SOURCE_URL
+SOURCE_SHA256 = ffmpeg_overlay.SOURCE_SHA256
+PATCH = ffmpeg_overlay.PATCH
 PROBE = ROOT / 'Tools/SeekProbe/main.c'
 CONFIGURE = [
     '--enable-shared', '--disable-static', '--disable-autodetect', '--disable-doc',
@@ -33,11 +35,7 @@ CONFIGURE = [
     '--extra-cflags=-mmacosx-version-min=14.0', '--extra-ldflags=-mmacosx-version-min=14.0',
     '--cc=xcrun clang',
 ]
-PLAYBACK_FORMAT_CONFIGURE = [argument for argument in CONFIGURE
-                             if argument not in ['--disable-muxers', '--disable-decoders']] + [
-    '--enable-gpl', '--enable-bzlib', '--enable-zlib', '--enable-iconv', '--enable-securetransport',
-    '--extra-libs=-liconv',
-]
+PLAYBACK_FORMAT_CONFIGURE = ffmpeg_overlay.CONFIGURE
 
 
 def run_logged(arguments, log, cwd=None, timeout=600):
@@ -47,18 +45,7 @@ def run_logged(arguments, log, cwd=None, timeout=600):
 
 
 def source_archive():
-    archive = ROOT / '.build/downloads/ffmpeg-9.0.1.tar.xz'
-    archive.parent.mkdir(parents=True, exist_ok=True)
-    if not archive.exists():
-        partial = archive.with_suffix('.download')
-        subprocess.run(['curl', '--fail', '--location', '--retry', '2', SOURCE_URL,
-                        '-o', str(partial)], check=True, timeout=180)
-        if sha256_file(partial) != SOURCE_SHA256:
-            raise ValueError('FFmpeg source checksum mismatch')
-        partial.replace(archive)
-    if sha256_file(archive) != SOURCE_SHA256:
-        raise ValueError('FFmpeg source checksum mismatch')
-    return archive
+    return ffmpeg_overlay.source_archive()
 
 
 def build_variant(output, archive, candidate, configure=CONFIGURE):
@@ -77,6 +64,7 @@ def build_variant(output, archive, candidate, configure=CONFIGURE):
         run_logged(['patch', '--batch', '--fuzz=0', '-p1', '-i', PATCH], directory / 'patch.log', cwd=source)
     run_logged([source / 'configure', *configure], directory / 'configure.log', cwd=source)
     run_logged(['make', '-j4', 'libavformat/libavformat.63.dylib'], directory / 'build.log', cwd=source)
+    ffmpeg_overlay.normalize_build_uuid(source / 'libavformat/libavformat.63.dylib')
     runtime = directory / 'runtime'
     shutil.copytree(ROOT / '.build/dependencies/lib', runtime)
     # Only the format library is experimental; every other runtime remains the pinned binary.
@@ -265,12 +253,16 @@ def main():
         measurementScope='libmpv software render to memory; null audio output; no physical display/audio evidence',
         source=dict(url=SOURCE_URL, sha256=SOURCE_SHA256, configure=configure, profile=args.profile),
         sourceSHA256={str(path.relative_to(ROOT)): sha256_file(path)
-                      for path in [PROBE, PATCH, Path(__file__), ROOT / 'scripts/runtime_capabilities.py']},
+                      for path in [PROBE, PATCH, Path(__file__), ROOT / 'scripts/runtime_capabilities.py',
+                                   ROOT / 'scripts/ffmpeg_overlay.py', ROOT / 'scripts/dependencies.py']},
         dependencyLockSHA256=sha256_file(ROOT / 'Config/Dependencies.lock.json'),
         ffmpegFixtureGenerator=subprocess.check_output(['ffmpeg', '-version'], text=True).splitlines()[0],
         runs=[], experimentPassed=False)
     try:
-        runtimes = dict(pinned=ROOT / '.build/dependencies/lib')
+        pinned = output / 'pinned'
+        shutil.copytree(ROOT / '.build/dependencies/lib', pinned)
+        dependency_builder.copy_original_format_library(pinned / 'libavformat.63.dylib')
+        runtimes = dict(pinned=pinned)
         for candidate in [False, True]:
             name = 'candidate' if candidate else 'rebuilt'
             print('Building isolated ' + name + ' format library', flush=True)

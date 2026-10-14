@@ -4,6 +4,7 @@ import QuartzCore
 enum WindowScenario: String, Encodable {
     case singleWindow = "single-window"
     case mediaSuite = "media-suite"
+    case replacementBurst = "replacement-burst"
     case displayTransitions = "display-transitions"
 
     var measurement: String {
@@ -12,6 +13,8 @@ enum WindowScenario: String, Encodable {
             "Production PlayerScreen/PlayerModel; one stationary ordinary window held at floating level for visibility; acknowledged pause/resume, one minimize/restore probe, then uninterrupted muted playback; no automatic resize, fullscreen or display migration"
         case .mediaSuite:
             "30 licensed media cases through the production PlayerScreen/PlayerModel in one stationary ordinary window held at floating level and one native session; then pause/resume, minimize/restore and uninterrupted muted playback"
+        case .replacementBurst:
+            "Production PlayerScreen/PlayerModel in one stationary ordinary window; cancel queued opens and issue rapid replacements, then verify the final MPEG-TS seek and recovery in the same native session"
         case .displayTransitions:
             "Production PlayerScreen/PlayerModel; one muted file; acknowledged native fullscreen transitions and display migrations, followed by uninterrupted playback"
         }
@@ -36,6 +39,7 @@ struct WindowLifecycleReport: Encodable {
     var completed = false
     var failure: String?
     var mediaSamples: [MediaSampleMeasurement] = []
+    var replacementBurst: ReplacementBurstMeasurement?
     var mediaVisibility: WindowVisibilityMeasurement?
     var occlusionProbe: WindowOcclusionProbe?
     var rounds: [WindowRound] = []
@@ -62,6 +66,18 @@ struct WindowLifecycleReport: Encodable {
         encoder.dateEncodingStrategy = .iso8601
         try encoder.encode(self).write(to: url, options: .atomic)
     }
+}
+
+struct ReplacementBurstMeasurement: Encodable {
+    let cancelledRequestIDs: [UInt64]
+    let replacementRequestIDs: [UInt64]
+    let finalRequestID: UInt64
+    var stoppedBeforeReplacement = false
+    var finalRequestPlayed = false
+    var seekRecovered = false
+    var before: PlaybackDiagnostics?
+    var playing: PlaybackDiagnostics?
+    var afterSeek: PlaybackDiagnostics?
 }
 
 struct WindowOcclusionProbe: Encodable {

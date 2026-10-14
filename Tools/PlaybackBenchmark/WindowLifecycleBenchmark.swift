@@ -15,7 +15,8 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
 
     func run(media: URL, output: URL, scenario: WindowScenario,
              cycles: Int, soakSeconds: Double, suiteDirectory: URL? = nil,
-             previewSeconds: Double = 0, initialDisplayID: UInt32? = nil) async throws {
+             previewSeconds: Double = 0, initialDisplayID: UInt32? = nil,
+             replacementMedia: URL? = nil) async throws {
         let manifest = try suiteDirectory.map { try MediaSuiteManifest.read(from: $0) }
         let expectedOpenCount = UInt64((manifest?.samples.count ?? 0) + 1)
         let screens = NSScreen.screens
@@ -39,6 +40,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         switch scenario {
         case .singleWindow: window.title = "Bomu · 单窗口播放测试（静音）"
         case .mediaSuite: window.title = "Bomu · 30 个素材测试（单窗口，静音）"
+        case .replacementBurst: window.title = "Bomu · 快速替换 / 取消测试（单窗口，静音）"
         case .displayTransitions: window.title = "Bomu · 窗口组合测试（自动全屏 / 跨屏，静音）"
         }
         window.isReleasedWhenClosed = false
@@ -57,7 +59,14 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             if scenario == .displayTransitions {
                 try require(screens.count >= 2, "Window migration acceptance requires at least two connected displays")
             }
-            window.center()
+            if initialDisplayID != nil {
+                let frame = window.frame
+                let visibleFrame = selectedScreen.visibleFrame
+                window.setFrameOrigin(NSPoint(x: visibleFrame.midX - frame.width / 2,
+                    y: visibleFrame.midY - frame.height / 2))
+            } else {
+                window.center()
+            }
             window.makeKeyAndOrderFront(nil)
             NSApplication.shared.activate()
             recordWindowLocation(window, event: "orderedFront")
@@ -78,6 +87,22 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             try await waitUntil("player prepared") { player.isPrepared || player.startupError != nil }
             try require(player.startupError == nil, "Player initialization failed: \(player.startupError ?? "")")
             player.setVolume(0)
+            if scenario == .replacementBurst {
+                guard let replacementMedia else {
+                    throw BenchmarkError.failed("Replacement-burst scenario requires MPEG-TS media")
+                }
+                try await runReplacementBurst(initialMedia: media, replacementMedia: replacementMedia,
+                    window: window, engine: engine, player: player, output: output, report: &report)
+                player.stop()
+                try await waitUntilIdle(engine)
+                await player.shutdown()
+                report.shutdown = await engine.diagnostics()
+                try require(report.shutdown?.coreAlive == false && report.shutdown?.renderContextAlive == false,
+                            "Replacement-burst resources were not released")
+                report.completed = true
+                try report.save(to: output)
+                return
+            }
             if let manifest, let suiteDirectory {
                 try await checkMedia(manifest, directory: suiteDirectory, window: window,
                     engine: engine, player: player, started: started, previewSeconds: previewSeconds,
@@ -177,6 +202,83 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             throw error
         }
         try report.save(to: output)
+    }
+
+    private func runReplacementBurst(initialMedia: URL, replacementMedia: URL, window: NSWindow,
+                                     engine: MPVPlaybackEngine, player: PlayerModel, output: URL,
+                                     report: inout WindowLifecycleReport) async throws {
+        window.title = "Bomu · 取消排队中的打开请求（静音）"
+        player.open(initialMedia)
+        try await waitUntil("initial playback") { player.canControlPlayback }
+        var cancelledIDs: [UInt64] = []
+        for _ in 0..<12 {
+            player.open(replacementMedia)
+            if let id = player.state.request?.id { cancelledIDs.append(id) }
+        }
+        player.stop()
+        try await waitUntilIdle(engine)
+        let stopped = await engine.diagnostics()
+        try require(stopped.idle == true && stopped.videoOutputConfigured == false,
+                    "Stop did not cancel pending replacement playback")
+        try await Task.sleep(for: .milliseconds(500))
+        try require(player.state.phase == .idle && player.state.request == nil,
+                    "A stale callback restored a request after stop")
+
+        var replacementIDs: [UInt64] = []
+        for index in 0..<24 {
+            player.open(index.isMultiple(of: 2) ? initialMedia : replacementMedia)
+            if let id = player.state.request?.id { replacementIDs.append(id) }
+        }
+        guard let finalRequestID = player.state.request?.id else {
+            throw BenchmarkError.failed("Final replacement request is missing")
+        }
+        var measurement = ReplacementBurstMeasurement(cancelledRequestIDs: cancelledIDs,
+            replacementRequestIDs: replacementIDs, finalRequestID: finalRequestID,
+            stoppedBeforeReplacement: true, before: stopped)
+        report.replacementBurst = measurement
+        try report.save(to: output)
+        window.title = "Bomu · 验证最终 TS 请求与定位恢复（静音）"
+        try await waitUntil("final replacement playing") {
+            guard player.state.request?.id == finalRequestID,
+                  let snapshot = player.state.snapshot else { return false }
+            return snapshot.requestID == finalRequestID && !snapshot.isPaused && snapshot.position > 0.5
+        }
+        let playing = await engine.diagnostics()
+        try require(playing.coreCreationCount == 1 && playing.renderContextCreationCount == 1,
+                    "Rapid replacements recreated native resources")
+        try require(engine.videoView.window === window && window.occlusionState.contains(.visible),
+                    "Rapid replacement left the single test window")
+        measurement.finalRequestPlayed = true
+        measurement.playing = playing
+        try await Task.sleep(for: .seconds(1))
+        try require(player.state.request?.id == finalRequestID
+            && player.state.snapshot?.requestID == finalRequestID
+            && player.state.phase == .ready,
+            "A stale open or callback replaced the final request after the burst")
+        guard let duration = player.state.snapshot?.duration, duration > 1 else {
+            throw BenchmarkError.failed("Final TS duration is unavailable")
+        }
+        player.togglePause()
+        try await waitUntil("final TS paused") { player.state.snapshot?.isPaused == true }
+        player.seek(to: duration * 0.6)
+        try await waitUntil("final TS seek recovery") {
+            guard let snapshot = player.state.snapshot else { return false }
+            return snapshot.requestID == finalRequestID && snapshot.isPaused && !snapshot.isSeeking
+                && abs(snapshot.position - duration * 0.6) < 0.2
+        }
+        measurement.seekRecovered = true
+        measurement.afterSeek = await engine.diagnostics()
+        report.replacementBurst = measurement
+        try report.save(to: output)
+        player.togglePause()
+        try await waitUntil("final TS after resumed seek") {
+            player.state.snapshot?.requestID == finalRequestID
+                && player.state.snapshot?.isPaused == false
+                && (player.state.snapshot?.position ?? 0) > duration * 0.6
+        }
+        try await waitForNewFrame(engine, after: measurement.afterSeek?.videoFrameCount ?? 0)
+        try require(player.state.request?.id == finalRequestID && player.state.phase == .ready,
+                    "Resuming the final TS request changed its authoritative identity")
     }
 
     func windowDidEnterFullScreen(_ notification: Notification) { enteredFullScreen += 1 }
@@ -325,16 +427,19 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 started: started, expectedOpenCount: expectedOpenCount)
             visibilityObservation?.record(isVisible: checkpoint.process.windowVisible,
                 elapsedSeconds: checkpoint.elapsedSeconds)
+            report.soak.append(checkpoint)
             report.soakVisibility = visibilityObservation
+            try report.save(to: output)
             try require(visibilityObservation?.wasInterrupted == false, "Continuous playback was interrupted by occlusion")
             try require(checkpoint.displayID == previous.displayID, "Continuous playback changed displays")
             let elapsed = checkpoint.process.uptime - previous.process.uptime
             try require(checkpoint.positionSeconds - previous.positionSeconds > elapsed * 0.8,
                 "Playback position stopped advancing")
             let frames = checkpoint.playback.videoFrameCount - previous.playback.videoFrameCount
-            try require(Double(frames) >= elapsed * 25, "Uninterrupted 30 fps playback fell below 25 submitted frames/s")
-            report.soak.append(checkpoint)
-            try report.save(to: output)
+            let submittedFramesPerSecond = elapsed > 0 ? Double(frames) / elapsed : 0
+            try require(submittedFramesPerSecond >= 25,
+                String(format: "Uninterrupted 30 fps playback fell to %.2f submitted frames/s over %.2f seconds",
+                    submittedFramesPerSecond, elapsed))
         }
         visibilityObservation?.record(isVisible: window.occlusionState.contains(.visible),
             elapsedSeconds: CACurrentMediaTime() - started)

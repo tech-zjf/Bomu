@@ -9,28 +9,62 @@ import shutil
 import subprocess
 import tempfile
 
+import ffmpeg_overlay
+
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = json.loads((ROOT / 'Config/Dependencies.lock.json').read_text())
 LIBRARIES = ROOT / '.build/dependencies/lib'
 
 
 def verify(path, expected):
-    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-        raise SystemExit(f'Missing or changed dependency: {path}\nRun python3 scripts/dependencies.py bootstrap.')
+    actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else 'missing'
+    if actual != expected:
+        raise SystemExit(f'Missing or changed dependency: {path}\nExpected {expected}; found {actual}.\n'
+                         'Run python3 scripts/dependencies.py bootstrap.')
 
 
-def check():
-    unexpected = {p.name for p in LIBRARIES.glob('*.dylib')} - set(LOCK['libraries'])
+def check(directory=LIBRARIES):
+    unexpected = {p.name for p in directory.glob('*.dylib')} - set(LOCK['libraries'])
     if unexpected:
         raise SystemExit(f'Unexpected libraries in the dependency cache: {sorted(unexpected)}')
     for name, item in LOCK['libraries'].items():
-        verify(LIBRARIES / name, item['sha256'])
+        verify(directory / name, item['sha256'])
     for name, checksum in LOCK['headers'].items():
         verify(ROOT / name, checksum)
 
 
+def copy_original_format_library(destination):
+    """Extract the original IINA format library for before/after seek experiments."""
+    source = LOCK['source']
+    overlay = LOCK['ffmpegOverlay']
+    archive = ROOT / '.build/downloads' / f"IINA.v{source['version']}.dmg"
+    verify(archive, source['sha256'])
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='bomu-baseline-', dir=ROOT / '.build') as directory:
+        mount = Path(directory)
+        subprocess.run(['hdiutil', 'attach', '-readonly', '-nobrowse', '-mountpoint',
+                        str(mount), str(archive)], check=True)
+        try:
+            original = mount / 'IINA.app/Contents/Frameworks' / overlay['library']
+            verify(original, overlay['baseSHA256'])
+            shutil.copy2(original, destination)
+        finally:
+            subprocess.run(['hdiutil', 'detach', str(mount)], check=True)
+    verify(destination, overlay['baseSHA256'])
+
+
 def bootstrap():
     source = LOCK['source']
+    overlay = LOCK['ffmpegOverlay']
+    if (overlay['version'] != ffmpeg_overlay.SOURCE_VERSION
+            or overlay['url'] != ffmpeg_overlay.SOURCE_URL
+            or overlay['sha256'] != ffmpeg_overlay.SOURCE_SHA256
+            or overlay.get('normalizeBuildUUID') != 'content-sha256-v1'
+            or overlay['patch'] != str(ffmpeg_overlay.PATCH.relative_to(ROOT))
+            or overlay['patchSHA256'] != hashlib.sha256(ffmpeg_overlay.PATCH.read_bytes()).hexdigest()
+            or overlay['configure'] != ffmpeg_overlay.CONFIGURE):
+        raise SystemExit('FFmpeg overlay definition differs from its verified builder.')
     archive = ROOT / '.build/downloads' / f"IINA.v{source['version']}.dmg"
     archive.parent.mkdir(parents=True, exist_ok=True)
     if not archive.exists():
@@ -39,19 +73,38 @@ def bootstrap():
         verify(partial, source['sha256'])
         partial.replace(archive)
     verify(archive, source['sha256'])
-    LIBRARIES.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='bomu-deps-', dir=ROOT / '.build') as directory:
-        mount = Path(directory)
+    LIBRARIES.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='bomu-deps-', dir=LIBRARIES.parent) as directory:
+        work = Path(directory)
+        mount = work / 'mount'
+        mount.mkdir()
+        staging = work / 'lib'
+        staging.mkdir()
         subprocess.run(['hdiutil', 'attach', '-readonly', '-nobrowse', '-mountpoint', str(mount), str(archive)], check=True)
         try:
             frameworks = mount / 'IINA.app/Contents/Frameworks'
             for name, item in LOCK['libraries'].items():
-                verify(frameworks / name, item['sha256'])
-                shutil.copy2(frameworks / name, LIBRARIES / name)
+                expected = overlay['baseSHA256'] if name == overlay['library'] else item['sha256']
+                verify(frameworks / name, expected)
+                shutil.copy2(frameworks / name, staging / name)
         finally:
             subprocess.run(['hdiutil', 'detach', str(mount)], check=True)
-    check()
-    print('Verified development runtime: mpv 0.41.0 / FFmpeg 9.0.1')
+        overlay_build = work / 'ffmpeg-overlay'
+        overlay_build.mkdir()
+        library = ffmpeg_overlay.build_library(overlay_build)
+        shutil.copy2(library, staging / overlay['library'])
+        verify(staging / overlay['library'], overlay['librarySHA256'])
+        check(staging)
+        backup = work / 'previous-lib'
+        if LIBRARIES.exists():
+            LIBRARIES.replace(backup)
+        try:
+            staging.replace(LIBRARIES)
+        except Exception:
+            if backup.exists() and not LIBRARIES.exists():
+                backup.replace(LIBRARIES)
+            raise
+    print('Verified development runtime: mpv 0.41.0 / FFmpeg 9.0.1 + pinned TS-seek overlay')
 
 
 def embed(destination):

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-14",
+  "baseCommit": "04efab39d3ca950297597403903f0b08a91c0729",
+  "toolchain": {
+    "xcode": "27.0",
+    "xcodeBuild": "27A266a",
+    "swift": "6.4",
+    "swiftBuild": "swiftlang-6.4.0.34.1 clang-2100.3.34.1",
+    "swiftLanguageVersion": "6.0",
+    "macOSSDK": "27.0",
+    "macOSSDKBuild": "26A425",
+    "deploymentTarget": "14.0",
+    "architecture": "arm64"
+  },
+  "runtime": {
+    "base": "IINA 1.5.0",
+    "mpv": "0.41.0",
+    "ffmpeg": "9.0.1",
+    "overlayLibrary": "libavformat.63.dylib",
+    "overlaySHA256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+    "ffmpegSourceURL": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "ffmpegSourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+    "patch": "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch",
+    "patchSHA256": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4",
+    "normalization": "content-sha256-v1",
+    "reproducibleBuildSHA256": [
+      "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+      "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e"
+    ],
+    "usage": "development-poc-only",
+    "distributionReady": false,
+    "gplEnabled": true
+  },
+  "verification": {
+    "productionBuild": "passed",
+    "pythonTests": {
+      "passed": 54,
+      "failed": 0
+    },
+    "hostlessSwiftTests": {
+      "passed": 12,
+      "failed": 0
+    },
+    "nativeXCTest": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "replacementBurst": {
+      "report": ".build/benchmarks/20261014-153312/window-lifecycle.json",
+      "reportSHA256": "5a90df824958535eb646a784200245336fd5ef8d36ed622130b96dd3d648bb11",
+      "cancelledOpens": 12,
+      "replacementOpens": 24,
+      "finalContainer": "MPEG-TS / H.264 + AAC",
+      "seekRecovered": true,
+      "coreCreations": 1,
+      "renderContextCreations": 1,
+      "resourcesReleased": true
+    },
+    "mediaSuite": {
+      "report": ".build/benchmarks/20261014-153504/window-lifecycle.json",
+      "reportSHA256": "6cc4f3977c5c8e02fb92eccff972c71d0d20179f0fb1dafd4f40df17ebd41ce4",
+      "passed": 30,
+      "total": 30,
+      "scenarioCyclesPassed": 6,
+      "scenarioCyclesRequested": 100,
+      "failure": "Window occlusion detected after cycle 6; suite stopped safely",
+      "completed": false,
+      "soakStarted": false,
+      "minimizeRestoreVerified": false,
+      "initialDisplayID": 1,
+      "mediaWindowCount": 1,
+      "muted": true,
+      "physicalAVSyncVerified": false,
+      "visualInspectionConfirmed": false,
+      "shutdownReleasedCore": true,
+      "shutdownReleasedRenderContext": true
+    },
+    "seekCandidate": {
+      "report": ".build/seek-candidates/20261014-postintegration-fullmuxer/report.json",
+      "passed": true,
+      "runs": 29,
+      "candidateCasesPassed": 9,
+      "capabilityDifferences": {
+        "rebuilt": [],
+        "candidate": []
+      },
+      "lifecycleReport": ".build/seek-candidates/20261014-postintegration-fullmuxer-lifecycle/report.json",
+      "lifecyclePassed": true,
+      "lifecycleRuns": 26
+    },
+    "firstFinalConfigurationSuiteAttempt": {
+      "report": ".build/benchmarks/20261014-153334/window-lifecycle.json",
+      "reportSHA256": "f1bc628b317bd218dfba8d194eb077e53e97c4913adde1ac3106917d50bebe99",
+      "passedMediaCases": 25,
+      "totalMediaCases": 30,
+      "failure": "Window occlusion detected during case 26",
+      "shutdownReleasedCore": true,
+      "shutdownReleasedRenderContext": true
+    }
+  },
+  "sourceSHA256": {
+    "Config/Dependencies.lock.json": "d2c368c738899b808f8f4ce0ab537412783aefec314198da4ae2042b771d9e26",
+    "scripts/dependencies.py": "1f33e91169c91235dec95a6fceaffc848e09c859baf20c329c062452a5f11576",
+    "scripts/ffmpeg_overlay.py": "b4deafda364bdda70957024e27a1a2fcddcc66df3c3b279f065c34391a1d2d9b",
+    "scripts/verify-seek-candidate.py": "71a753acfad5009ec3a835cf75273eb5aca2f8a71fe1ce8dccab7862b442141f",
+    "scripts/benchmark-dev.sh": "3b5ac3903b0fd71f03a4db7ad51da5998ae93d67652d938606bd2b710f098114",
+    "Tools/PlaybackBenchmark/BenchmarkApp.swift": "e669ee1f5bce36e97d8d7605cb320aafed9622f9e72c688b04395045946d379a",
+    "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "1ebe0a05cd1b75c3c949b5e6cb70254336c90413ac58866ac4c42d8f3e336c54",
+    "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "3c391646ff75bf646b28a25cce6bc25ed2ec96178237e1f205cdb77fa5102bd7",
+    "Tests/test_ffmpeg_overlay.py": "dc0af96c89edc263a3d78c3e02d0396b84e3bfc3d1b997113b3764015e8bd914",
+    "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4"
+  }
+}

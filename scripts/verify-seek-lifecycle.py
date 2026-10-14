@@ -143,7 +143,7 @@ def verified_inputs(experiment):
         raise ValueError('The fixed runtime lock changed since the experiment')
     if report['sourceSHA256']['Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch'] != sha256_file(candidate.PATCH):
         raise ValueError('Candidate source correction changed since the experiment')
-    runtimes = dict(pinned=ROOT / '.build/dependencies/lib', candidate=experiment / 'candidate/runtime')
+    runtimes = dict(pinned=experiment / 'pinned', candidate=experiment / 'candidate/runtime')
     for name, runtime in runtimes.items():
         actual = {path.name: sha256_file(path) for path in runtime.glob('*.dylib')}
         if actual != report['runtimeSHA256'][name]:

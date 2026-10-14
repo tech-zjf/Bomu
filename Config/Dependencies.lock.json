@@ -8,6 +8,42 @@
     "url": "https://github.com/iina/iina/releases/download/v1.5.0/IINA.v1.5.0.dmg",
     "sha256": "8fad50479b10e09645053457cec46bd53d054ced2242cfe68f74586735a20dc7"
   },
+  "ffmpegOverlay": {
+    "version": "9.0.1",
+    "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+    "normalizeBuildUUID": "content-sha256-v1",
+    "patch": "Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch",
+    "baseSHA256": "b91e9827cd3190988135164a050674f716049fb7c6c8f996c904a03c236b1351",
+    "library": "libavformat.63.dylib",
+    "librarySHA256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+    "patchSHA256": "4fa58b0aca707775f932939c75f9855691ae87956c97feb378c8bdbb6f3077e4",
+    "configure": [
+      "--enable-shared",
+      "--disable-static",
+      "--disable-autodetect",
+      "--disable-doc",
+      "--disable-debug",
+      "--disable-programs",
+      "--disable-encoders",
+      "--disable-avfilter",
+      "--disable-avdevice",
+      "--disable-swscale",
+      "--disable-swresample",
+      "--install-name-dir=@rpath",
+      "--arch=arm64",
+      "--target-os=darwin",
+      "--extra-cflags=-mmacosx-version-min=14.0",
+      "--extra-ldflags=-mmacosx-version-min=14.0",
+      "--cc=xcrun clang",
+      "--enable-gpl",
+      "--enable-bzlib",
+      "--enable-zlib",
+      "--enable-iconv",
+      "--enable-securetransport",
+      "--extra-libs=-liconv"
+    ]
+  },
   "toolchain": {
     "xcode": "27.0",
     "xcodeBuild": "27A266a",
@@ -122,7 +158,7 @@
       ]
     },
     "libavformat.63.dylib": {
-      "sha256": "b91e9827cd3190988135164a050674f716049fb7c6c8f996c904a03c236b1351",
+      "sha256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
       "dependencies": [
         "libSvtAv1Enc.4.dylib",
         "libavcodec.63.dylib",

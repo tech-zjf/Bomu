@@ -1,6 +1,19 @@
 import AppKit
 import Darwin
 
+private struct BenchmarkLaunchConfiguration: Decodable {
+    let mode: String
+    let media: String
+    let output: String
+    let syncMedia: String?
+    let suite: String?
+    let replacementMedia: String?
+    let displayID: String?
+    let cycles: String?
+    let soakSeconds: String?
+    let previewSeconds: String?
+}
+
 /// Development-only executable. The shipping app has no benchmark entry point.
 @main
 @MainActor
@@ -32,42 +45,59 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
         task = Task {
             do {
                 let environment = ProcessInfo.processInfo.environment
-                guard let mediaPath = environment["BOMU_BENCHMARK_MEDIA"],
-                      let outputPath = environment["BOMU_BENCHMARK_OUTPUT"] else {
+                let configuration: BenchmarkLaunchConfiguration?
+                if let index = CommandLine.arguments.firstIndex(of: "--config"),
+                   CommandLine.arguments.indices.contains(index + 1) {
+                    let configURL = URL(fileURLWithPath: CommandLine.arguments[index + 1])
+                    configuration = try JSONDecoder().decode(BenchmarkLaunchConfiguration.self,
+                        from: Data(contentsOf: configURL))
+                } else {
+                    configuration = nil
+                }
+                guard let mediaPath = configuration?.media ?? environment["BOMU_BENCHMARK_MEDIA"],
+                      let outputPath = configuration?.output ?? environment["BOMU_BENCHMARK_OUTPUT"] else {
                     throw BenchmarkError.failed("Run scripts/benchmark-dev.sh to supply media and output paths")
                 }
-                switch environment["BOMU_BENCHMARK_MODE"] {
+                let mode = configuration?.mode ?? environment["BOMU_BENCHMARK_MODE"]
+                switch mode {
                 case "playback":
-                    guard let syncPath = environment["BOMU_BENCHMARK_SYNC_MEDIA"] else {
+                    guard let syncPath = configuration?.syncMedia ?? environment["BOMU_BENCHMARK_SYNC_MEDIA"] else {
                         throw BenchmarkError.failed("Missing synchronization fixture")
                     }
                     NSApplication.shared.activate()
                     try await PlaybackBenchmark().run(
                         media: URL(fileURLWithPath: mediaPath, isDirectory: true),
                         syncMedia: URL(fileURLWithPath: syncPath), output: URL(fileURLWithPath: outputPath))
-                case "single-window", "media-suite", "display-transitions":
-                    guard let rawScenario = environment["BOMU_BENCHMARK_MODE"],
+                case "single-window", "media-suite", "replacement-burst", "display-transitions":
+                    guard let rawScenario = mode,
                           let scenario = WindowScenario(rawValue: rawScenario) else {
                         throw BenchmarkError.failed("Unknown window scenario")
                     }
-                    guard let cycles = Int(environment["BOMU_BENCHMARK_CYCLES"] ?? "100"), (1...100).contains(cycles),
-                          let soak = Double(environment["BOMU_BENCHMARK_SOAK_SECONDS"] ?? "120"),
+                    guard let cycles = Int(configuration?.cycles ?? environment["BOMU_BENCHMARK_CYCLES"] ?? "100"), (1...100).contains(cycles),
+                          let soak = Double(configuration?.soakSeconds ?? environment["BOMU_BENCHMARK_SOAK_SECONDS"] ?? "120"),
                           soak.isFinite, (0...600).contains(soak),
-                          let preview = Double(environment["BOMU_BENCHMARK_PREVIEW_SECONDS"] ?? "0"),
+                          let preview = Double(configuration?.previewSeconds ?? environment["BOMU_BENCHMARK_PREVIEW_SECONDS"] ?? "0"),
                           preview.isFinite, (0...10).contains(preview) else {
                         throw BenchmarkError.failed("Window cycles must be 1–100; soak seconds 0–600; media preview seconds 0–10")
                     }
                     let suiteDirectory: URL?
                     if scenario == .mediaSuite {
-                        guard let path = environment["BOMU_BENCHMARK_SUITE"] else {
+                        guard let path = configuration?.suite ?? environment["BOMU_BENCHMARK_SUITE"] else {
                             throw BenchmarkError.failed("Missing A04 media suite directory")
                         }
                         suiteDirectory = URL(fileURLWithPath: path, isDirectory: true)
                     } else {
                         suiteDirectory = nil
                     }
+                    let replacementMedia: URL?
+                    if scenario == .replacementBurst,
+                       let path = configuration?.replacementMedia ?? environment["BOMU_BENCHMARK_REPLACEMENT_MEDIA"] {
+                        replacementMedia = URL(fileURLWithPath: path)
+                    } else {
+                        replacementMedia = nil
+                    }
                     let initialDisplayID: UInt32?
-                    if let value = environment["BOMU_BENCHMARK_DISPLAY_ID"] {
+                    if let value = configuration?.displayID ?? environment["BOMU_BENCHMARK_DISPLAY_ID"] {
                         guard let id = UInt32(value), id > 0 else {
                             throw BenchmarkError.failed("Initial display ID must be a positive UInt32")
                         }
@@ -78,7 +108,7 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     try await WindowLifecycleBenchmark().run(media: URL(fileURLWithPath: mediaPath),
                         output: URL(fileURLWithPath: outputPath), scenario: scenario,
                         cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview,
-                        initialDisplayID: initialDisplayID)
+                        initialDisplayID: initialDisplayID, replacementMedia: replacementMedia)
                 default:
                     throw BenchmarkError.failed("Supply an explicit benchmark mode using scripts/benchmark-dev.sh")
                 }

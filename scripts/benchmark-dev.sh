@@ -6,12 +6,14 @@ SYNC_MEDIA="$PROJECT_ROOT/.build/sync-fixture"
 case "${1:-}" in
   --single-window) MODE=single-window ;;
   --media-suite) MODE=media-suite ;;
+  --replacement-burst) MODE=replacement-burst ;;
   --playback) MODE=playback ;;
   --display-transitions) MODE=display-transitions ;;
   --help|-h|"")
     echo "Choose a visible test explicitly:"
     echo "  --single-window        One stationary ordinary window; no automatic fullscreen or display migration."
     echo "  --media-suite          30 local media cases, then lifecycle checks in that same window."
+    echo "  --replacement-burst    Rapid cancel/replacement and MPEG-TS seek recovery in one ordinary window."
     echo "  --playback             Renderer baseline; opens/closes test windows and performs resize tests."
     echo "  --display-transitions  Disruptive fullscreen and multi-display cycles; arrange desktop use first."
     exit 0 ;;
@@ -35,7 +37,7 @@ FIXTURES=("$MEDIA" "$SYNC_MEDIA")
 if [[ "$MODE" != playback ]]; then
   FIXTURES+=("$PROJECT_ROOT/.build/window-fixture")
 fi
-if [[ "$MODE" == media-suite ]]; then
+if [[ "$MODE" == media-suite || "$MODE" == replacement-burst ]]; then
   if [[ ! -f "$PROJECT_ROOT/.build/media-suite/manifest.json" ]]; then
     python3 "$PROJECT_ROOT/scripts/generate-media-suite.py"
   fi
@@ -85,34 +87,48 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 root, media, sync_media, results = map(Path, sys.argv[1:5])
 mode = sys.argv[5]
-environment = dict(os.environ,
-    BOMU_BENCHMARK_MODE=mode,
-    BOMU_BENCHMARK_MEDIA=str(media),
-    BOMU_BENCHMARK_SYNC_MEDIA=str(sync_media / 'av-sync-1080p60.mov'),
-    BOMU_BENCHMARK_OUTPUT=str(results / 'playback-baseline.json'),
-    CA_ASSERT_MAIN_THREAD_TRANSACTIONS='1')
+output = results / ('playback-baseline.json' if mode == 'playback' else 'window-lifecycle.json')
+configuration = dict(mode=mode, media=str(media), output=str(output),
+    syncMedia=str(sync_media / 'av-sync-1080p60.mov'),
+    cycles=os.environ.get('BOMU_BENCHMARK_CYCLES', '100'),
+    soakSeconds=os.environ.get('BOMU_BENCHMARK_SOAK_SECONDS', '120'),
+    previewSeconds=os.environ.get('BOMU_BENCHMARK_PREVIEW_SECONDS', '0'))
+if os.environ.get('BOMU_BENCHMARK_DISPLAY_ID'):
+    configuration['displayID'] = os.environ['BOMU_BENCHMARK_DISPLAY_ID']
 timeout = 300
 if mode != 'playback':
-    environment['BOMU_BENCHMARK_MEDIA'] = str(root / '.build/window-fixture/window-stress-1080p.mp4')
-    environment['BOMU_BENCHMARK_OUTPUT'] = str(results / 'window-lifecycle.json')
+    configuration['media'] = str(root / '.build/window-fixture/window-stress-1080p.mp4')
     timeout = 1800
 if mode == 'media-suite':
-    environment['BOMU_BENCHMARK_SUITE'] = str(root / '.build/media-suite')
-binary = root / '.build/DerivedData/Build/Products/Debug/BomuBenchmark.app/Contents/MacOS/BomuBenchmark'
-with (results / 'process.log').open('w') as log:
-    try:
-        result = subprocess.run([str(binary)], env=environment, stdout=log,
-                                stderr=subprocess.STDOUT, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        # subprocess.run terminates and waits for this child only.
-        raise SystemExit(f'Benchmark exceeded {timeout} seconds. Inspect {results / "process.log"}')
-if result.returncode:
-    raise SystemExit(f'Benchmark failed ({result.returncode}). Inspect {results / "process.log"}')
+    configuration['suite'] = str(root / '.build/media-suite')
+if mode == 'replacement-burst':
+    configuration['replacementMedia'] = str(root / '.build/media-suite/20-h264-aac.ts')
+config_path = results / 'launch.json'
+config_path.write_text(__import__('json').dumps(configuration, indent=2) + '\n')
+application = root / '.build/DerivedData/Build/Products/Debug/BomuBenchmark.app'
+launch = subprocess.run(['open', '-n', '-a', str(application), '--args', '--config', str(config_path)],
+                        capture_output=True, text=True)
+if launch.returncode:
+    raise SystemExit(f'Launch Services failed to start the benchmark app: {launch.stderr.strip()}')
+deadline = time.monotonic() + timeout
+while time.monotonic() < deadline:
+    if output.exists():
+        report = __import__('json').loads(output.read_text())
+        if report.get('completed') or report.get('failure'):
+            break
+    time.sleep(0.5)
+else:
+    raise SystemExit(f'Benchmark exceeded {timeout} seconds. Inspect {results}')
+if not report.get('completed'):
+    raise SystemExit(f'Benchmark failed: {report.get("failure")}. Inspect {results}')
 PY
-if [[ "$MODE" != playback ]]; then
+if [[ "$MODE" == replacement-burst ]]; then
+  python3 "$PROJECT_ROOT/scripts/summarize-replacement-burst.py" "$RESULTS"
+elif [[ "$MODE" != playback ]]; then
   python3 "$PROJECT_ROOT/scripts/summarize-window-benchmark.py" "$RESULTS"
 else
   python3 "$PROJECT_ROOT/scripts/summarize-benchmark.py" "$RESULTS"
