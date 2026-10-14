@@ -37,9 +37,11 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         // Set its level once; never reactivate it in response to lost focus/occlusion.
         // The shipping player's window policy is unchanged.
         if scenario != .displayTransitions { window.level = .floating }
-        window.collectionBehavior = [.fullScreenPrimary, .moveToActiveSpace]
+        window.collectionBehavior = [.fullScreenPrimary]
+        if scenario == .displayTransitions { window.collectionBehavior.insert(.moveToActiveSpace) }
         window.delegate = self
         window.contentView = NSHostingView(rootView: PlayerScreen(player: player, videoView: engine.videoView))
+        recordWindowLocation(window, event: "created")
         defer { window.delegate = nil; window.contentView = nil; window.close() }
         let started = CACurrentMediaTime()
         do {
@@ -49,12 +51,14 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             window.center()
             window.makeKeyAndOrderFront(nil)
             NSApplication.shared.activate()
+            recordWindowLocation(window, event: "orderedFront")
             print("Window test ready: active=\(NSApplication.shared.isActive), key=\(window.isKeyWindow), visible=\(window.occlusionState.contains(.visible)), activeSpace=\(window.isOnActiveSpace)")
             fflush(nil)
             // Desktop launch/activation may require a user or accessibility action.
             // Allow that startup handoff without weakening any playback deadline.
-            try await waitUntil("visible test window", timeout: 60) {
-                window.occlusionState.contains(.visible) && window.isOnActiveSpace
+            try await waitUntil("active visible test window", timeout: 60) {
+                NSApplication.shared.isActive && window.isKeyWindow
+                    && window.occlusionState.contains(.visible) && window.isOnActiveSpace
             }
             try await Task.sleep(for: .seconds(1))
             player.prepare()
@@ -164,6 +168,14 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
 
     func windowDidEnterFullScreen(_ notification: Notification) { enteredFullScreen += 1 }
     func windowDidExitFullScreen(_ notification: Notification) { exitedFullScreen += 1 }
+    func windowDidMove(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        recordWindowLocation(window, event: "moved")
+    }
+    func windowDidChangeScreen(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        recordWindowLocation(window, event: "changedScreen")
+    }
     func windowDidChangeOcclusionState(_ notification: Notification) {
         guard let window = notification.object as? NSWindow, window === observedWindow else { return }
         visibilityNotificationCount += 1
@@ -175,6 +187,11 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         NSApplication.shared.terminate(nil)
         return false
+    }
+
+    private func recordWindowLocation(_ window: NSWindow, event: String) {
+        print("Window location: event=\(event), uptime=\(CACurrentMediaTime()), number=\(window.windowNumber), frame=\(NSStringFromRect(window.frame)), screen=\(window.screen?.localizedName ?? "unknown"), active=\(NSApplication.shared.isActive), visible=\(window.occlusionState.contains(.visible))")
+        fflush(nil)
     }
 
     private func checkMedia(_ manifest: MediaSuiteManifest, directory: URL, window: NSWindow,

@@ -1,0 +1,148 @@
+{
+  "date": "2026-10-14",
+  "candidateLibrarySHA256": "d376ff4eae9342a1acf32f79f0c498d40cda086874e34481cece94eb7426ed5f",
+  "runs": [
+    {
+      "directory": ".build/benchmarks/20261014-ts-candidate",
+      "recordedAt": "2026-10-14T02:33:52Z",
+      "completed": false,
+      "failure": "failed(\"Media suite changed displays\")",
+      "samples": [
+        {
+          "file": "01-baseline-480p.mp4",
+          "passed": false,
+          "failure": "failed(\"Media check lost its visible window or replaced its native session\")",
+          "displayID": 3,
+          "windowNumber": 29154
+        },
+        {
+          "file": "02-main-720p25.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 1,
+          "windowNumber": 29154
+        }
+      ],
+      "roundsCompleted": 0,
+      "shutdown": {
+        "coreAlive": false,
+        "renderContextAlive": false
+      },
+      "rawFileSHA256": {
+        "dependencies.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+        "desktop-candidate.json": "11474911748827d7106362421fa8d9450e036c6875a9eacbdc50929879c73b79",
+        "invocation.json": "79de4a3fe3c6c57ef700a8d770b844cb9b3cbecf841dfed9d490c22940dd5246",
+        "process.log": "cfa3c8159211fec86440aa01b06d50fcfe2f1a95d8417b28ca2c4f6b87c4a43a",
+        "suite-manifest.json": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e",
+        "window-lifecycle.json": "750604ddaa550e30f1360545457932dabc209529e0d0349666f6703b7257c96e",
+        "window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e"
+      },
+      "coreAnimationWarningLines": []
+    },
+    {
+      "directory": ".build/benchmarks/20261014-ts-candidate-stationary",
+      "recordedAt": "2026-10-14T02:36:30Z",
+      "completed": false,
+      "failure": "failed(\"Media suite changed displays\")",
+      "samples": [
+        {
+          "file": "01-baseline-480p.mp4",
+          "passed": false,
+          "failure": "failed(\"Media check lost its visible window or replaced its native session\")",
+          "displayID": 3,
+          "windowNumber": 29180
+        },
+        {
+          "file": "02-main-720p25.mp4",
+          "passed": true,
+          "failure": null,
+          "displayID": 1,
+          "windowNumber": 29180
+        }
+      ],
+      "roundsCompleted": 0,
+      "shutdown": {
+        "coreAlive": false,
+        "renderContextAlive": false
+      },
+      "rawFileSHA256": {
+        "dependencies.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+        "desktop-candidate.json": "4f8d7a6b1e84567b6bb36cefeb4f89d6b6b865de1e6c5d25824826117bc526d6",
+        "invocation.json": "b92f8eace8a4cff71e45d6617097fa159d9a9289e677793a634b7cbd42d400d0",
+        "invocation.py": "924138f3fdd82f72baa9cf79a2bebbc2f0fc4621f143c37e7bee943ddda7b16b",
+        "process.log": "cfa3c8159211fec86440aa01b06d50fcfe2f1a95d8417b28ca2c4f6b87c4a43a",
+        "suite-manifest.json": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e",
+        "window-lifecycle.json": "d605a9bd7c1ba9b1f4032a57af7f64576802eb7ff8d55c850ffb9a5eb2396ee8",
+        "window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e"
+      },
+      "coreAnimationWarningLines": []
+    }
+  ],
+  "latestPreparation": {
+    "application": ".build/seek-candidates/desktop-20261014-location-diagnostics/BomuSeekCandidate.app",
+    "receipt": ".build/seek-candidates/desktop-20261014-location-diagnostics/desktop-candidate.json",
+    "receiptSHA256": "bd1f6e97b477ca590de1128da90f4bf61a7b9b7f8c96de758391ac84229c7df3",
+    "sourceSHA256": {
+      "Sources/App/AppLifecycle.swift": "b75fad7c04b6bec499b58a4f95eae37014fd9ea01933c5f312b6fd4277c37a48",
+      "Sources/App/BomuApp.swift": "d9ea07e28dbe33fbb970f7a8e03753c889d8595fd6bce22004c6a698e7905841",
+      "Sources/App/Brand.swift": "add12eef54d318eb4d7d5a222adb80ec502ac66f64dedd98810a429838b7e8a5",
+      "Sources/App/StartView.swift": "871af23362d86a7d85ff22ad4be3a689979c2d9c5156d36592e3119d8d689ca2",
+      "Sources/DesignSystem/AppTheme.swift": "f5bee6854786ad75f951ed49b5289b26e7e85d19269b008f70d227ba058e1748",
+      "Sources/Playback/MPV/BMMPVSession.h": "b65fc125872a7d31cf25250abbdd82a017caeb3ba60e94f167ea707a46c8af63",
+      "Sources/Playback/MPV/BMMPVSession.m": "9869aa1b10e3cede6cc52de55a3f918aff8c825c282aae75810c8baeba4ccb2b",
+      "Sources/Playback/MPV/MPVPlaybackEngine.swift": "1bc712dc7a5a19108f97b5a70b7d7b97491a4711fafd5179dfd2bada17da328a",
+      "Sources/Playback/MPV/PlaybackDiagnostics.swift": "962a9403d8fe21660c77866834c9204a814af61ddb4b6d1c8823a246df1a2fde",
+      "Sources/Playback/PlaybackEngine.swift": "e7cdbd8ffa4b1eadb3472bd8e329efb586f479e4b5585db4a8a7cd3e4e8cd88f",
+      "Sources/Playback/PlaybackState.swift": "7f2f05e1e22ecc56a24cc20f6033dd6e2549c24852a2fb21a996dd245d5f4353",
+      "Sources/PlayerFeature/OpenMediaPanel.swift": "10a8ec5a2b5d5a22a16a36e349f99e43239a4cfe1a4a86e5b884af4676e9395d",
+      "Sources/PlayerFeature/PlaybackControls.swift": "3676a3f005abf82f65b514cddb6c79f3045a98649134105c925d39235377144f",
+      "Sources/PlayerFeature/PlayerModel.swift": "1e52ee30acf75c1432b71480e008e0de8ec170d19ee72bd42925a3e2f0406e91",
+      "Sources/PlayerFeature/PlayerScreen.swift": "466aeaa55cb641d7fed732b73f42844e97dde96e1994a2120d8234ddf4048512",
+      "Sources/Rendering/BMVideoSurface.h": "e6d1b195cec51b9db034ce3903ab7d7cd07fd1f3b9521fc36cbda38b8fbd95db",
+      "Sources/Rendering/BMVideoSurface.m": "d6336ee4cc1a1da0d3967ba88f77cd1741a26cd45d58daca9f7232f9ebdbf5fe",
+      "Sources/Rendering/VideoHostView.swift": "dc1338cca1d642d00a50a539a8cda4d5aeb2def3b6bb353ef340474d84bf2ccd",
+      "Sources/Resources/en.lproj/Localizable.strings": "33638c7d526a55a251ae712e0a39dd9e6604c0b2c5b226d768b78dce0599d5f9",
+      "Sources/Resources/zh-Hans.lproj/Localizable.strings": "de1c544a43bf3a585acac96d62b8ead43dc2b21bd32596e3c62e34c591509086",
+      "Tools/PlaybackBenchmark/BenchmarkApp.swift": "6bb8d000c53686dd77a1aab7a9804a6f9274ee541853a2224166f9ce01c1adb9",
+      "Tools/PlaybackBenchmark/BenchmarkMeasurements.swift": "d32371c805f89eab28e6ab6f600fc9217fcb48bfec1a082f98376a780397c11b",
+      "Tools/PlaybackBenchmark/MediaSuiteBenchmark.swift": "f19ec40c34dd68c2f75682592970dc49331336f9060c1ca43d9005b9b35c1d83",
+      "Tools/PlaybackBenchmark/PlaybackBenchmark.swift": "dfb03bd2d56098d9ede8a0bdf7dda241aa49d80e50a6e5e297ab0b0afe335816",
+      "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "773cc4f92623924c5ca4c2fc19eb0efd50625d629d307d0467cec2165f4f8956",
+      "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "038cd8fdc03b69bb3417c1ccb70756f585f739f5d154d2fc6dffa2e4ea70cc4a",
+      "Tools/PlaybackBenchmark/WindowVisibilityMeasurement.swift": "53ae55256e218ff87edff0b92fecdb04396bbb452fc0e143bb641f009713e785",
+      "Config/App.xcconfig": "0ce38e113178b7a46c15fa5a149cb1ad6fbaba534fcb2334c558457e3f357c54",
+      "Config/Bomu-Bridging-Header.h": "19619e7565827f775b1f22766aa730187122bde215972f10950beea30bfb776b",
+      "Config/Dependencies.lock.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+      "Config/Info.plist": "b710617c79031d5d1048c1fba4421987a513de905459eb866ec168bec91aaca0",
+      "Bomu.xcodeproj/project.pbxproj": "b7330246e2a38dd522dc101ca26691eea6ad5ed7bd5e514f0f3180b31799c50a",
+      "Bomu.xcodeproj/xcshareddata/xcschemes/Bomu.xcscheme": "7a6cb11171a4e35ad15f1e1edd3c7eec7f6eee540dc4fb26baffc0a120e1aeb6",
+      "Bomu.xcodeproj/xcshareddata/xcschemes/BomuBenchmark.xcscheme": "b124720a93bb325fa2b6252229b7d6aee46c20fcbd9b2b0769a3376224d2e6df",
+      "Bomu.xcodeproj/xcshareddata/xcschemes/BomuLogicTests.xcscheme": "a071b0c4f64784da0401428b0d03d3decdf7068f05b2d2b4ed5acbfdb467f132",
+      "scripts/benchmark-dev.sh": "7d7537d6ab9e2dfd56e97e33b48053b49de0c5f0a64e8c45452a07d5b47d7934",
+      "scripts/build-dev.sh": "784d33145f11266147dac04530fa92c37846c89c1686a05938cde17220eda11f",
+      "scripts/dependencies.py": "8ee0c32ea588d3244f1b0d12d460d69f516b8dba0539d990412c05bc932adf25",
+      "scripts/generate-benchmark-media.sh": "0830b48ac84fc058086785a2c064dafb6a74f12a039bb8701d33e4f6c7352526",
+      "scripts/generate-fixtures.sh": "d130a3db504683f20d7b72ecc5aedf2d8e2735c4979bbddefc68d3d14e7ad8de",
+      "scripts/generate-media-suite.py": "f8cc0120045cda6ffab5028a430665da03503b5140acb586c5d0b0b265432566",
+      "scripts/generate-sync-fixture.py": "a0e6a35a9836f6e6ea862c5e7df592ad21f0895f9e1b76b00b86e7aefee31e4f",
+      "scripts/generate-window-fixture.py": "d1b4553fa551c3b3e20a25a58df81da048ad6f33684820f395a0936fb0f2eedd",
+      "scripts/media_fixtures.py": "31f6654a659bc453de3103cba6870b8f6764ac294917a0d0a6b6e0b27d97b65f",
+      "scripts/prepare-seek-candidate-app.py": "8f317c9670df4d8c397d59939e22b01ab35fed373005440c23ddf8ff8cc366cb",
+      "scripts/runtime_capabilities.py": "d6db65b4f227a6220f0c90e8c21e3d8c61f25c15886f1194043290c5cb08e072",
+      "scripts/summarize-benchmark.py": "de4011c3f41b1a068b227ced037799a267c6bd2c3b3b630a87c4fd259aaf0705",
+      "scripts/summarize-window-benchmark.py": "47567d60a2e70e991e7ee8cf851ca9992f4b4dcb52e88020000fc8675d2d89bb",
+      "scripts/test-dev.sh": "c824adeb20ae76d396c471ca17609d82eeee5d2d6a92c014512deeec97d0a9de",
+      "scripts/toolchain.py": "9bd61c8f0c340ae9e96c183663357e853866aed3d3a299e1381d5e7f0c7c6d12",
+      "scripts/verify-seek-candidate.py": "654d517a04450ac660e6ee6b1d2d599af13dd284d79892a58a63451f441f812f",
+      "scripts/verify-seek-lifecycle.py": "c1c71175fcb900ac80ddbabeab8c99a415f6be7619de00c0c2b076209c9e5035"
+    },
+    "launched": false,
+    "desktopVerified": false,
+    "binaryIdentityCount": 47,
+    "codesignVerified": true
+  },
+  "productionRuntimeChanged": false,
+  "productionA04Passed": 29,
+  "productionA04Total": 30,
+  "pythonTestsPassed": 52
+}

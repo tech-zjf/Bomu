@@ -214,6 +214,8 @@ sequenceDiagram
 
 `--single-window` 使用同一个普通窗口承载正式 SwiftUI 页面。只有明确选择 `--display-transitions` 才执行下图中的可选迁移和全屏步骤。全屏完成来自系统委托回调，调用 `toggleFullScreen` 本身不代表通过。
 
+2026-10-14 单窗口模式移除 `.moveToActiveSpace`，启动先等待激活、主窗口焦点及可见状态；窗口创建、显示、移动和换屏会留下位置日志。两次候选启动仍有屏幕变化失败，新日志尚未取得运行证据，不能据此宣称跨屏问题已解决，见 [候选启动记录](../media-suite/desktop-candidate-validation.md)。
+
 ```mermaid
 sequenceDiagram
     participant Script as benchmark-dev.sh（明确指定模式）

@@ -32,6 +32,7 @@ def source_identity():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('experiment', type=Path, help='Successful playback-format experiment directory')
+    parser.add_argument('--output', type=Path, help='New app preparation directory inside the repository')
     args = parser.parse_args()
     experiment = args.experiment.resolve()
     subprocess.run([sys.executable, str(ROOT / 'scripts/toolchain.py')], check=True)
@@ -46,12 +47,16 @@ def main():
     for source, checksum in report['sourceSHA256'].items():
         if sha256_file(ROOT / source) != checksum:
             raise ValueError('Candidate source changed; rerun its experiment: ' + source)
-    application = experiment / 'BomuSeekCandidate.app'
-    receipt_path = experiment / 'desktop-candidate.json'
+    output = args.output.resolve() if args.output else experiment
+    output.relative_to(ROOT)
+    if args.output:
+        output.mkdir(parents=True, exist_ok=False)
+    application = output / 'BomuSeekCandidate.app'
+    receipt_path = output / 'desktop-candidate.json'
     if application.exists() or receipt_path.exists():
-        raise ValueError('Candidate app already exists; preserve it and use a new experiment')
+        raise ValueError('Candidate app already exists; preserve it and select a new --output directory')
     sources = source_identity()
-    build_log = experiment / 'desktop-build.log'
+    build_log = output / 'desktop-build.log'
     with build_log.open('w') as log:
         subprocess.run(['xcodebuild', '-project', str(ROOT / 'Bomu.xcodeproj'),
             '-scheme', 'BomuBenchmark', '-configuration', 'Debug',
@@ -78,6 +83,7 @@ def main():
         if path.name != format_library.name and sha256_file(path) != sha256_file(application / 'Contents/Frameworks' / path.name):
             raise ValueError('Unexpected change to another bundled runtime: ' + path.name)
     receipt = dict(schemaVersion=1, preparedAt=datetime.now(timezone.utc).isoformat(),
+        experiment=str(experiment.relative_to(ROOT)),
         application=str(application.relative_to(ROOT)), bundleID=info['CFBundleIdentifier'],
         profile=report['source']['profile'], launched=False, desktopVerified=False,
         experimentReportSHA256=sha256_file(report_path), buildLogSHA256=sha256_file(build_log),

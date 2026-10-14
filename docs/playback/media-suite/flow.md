@@ -137,12 +137,12 @@ sequenceDiagram
         Probe-->>Verify: 定位位置、暂停意图和新帧记录
         Verify-->>Dev: 完整报告、源文件和运行库身份
     end
-    Dev->>Prepare: 指定成功的播放配置实验
+    Dev->>Prepare: 指定成功的播放配置实验，可选新的 --output 目录
     Prepare->>Prepare: 重新核验实验、媒体、源码与运行库
     Prepare->>Xcode: 构建当前生产播放界面的基准 target
     Xcode-->>Prepare: BomuBenchmark.app
     Prepare->>Prepare: 克隆候选，仅替换 libavformat，临时签名并验证
-    Prepare->>Prepare: 核对其他动态库不变，保存 desktop-candidate.json
+    Prepare->>Prepare: 核对其他动态库不变，保存 desktop-candidate.json 及原实验身份
     Prepare-->>Dev: 独立 BomuSeekCandidate.app，未启动、未计为桌面通过
 ```
 
