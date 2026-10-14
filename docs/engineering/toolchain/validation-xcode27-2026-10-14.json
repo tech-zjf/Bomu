@@ -1,0 +1,967 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-14T06:29:38.570982+00:00",
+  "baseCommit": "995af134aa2111c114df3b225c4515888696d786",
+  "authorization": {
+    "toolchainChoice": "保留 27.0，重新固定并完整回归",
+    "previousVisibleRunResponse": "没观察到，暂不确认"
+  },
+  "toolchain": {
+    "xcode": "27.0",
+    "xcodeBuild": "27A266a",
+    "swift": "6.4",
+    "swiftBuild": "swiftlang-6.4.0.34.1 clang-2100.3.34.1",
+    "swiftLanguageVersion": "6.0",
+    "macOSSDK": "27.0",
+    "macOSSDKBuild": "26A425",
+    "deploymentTarget": "14.0",
+    "architecture": "arm64"
+  },
+  "priorToolchain": {
+    "xcode": "26.1.1",
+    "xcodeBuild": "17B100",
+    "swift": "6.2.1",
+    "swiftBuild": "swiftlang-6.2.1.4.8 clang-1700.4.4.1",
+    "swiftLanguageVersion": "6.0",
+    "macOSSDK": "26.1",
+    "macOSSDKBuild": "25B74",
+    "deploymentTarget": "14.0",
+    "architecture": "arm64"
+  },
+  "dependencyLockSHA256": "802e1bc9000c18398a9adfd56cbcdb52e84e483af9be7633c7bfa6030fd11122",
+  "runtimeAndHeaderLockUnchanged": true,
+  "productionRuntimeChanged": false,
+  "licenseGate": "xcodebuild -version succeeded at the start of this turn; agent did not accept a license",
+  "developmentBuild": {
+    "passed": true,
+    "architecture": "arm64",
+    "minimumOS": "14.0",
+    "sdk": "27.0"
+  },
+  "tests": {
+    "pythonPassed": 52,
+    "hostlessSwiftPassed": 12,
+    "nativePassed": 5,
+    "nativeSkipped": 0,
+    "nativeWindowNumber": 697,
+    "nativeDisplayID": 1,
+    "nativeResizes": 20
+  },
+  "displayInputValidation": [
+    {
+      "case": "zero",
+      "input": "0",
+      "exitCode": 1,
+      "expectedFailure": "Initial display ID must be a positive UInt32",
+      "windowCreated": false,
+      "passed": true
+    },
+    {
+      "case": "malformed",
+      "input": "not-a-display",
+      "exitCode": 1,
+      "expectedFailure": "Initial display ID must be a positive UInt32",
+      "windowCreated": false,
+      "passed": true
+    },
+    {
+      "case": "unavailable",
+      "input": "4294967295",
+      "exitCode": 1,
+      "expectedFailure": "Initial display is unavailable",
+      "windowCreated": false,
+      "passed": true
+    }
+  ],
+  "candidateExperiment": {
+    "directory": ".build/seek-candidates/20261014-xcode27",
+    "passed": true,
+    "source": {
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+      "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+      "configure": [
+        "--enable-shared",
+        "--disable-static",
+        "--disable-autodetect",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-programs",
+        "--disable-encoders",
+        "--disable-avfilter",
+        "--disable-avdevice",
+        "--disable-swscale",
+        "--disable-swresample",
+        "--install-name-dir=@rpath",
+        "--arch=arm64",
+        "--target-os=darwin",
+        "--extra-cflags=-mmacosx-version-min=14.0",
+        "--extra-ldflags=-mmacosx-version-min=14.0",
+        "--cc=xcrun clang",
+        "--enable-gpl",
+        "--enable-bzlib",
+        "--enable-zlib",
+        "--enable-iconv",
+        "--enable-securetransport",
+        "--extra-libs=-liconv"
+      ],
+      "profile": "playback-format"
+    },
+    "candidateLibrarySHA256": "ad76e09fc4a08a133141befa36d52ee721cc1e6b4e775e815ee389f9b9075ae9",
+    "capabilityDifferences": {
+      "rebuilt": [],
+      "candidate": []
+    },
+    "runs": [
+      {
+        "variant": "pinned",
+        "case": "short-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "short-mp4",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "short-mkv",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "long-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "long-mp4",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "hevc-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "mpeg2-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "audio-ts",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "compressed-mov",
+        "passed": true
+      },
+      {
+        "variant": "rebuilt",
+        "case": "short-ts",
+        "passed": false
+      },
+      {
+        "variant": "rebuilt",
+        "case": "short-mp4",
+        "passed": true
+      },
+      {
+        "variant": "rebuilt",
+        "case": "short-mkv",
+        "passed": true
+      },
+      {
+        "variant": "rebuilt",
+        "case": "long-ts",
+        "passed": false
+      },
+      {
+        "variant": "rebuilt",
+        "case": "long-mp4",
+        "passed": true
+      },
+      {
+        "variant": "rebuilt",
+        "case": "hevc-ts",
+        "passed": false
+      },
+      {
+        "variant": "rebuilt",
+        "case": "mpeg2-ts",
+        "passed": false
+      },
+      {
+        "variant": "rebuilt",
+        "case": "audio-ts",
+        "passed": true
+      },
+      {
+        "variant": "rebuilt",
+        "case": "compressed-mov",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "short-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "short-mp4",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "short-mkv",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "long-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "long-mp4",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "hevc-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "mpeg2-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "audio-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "compressed-mov",
+        "passed": true
+      },
+      {
+        "variant": "pinned-full-cache",
+        "case": "short-ts",
+        "passed": true
+      },
+      {
+        "variant": "pinned-bounded-cache",
+        "case": "long-ts",
+        "passed": false
+      }
+    ],
+    "freshRepeatedBuildUnderXcode27": false
+  },
+  "candidateLifecycle": {
+    "report": ".build/seek-candidates/20261014-xcode27/lifecycle-20261014-142058/report.json",
+    "passed": true,
+    "originalFailureReproduced": true,
+    "runs": [
+      {
+        "variant": "pinned",
+        "case": "short-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "long-ts",
+        "passed": false
+      },
+      {
+        "variant": "pinned",
+        "case": "mp4-control",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-0",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-1",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-2",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-3",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-4",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-5",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-6",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-7",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-8",
+        "passed": true
+      },
+      {
+        "variant": "pinned",
+        "case": "opening-9",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "short-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "long-ts",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "mp4-control",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-0",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-1",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-2",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-3",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-4",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-5",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-6",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-7",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-8",
+        "passed": true
+      },
+      {
+        "variant": "candidate",
+        "case": "opening-9",
+        "passed": true
+      }
+    ]
+  },
+  "candidateApplication": {
+    "application": ".build/seek-candidates/desktop-20261014-xcode27/BomuSeekCandidate.app",
+    "receiptSHA256": "d9da184e80baaa4f8a6b45212c355052268280631727dd0f6cefc05274b01261",
+    "sourceIdentityCount": 52,
+    "binaryIdentityCount": 47,
+    "identitiesVerifiedBeforeAndAfterPlayback": true
+  },
+  "visibleRun": {
+    "directory": ".build/benchmarks/20261014-xcode27-candidate",
+    "completed": true,
+    "processExitCode": 0,
+    "requestedDisplayID": 1,
+    "observedDisplayIDs": [
+      1
+    ],
+    "windowNumbers": [
+      775
+    ],
+    "sourceDimensions": {
+      "width": 1920,
+      "height": 1080
+    },
+    "windowLocationEvents": [
+      "Window location: event=created, uptime=9095.966049041668, number=775, frame={{0, 0}, {960, 632}}, screen=内建视网膜显示器, active=false, visible=false",
+      "Window location: event=changedScreen, uptime=9095.966352166668, number=775, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+      "Window location: event=moved, uptime=9095.966397083335, number=775, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+      "Window location: event=orderedFront, uptime=9095.975147250001, number=775, frame={{1992, 126}, {960, 632}}, screen=VX2880-4K-HDU, active=false, visible=false",
+      "Window location: event=moved, uptime=9097.532331500002, number=775, frame={{1653, 68}, {960, 632}}, screen=VX2880-4K-HDU, active=true, visible=true",
+      "Window location: event=moved, uptime=9097.633137333336, number=775, frame={{1084, 119}, {960, 632}}, screen=VX2880-4K-HDU, active=true, visible=true",
+      "Window location: event=changedScreen, uptime=9097.749725916668, number=775, frame={{765, 196}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9097.749796500002, number=775, frame={{765, 196}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9097.84968654167, number=775, frame={{588, 212}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9097.957332416669, number=775, frame={{410, 218}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9098.065629500003, number=775, frame={{213, 255}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9098.160891458336, number=775, frame={{181, 261}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9098.193946833335, number=775, frame={{181, 262}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9250.790463833335, number=775, frame={{177, 216}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9250.892881958336, number=775, frame={{188, 59}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9250.993017541668, number=775, frame={{282, -136}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9251.092904875002, number=775, frame={{313, -211}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9251.264372458336, number=775, frame={{309, -261}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9251.384587166669, number=775, frame={{300, -399}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9251.484550958336, number=775, frame={{301, -454}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9251.597713083336, number=775, frame={{304, -444}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9254.556173041668, number=775, frame={{284, -552}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9254.659527208336, number=775, frame={{284, -555}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9254.868099833335, number=775, frame={{285, -539}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9254.979563875002, number=775, frame={{285, -532}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9255.093031625001, number=775, frame={{285, -529}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9255.19945529167, number=775, frame={{285, -524}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9255.30676891667, number=775, frame={{285, -521}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9255.426180291668, number=775, frame={{285, -512}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true",
+      "Window location: event=moved, uptime=9255.542836625002, number=775, frame={{285, -507}, {960, 632}}, screen=内建视网膜显示器, active=true, visible=true"
+    ],
+    "mediaSamples": [
+      {
+        "file": "01-baseline-480p.mp4",
+        "sha256": "151483324bf0c5e93e784279e9d5c0b0e3387c9f3cabbd0d5c317ba179ebc97a",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "02-main-720p25.mp4",
+        "sha256": "d82687516e26b2a0bbd6600f3e3da505e856dafe151f47c55bf486f832d9e7bf",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "03-high-1080p30.mp4",
+        "sha256": "539b1faccdd5346f7a7870b0e667de582551730014c53049ca81f5aa00461eef",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "04-high-1080p60.mp4",
+        "sha256": "d48971d77fb3c5a1a4b7085a84de2ea567dc96f2db5422acdd29ec0d62009fc6",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "05-high-4k24.mp4",
+        "sha256": "482087a361b458a405d1038e2408749bab6464360e11a08f19f20ba69169c471",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "06-portrait.mp4",
+        "sha256": "1b2a07a37dbb25c89912edff278778eaba41c086526bc3d026e1a2ad27c0c511",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "07-square.mp4",
+        "sha256": "619e901f2551db81e3c6953e5f74a9254c8af24f602c80ee941844bd21518a33",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "08-中文 宽银幕.mp4",
+        "sha256": "0b3948d0137c9effda7046f3214cb4ddefd556992ae2519ba35be16a1890c0cf",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "09-anamorphic.mp4",
+        "sha256": "e02b5dd193737ca0fd169c0a6beb50c6b144ce397ccdf19c4b69c9d5d3561f56",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "10-rotation.mp4",
+        "sha256": "c19dbc994af34b79c2404df458d3dd1aa05aaa4cee0481b5934c1ca6efcffe0c",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "11-variable-rate.mp4",
+        "sha256": "87e32c6624ffcee161215338fa27e2bd27e7f6b7fab67a3c26ef0e8f7145b2cf",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "12-fractional-rate.mp4",
+        "sha256": "4036476c0b0c5b1e9763b9ed242e161bc177a925bb67195d87f7a18abc8f4349",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "13-hevc-main.mp4",
+        "sha256": "f68fad252662385543509d9703d427bec8583e3078c69e4b4ae7af0d6b447060",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "14-hevc-main10.mp4",
+        "sha256": "0052c01e60a84658019f3d459e88e61af45748aa27668e1612de1aef096d58f9",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "15-hevc-main10-4k.mp4",
+        "sha256": "3185243fbcabe4703b923ad0c73f990b4ebe6d18154a83e55141dfcf65530cb5",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "16-invalid.mp4",
+        "sha256": "e0229dcae5e58f114fbb3c18e4b74553c6587ffa34d4bc6f30d738799ac9bd6c",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "17-h264-flac.mkv",
+        "sha256": "89a1f0b6772b1998c686c9b12cfe0a63b376de4a53cd2c1b059c9f8d5dae1b4f",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "18-hevc-main10.mkv",
+        "sha256": "6e28575ad379407c28c82234eaa5ed18768180eda50d485f9aa0f72bbd115038",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "19-h264-pcm.mov",
+        "sha256": "c476595a616d3e5c82817615056410c107ebd43ffd2bd591a657aa858c659491",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "20-h264-aac.ts",
+        "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "21-vp9-opus.webm",
+        "sha256": "4787a7561e2d54ec9a2436229ff724bfec3538d3533d07663e680babbb5257e5",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "22-full-range.mp4",
+        "sha256": "91434f6ca93341d3c74542d4890b8acc8eb4b2788587dd0b6eba240c6631eff3",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "23-silent.mp4",
+        "sha256": "08963f1d711fc0b37adf5bdfbfabae877e06bcd8c6df6d1fec10c8315ab30304",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "24-audio-aac.m4a",
+        "sha256": "309ed8ca20cff81e7689785c889b50f30c446ebf9e674696eb306db8a9797ef8",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "25-audio-mono.mp3",
+        "sha256": "c12bfb9fcb174b4c032785ffc77a1fb1ce1c2b4e0e4ec33c3c110f8afa0f2833",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "26-audio-flac.flac",
+        "sha256": "19fde8ec68b6ce7f304719d2c5ccb6f6f1a8bc844e9d3370e63ce76dee365353",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "27-audio-pcm24.wav",
+        "sha256": "120c6abc33b6358b68dd934ff84df2e1fdd63d0661c925ea7f2b2e41fb19dbb5",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "28-two-audio-tracks.mkv",
+        "sha256": "413791cb7985a17663ae27db046698ac48c9e4d33b933dc178d20cdbf2afc171",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "29-sync.mov",
+        "sha256": "cca036e62fbbe5a139c8253d1b47407c7e76ee8442db7034e265103fb11b4ec4",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      },
+      {
+        "file": "30-truncated.mp4",
+        "sha256": "b1c35f1e6d75af66f96c70ff2572346caa6812dee411ad1134cffb50e33fba5c",
+        "passed": true,
+        "displayID": 1,
+        "windowNumber": 775
+      }
+    ],
+    "tsMeasurement": {
+      "before": {
+        "audioChannelCount": 2,
+        "audioOutputSampleRate": 48000,
+        "audioSampleRate": 48000,
+        "blankDrawCount": 8,
+        "coreAlive": true,
+        "coreCreationCount": 1,
+        "drawCount": 1653,
+        "firstVideoFrameUptime": 9100.147852708335,
+        "frameTiming": {
+          "averageErrorMilliseconds": 4.309376256281407,
+          "earlyFrameCount": 0,
+          "maximumErrorMilliseconds": 37.932,
+          "minimumErrorMilliseconds": 0.458,
+          "sampleCount": 1592
+        },
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "lastDrawWasClearOnly": false,
+        "openCount": 19,
+        "renderContextAlive": true,
+        "renderContextCreationCount": 1,
+        "skippedFrameCount": 7,
+        "snapshotCount": 646,
+        "videoFrameCount": 1592,
+        "videoHeight": 540,
+        "videoOutputConfigured": true,
+        "videoSyncMode": "audio",
+        "videoTimingOffset": 0,
+        "videoWidth": 960
+      },
+      "displayID": 1,
+      "elapsedSeconds": 1.0319531250006548,
+      "finalPlayback": {
+        "audioChannelCount": 2,
+        "audioOutputSampleRate": 48000,
+        "audioSampleRate": 48000,
+        "blankDrawCount": 8,
+        "coreAlive": true,
+        "coreCreationCount": 1,
+        "drawCount": 1681,
+        "firstVideoFrameUptime": 9100.147852708335,
+        "frameTiming": {
+          "averageErrorMilliseconds": 4.294536796536796,
+          "earlyFrameCount": 0,
+          "maximumErrorMilliseconds": 37.932,
+          "minimumErrorMilliseconds": 0.458,
+          "sampleCount": 1617
+        },
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "lastDrawWasClearOnly": false,
+        "openCount": 20,
+        "renderContextAlive": true,
+        "renderContextCreationCount": 1,
+        "skippedFrameCount": 7,
+        "snapshotCount": 660,
+        "videoFrameCount": 1617,
+        "videoHeight": 540,
+        "videoOutputConfigured": true,
+        "videoSyncMode": "audio",
+        "videoTimingOffset": 0,
+        "videoWidth": 960
+      },
+      "passed": true,
+      "pausedSeekPositionSeconds": 3.0213333333333336,
+      "playing": {
+        "audioChannelCount": 2,
+        "audioOutputSampleRate": 48000,
+        "audioSampleRate": 48000,
+        "blankDrawCount": 8,
+        "coreAlive": true,
+        "coreCreationCount": 1,
+        "drawCount": 1671,
+        "firstVideoFrameUptime": 9100.147852708335,
+        "frameTiming": {
+          "averageErrorMilliseconds": 4.298601615910504,
+          "earlyFrameCount": 0,
+          "maximumErrorMilliseconds": 37.932,
+          "minimumErrorMilliseconds": 0.458,
+          "sampleCount": 1609
+        },
+        "hardwareDecoder": "videotoolbox",
+        "idle": false,
+        "lastDrawWasClearOnly": false,
+        "openCount": 20,
+        "renderContextAlive": true,
+        "renderContextCreationCount": 1,
+        "skippedFrameCount": 7,
+        "snapshotCount": 654,
+        "videoFrameCount": 1609,
+        "videoHeight": 540,
+        "videoOutputConfigured": true,
+        "videoSyncMode": "audio",
+        "videoTimingOffset": 0,
+        "videoWidth": 960
+      },
+      "requestID": 20,
+      "resumedPositionSeconds": 3.254666666666667,
+      "sample": {
+        "coverage": "MPEG-TS / H.264 + AAC",
+        "expected": {
+          "audio": {
+            "channels": 2,
+            "sampleRate": 48000
+          },
+          "durationSeconds": 6.021334,
+          "outcome": "play",
+          "video": {
+            "height": 540,
+            "width": 960
+          }
+        },
+        "file": "20-h264-aac.ts",
+        "license": "CC0-1.0",
+        "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6"
+      },
+      "seekTargetSeconds": 3,
+      "startedAtSeconds": 64.1945028333339,
+      "windowNumber": 775
+    },
+    "completedPauseResumeCycles": 100,
+    "occlusionProbe": {
+      "completed": true,
+      "notificationCount": 2
+    },
+    "mediaVisibility": {
+      "changes": [
+        {
+          "elapsedSeconds": 2.622919291667131,
+          "isVisible": true
+        }
+      ],
+      "endedAtSeconds": 98.2232951666665,
+      "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+      "startedAtSeconds": 2.622919291667131
+    },
+    "soakVisibility": {
+      "changes": [
+        {
+          "elapsedSeconds": 119.84213224999985,
+          "isVisible": true
+        }
+      ],
+      "endedAtSeconds": 239.8580687916674,
+      "method": "Initial/final state, NSWindowDelegate occlusion notifications, and checkpoint observations",
+      "startedAtSeconds": 119.84213224999985
+    },
+    "soak": {
+      "elapsedSeconds": 120.01218858333414,
+      "newVideoFrames": 3596,
+      "framesPerSecond": 29.96362321567869,
+      "positionAdvanceSeconds": 120.05208333333333,
+      "cpuPercentOfOneLogicalCore": 12.02240553256908,
+      "physicalFootprintMiB": {
+        "first": 363.2199172973633,
+        "last": 226.59491729736328,
+        "minimum": 226.59491729736328,
+        "maximum": 363.2199172973633
+      },
+      "meanFrameSubmissionErrorMilliseconds": 3.6389733036707463,
+      "earlyFrames": 0
+    },
+    "stopped": {
+      "elapsedSeconds": 5.027715000000171,
+      "cpuPercentOfOneLogicalCore": 0.07124508847461335,
+      "deltas": {
+        "videoFrameCount": 0,
+        "drawCount": 0,
+        "snapshotCount": 0
+      }
+    },
+    "shutdown": {
+      "coreAlive": false,
+      "renderContextAlive": false,
+      "coreCreationCount": 1,
+      "renderContextCreationCount": 1,
+      "openCount": 31
+    },
+    "nativeWarningLines": [],
+    "desktopControlAttachedDuringRun": false,
+    "applicationExited": true,
+    "manualVisualObservation": "unconfirmed",
+    "audibleOutputVerified": false,
+    "physicalAVSyncVerified": false
+  },
+  "sourceSHA256": {
+    "Sources/App/AppLifecycle.swift": "b75fad7c04b6bec499b58a4f95eae37014fd9ea01933c5f312b6fd4277c37a48",
+    "Sources/App/BomuApp.swift": "d9ea07e28dbe33fbb970f7a8e03753c889d8595fd6bce22004c6a698e7905841",
+    "Sources/App/Brand.swift": "add12eef54d318eb4d7d5a222adb80ec502ac66f64dedd98810a429838b7e8a5",
+    "Sources/App/StartView.swift": "871af23362d86a7d85ff22ad4be3a689979c2d9c5156d36592e3119d8d689ca2",
+    "Sources/DesignSystem/AppTheme.swift": "f5bee6854786ad75f951ed49b5289b26e7e85d19269b008f70d227ba058e1748",
+    "Sources/Playback/MPV/BMMPVSession.h": "b65fc125872a7d31cf25250abbdd82a017caeb3ba60e94f167ea707a46c8af63",
+    "Sources/Playback/MPV/BMMPVSession.m": "9869aa1b10e3cede6cc52de55a3f918aff8c825c282aae75810c8baeba4ccb2b",
+    "Sources/Playback/MPV/MPVPlaybackEngine.swift": "1bc712dc7a5a19108f97b5a70b7d7b97491a4711fafd5179dfd2bada17da328a",
+    "Sources/Playback/MPV/PlaybackDiagnostics.swift": "962a9403d8fe21660c77866834c9204a814af61ddb4b6d1c8823a246df1a2fde",
+    "Sources/Playback/PlaybackEngine.swift": "e7cdbd8ffa4b1eadb3472bd8e329efb586f479e4b5585db4a8a7cd3e4e8cd88f",
+    "Sources/Playback/PlaybackState.swift": "7f2f05e1e22ecc56a24cc20f6033dd6e2549c24852a2fb21a996dd245d5f4353",
+    "Sources/PlayerFeature/OpenMediaPanel.swift": "10a8ec5a2b5d5a22a16a36e349f99e43239a4cfe1a4a86e5b884af4676e9395d",
+    "Sources/PlayerFeature/PlaybackControls.swift": "3676a3f005abf82f65b514cddb6c79f3045a98649134105c925d39235377144f",
+    "Sources/PlayerFeature/PlayerModel.swift": "1e52ee30acf75c1432b71480e008e0de8ec170d19ee72bd42925a3e2f0406e91",
+    "Sources/PlayerFeature/PlayerScreen.swift": "466aeaa55cb641d7fed732b73f42844e97dde96e1994a2120d8234ddf4048512",
+    "Sources/Rendering/BMVideoSurface.h": "e6d1b195cec51b9db034ce3903ab7d7cd07fd1f3b9521fc36cbda38b8fbd95db",
+    "Sources/Rendering/BMVideoSurface.m": "d6336ee4cc1a1da0d3967ba88f77cd1741a26cd45d58daca9f7232f9ebdbf5fe",
+    "Sources/Rendering/VideoHostView.swift": "dc1338cca1d642d00a50a539a8cda4d5aeb2def3b6bb353ef340474d84bf2ccd",
+    "Sources/Resources/en.lproj/Localizable.strings": "33638c7d526a55a251ae712e0a39dd9e6604c0b2c5b226d768b78dce0599d5f9",
+    "Sources/Resources/zh-Hans.lproj/Localizable.strings": "de1c544a43bf3a585acac96d62b8ead43dc2b21bd32596e3c62e34c591509086",
+    "Tools/PlaybackBenchmark/BenchmarkApp.swift": "9c57e46872e4e9c9d11658ea69a333ade6f40eb5b045c3b71c76d4a012826ca8",
+    "Tools/PlaybackBenchmark/BenchmarkMeasurements.swift": "d32371c805f89eab28e6ab6f600fc9217fcb48bfec1a082f98376a780397c11b",
+    "Tools/PlaybackBenchmark/MediaSuiteBenchmark.swift": "f19ec40c34dd68c2f75682592970dc49331336f9060c1ca43d9005b9b35c1d83",
+    "Tools/PlaybackBenchmark/PlaybackBenchmark.swift": "dfb03bd2d56098d9ede8a0bdf7dda241aa49d80e50a6e5e297ab0b0afe335816",
+    "Tools/PlaybackBenchmark/WindowLifecycleBenchmark.swift": "b81ac1ae719f3c09d026ca60b5f5a44b285db827ac29dee0ccee125273ea52da",
+    "Tools/PlaybackBenchmark/WindowLifecycleReport.swift": "98f99a2c3a90aa1626266e3f421cb4abe4366e772e2cb0df486beabb279c3785",
+    "Tools/PlaybackBenchmark/WindowVisibilityMeasurement.swift": "53ae55256e218ff87edff0b92fecdb04396bbb452fc0e143bb641f009713e785",
+    "Config/App.xcconfig": "0ce38e113178b7a46c15fa5a149cb1ad6fbaba534fcb2334c558457e3f357c54",
+    "Config/Bomu-Bridging-Header.h": "19619e7565827f775b1f22766aa730187122bde215972f10950beea30bfb776b",
+    "Config/Dependencies.lock.json": "802e1bc9000c18398a9adfd56cbcdb52e84e483af9be7633c7bfa6030fd11122",
+    "Config/Info.plist": "b710617c79031d5d1048c1fba4421987a513de905459eb866ec168bec91aaca0",
+    "Bomu.xcodeproj/project.pbxproj": "b7330246e2a38dd522dc101ca26691eea6ad5ed7bd5e514f0f3180b31799c50a",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/Bomu.xcscheme": "7a6cb11171a4e35ad15f1e1edd3c7eec7f6eee540dc4fb26baffc0a120e1aeb6",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/BomuBenchmark.xcscheme": "b124720a93bb325fa2b6252229b7d6aee46c20fcbd9b2b0769a3376224d2e6df",
+    "Bomu.xcodeproj/xcshareddata/xcschemes/BomuLogicTests.xcscheme": "a071b0c4f64784da0401428b0d03d3decdf7068f05b2d2b4ed5acbfdb467f132",
+    "scripts/benchmark-dev.sh": "7d7537d6ab9e2dfd56e97e33b48053b49de0c5f0a64e8c45452a07d5b47d7934",
+    "scripts/build-dev.sh": "784d33145f11266147dac04530fa92c37846c89c1686a05938cde17220eda11f",
+    "scripts/dependencies.py": "8ee0c32ea588d3244f1b0d12d460d69f516b8dba0539d990412c05bc932adf25",
+    "scripts/generate-benchmark-media.sh": "0830b48ac84fc058086785a2c064dafb6a74f12a039bb8701d33e4f6c7352526",
+    "scripts/generate-fixtures.sh": "d130a3db504683f20d7b72ecc5aedf2d8e2735c4979bbddefc68d3d14e7ad8de",
+    "scripts/generate-media-suite.py": "f8cc0120045cda6ffab5028a430665da03503b5140acb586c5d0b0b265432566",
+    "scripts/generate-sync-fixture.py": "a0e6a35a9836f6e6ea862c5e7df592ad21f0895f9e1b76b00b86e7aefee31e4f",
+    "scripts/generate-window-fixture.py": "d1b4553fa551c3b3e20a25a58df81da048ad6f33684820f395a0936fb0f2eedd",
+    "scripts/media_fixtures.py": "31f6654a659bc453de3103cba6870b8f6764ac294917a0d0a6b6e0b27d97b65f",
+    "scripts/prepare-seek-candidate-app.py": "8f317c9670df4d8c397d59939e22b01ab35fed373005440c23ddf8ff8cc366cb",
+    "scripts/runtime_capabilities.py": "d6db65b4f227a6220f0c90e8c21e3d8c61f25c15886f1194043290c5cb08e072",
+    "scripts/summarize-benchmark.py": "de4011c3f41b1a068b227ced037799a267c6bd2c3b3b630a87c4fd259aaf0705",
+    "scripts/summarize-window-benchmark.py": "c6a9f0508711ea43bb0909ee5d62103f0d10575061d81dc87c60da842a6a4f9b",
+    "scripts/test-dev.sh": "26e3ce2fa9fd031ee3893e0fdce4dd83c938a5398afa6814947c3b057d832afe",
+    "scripts/toolchain.py": "9bd61c8f0c340ae9e96c183663357e853866aed3d3a299e1381d5e7f0c7c6d12",
+    "scripts/verify-seek-candidate.py": "654d517a04450ac660e6ee6b1d2d599af13dd284d79892a58a63451f441f812f",
+    "scripts/verify-seek-lifecycle.py": "c1c71175fcb900ac80ddbabeab8c99a415f6be7619de00c0c2b076209c9e5035",
+    "Tests/MPVIntegrationTests.swift": "05eab186709afb924a4e52090a5f9d5d223d397fa4c00ba68963561f53963c4b",
+    "Tests/PlaybackStateTests.swift": "b1224a63354d97a84e015173f0d614be97d29057bd59f1cf5b7945200d72460b",
+    "Tests/WindowVisibilityMeasurementTests.swift": "c97e40fbc32efd2a08e7300fb79598b5874abd51e4a13da186ba0b82d4987485",
+    "Tests/test_media_fixtures.py": "afba0d74a3227f97ffa46921d31455d1d31de11367694e1bbe84e3f8f9f8a075",
+    "Tests/test_media_suite.py": "3f75cf8855ee6ab6858c3015c749139a865e2d033c34340913b0f9ca67744a31",
+    "Tests/test_runtime_capabilities.py": "6098d7bb738f1640bb92edf4cf09970d8a9214272b72bbf4c2955005917d3b0f",
+    "Tests/test_seek_candidate.py": "64b48617c290f7bbc00a8b7dbcf0f230b45d19ec1a1456a978359cc2f3a9d2f6",
+    "Tests/test_seek_lifecycle.py": "8bfab8fff3bbd732e7c4ea0c0eae5010e60df3b7bb00cde78d7e24be7e80f0d9",
+    "Tests/test_toolchain.py": "ccbdaf8de89a72aad19165e360df40dd8f07832ee87e4f97c34a1b699c75187b",
+    "Tests/test_window_summary.py": "0a1ed900902d547b8311d901cfd464d5219a37bbb819e2d769737e0ebb2195cd"
+  },
+  "rawFileSHA256": {
+    ".build/benchmarks/20261014-xcode27-candidate/dependencies.json": "802e1bc9000c18398a9adfd56cbcdb52e84e483af9be7633c7bfa6030fd11122",
+    ".build/benchmarks/20261014-xcode27-candidate/desktop-candidate.json": "d9da184e80baaa4f8a6b45212c355052268280631727dd0f6cefc05274b01261",
+    ".build/benchmarks/20261014-xcode27-candidate/invocation.json": "5d99b266e6b0ef3ca297c29fcd1ab22ef1a67da610af00bafe6ba98865093667",
+    ".build/benchmarks/20261014-xcode27-candidate/invocation.py": "445352fb0e25437225412845ac0c4b13b8fb3db348f7f285a89a72fa6c5a1678",
+    ".build/benchmarks/20261014-xcode27-candidate/process.log": "5f47c929ef56875644620f4351911a8091aaa65e57c565e8f353405d77feacdd",
+    ".build/benchmarks/20261014-xcode27-candidate/suite-manifest.json": "637cf9b67c556b10d36c1bd65fdce45407187875c6ef6def1db30ab990b2fd5e",
+    ".build/benchmarks/20261014-xcode27-candidate/summary.md": "63dfaefa18bde711b764df5484be9baa00787b76021776b8bc7410125e836288",
+    ".build/benchmarks/20261014-xcode27-candidate/window-lifecycle.json": "b2a83cdaea97bc69fe4649574992dc345a746ec332cccdf8ba70edbc29de7834",
+    ".build/benchmarks/20261014-xcode27-candidate/window-manifest.json": "390e5a8051a2cbc0736c8b7027b6d5fdefba3975a6fad0c27dc488fe6266f43e",
+    ".build/seek-candidates/20261014-xcode27/lifecycle-20261014-142058/report.json": "65e7f5c82c433cb941ee05581866f88bbe4c915b96d90653cb9ef25b99d6c49a",
+    ".build/seek-candidates/20261014-xcode27/report.json": "8816ac3e2936b181b57b18b4495791bca626b38fac71242c1f452e2f43d210f8",
+    ".build/seek-candidates/desktop-20261014-xcode27/desktop-build.log": "0ea79338cea88907d37bf68329bf037a2df6f4405061c47793086c37a35f6d48",
+    ".build/seek-candidates/desktop-20261014-xcode27/desktop-candidate.json": "d9da184e80baaa4f8a6b45212c355052268280631727dd0f6cefc05274b01261",
+    ".build/toolchain-upgrade/20261014-xcode27/application-build-identity.json": "397ef898965bc29edb7bebe014af69001ff8eb0da5b9ae5d32bf8e9cf6c2290e",
+    ".build/toolchain-upgrade/20261014-xcode27/build.log": "2af78383645c27e7f7b0d40754af359938034c9dbf2b7a1f0ee69d161a6d78d5",
+    ".build/toolchain-upgrade/20261014-xcode27/dependencies-before.json": "56b55978f93037a1bcd7bc9f51ee493e6bb6950802a53b2ea9611aef048de6a7",
+    ".build/toolchain-upgrade/20261014-xcode27/desktop-run.log": "52d6a446ded7c559c17435615d445afc75108ad4a93f6f940d6838b9358bd44b",
+    ".build/toolchain-upgrade/20261014-xcode27/desktop-summary.log": "8f706222bbdec830672ce4ddafde3807b325c0b99cbaa6d39a4dd0162037f7ff",
+    ".build/toolchain-upgrade/20261014-xcode27/display-input-validation.json": "1f1667f5a183edce73bdb0f003518ac203f4822a03b8063b2f265036c9467cd8",
+    ".build/toolchain-upgrade/20261014-xcode27/logic-tests.log": "a22f29507d46ca4ff371bdb3adf5d782c289822b6010993ebfd99829e1627df2",
+    ".build/toolchain-upgrade/20261014-xcode27/malformed-display.log": "d4ab736ce087365910662c175303a32413758e307a1ff263dd217ebf8d76f9e8",
+    ".build/toolchain-upgrade/20261014-xcode27/native-tests.log": "e0a53d997070b9617641fd7bc27371a14cfa88090ed43e36dd8160ee2c9f9bce",
+    ".build/toolchain-upgrade/20261014-xcode27/prepare-candidate.log": "50647725ac52d56e48a78255677e603355c93a783417d46567aea1d14becae1e",
+    ".build/toolchain-upgrade/20261014-xcode27/python-tests.log": "0b4fb927bc95df76b0d201a6e3eb3a6e9d7c5e26461a86be897753f4fabb9fbe",
+    ".build/toolchain-upgrade/20261014-xcode27/seek-candidate.log": "dfb4f8814d6a6ef11d393fa4504404a21247d3c2daafdb4353a3022898df0ebf",
+    ".build/toolchain-upgrade/20261014-xcode27/seek-lifecycle.log": "047bdb110acc3916324d8fe311bead5b4ccb81c0058d6b4cd88a78a8930b45b7",
+    ".build/toolchain-upgrade/20261014-xcode27/toolchain.json": "04e3f71df91c4d0e6ca62902fbe3ae53228e5422cd465bb6f5aae0681770a732",
+    ".build/toolchain-upgrade/20261014-xcode27/unavailable-display.log": "fb164d48262826fcafeba770a81722d41370a340ede3a3458f517e298358d058",
+    ".build/toolchain-upgrade/20261014-xcode27/zero-display.log": "d4ab736ce087365910662c175303a32413758e307a1ff263dd217ebf8d76f9e8"
+  },
+  "osVersion": "版本26.7.1（版号25G241）",
+  "logicalProcessors": 10,
+  "physicalMemoryBytes": 17179869184,
+  "environmentDiagnostics": {
+    "autoShortcutServiceConnectionLines": [
+      "2026-10-14 14:16:13.666809+0800 Bomu[25685:197785] [Connection] Unable to get synchronousRemoteObjectProxy, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.667721+0800 Bomu[25685:197784] [Connection] Unable to get synchronousRemoteObjectProxy, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.667740+0800 Bomu[25685:197784] [Connection] Unable to re-register with Process Instance Registry, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.667554+0800 Bomu[25685:197785] [Application] Error registering app with intents framework: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.668092+0800 Bomu[25685:197798] [Connection] Unable to get synchronousRemoteObjectProxy, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.668115+0800 Bomu[25685:197798] [Connection] Unable to re-register with Process Instance Registry, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.668391+0800 Bomu[25685:197785] [Connection] Unable to get synchronousRemoteObjectProxy, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}",
+      "2026-10-14 14:16:13.668402+0800 Bomu[25685:197785] [Connection] Unable to re-register with Process Instance Registry, error: Error Domain=NSCocoaErrorDomain Code=4097 \"connection to service named com.apple.linkd.autoShortcut\" UserInfo={NSDebugDescription=connection to service named com.apple.linkd.autoShortcut}"
+    ],
+    "incrementalCacheWarningsObserved": true,
+    "appIntentsMetadataSkipped": true,
+    "nativePlaybackTestsPassed": true,
+    "logsSuppressed": false
+  }
+}

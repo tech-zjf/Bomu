@@ -29,7 +29,6 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
     private var task: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApplication.shared.activate()
         task = Task {
             do {
                 let environment = ProcessInfo.processInfo.environment
@@ -42,6 +41,7 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     guard let syncPath = environment["BOMU_BENCHMARK_SYNC_MEDIA"] else {
                         throw BenchmarkError.failed("Missing synchronization fixture")
                     }
+                    NSApplication.shared.activate()
                     try await PlaybackBenchmark().run(
                         media: URL(fileURLWithPath: mediaPath, isDirectory: true),
                         syncMedia: URL(fileURLWithPath: syncPath), output: URL(fileURLWithPath: outputPath))
@@ -66,9 +66,19 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     } else {
                         suiteDirectory = nil
                     }
+                    let initialDisplayID: UInt32?
+                    if let value = environment["BOMU_BENCHMARK_DISPLAY_ID"] {
+                        guard let id = UInt32(value), id > 0 else {
+                            throw BenchmarkError.failed("Initial display ID must be a positive UInt32")
+                        }
+                        initialDisplayID = id
+                    } else {
+                        initialDisplayID = nil
+                    }
                     try await WindowLifecycleBenchmark().run(media: URL(fileURLWithPath: mediaPath),
                         output: URL(fileURLWithPath: outputPath), scenario: scenario,
-                        cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview)
+                        cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview,
+                        initialDisplayID: initialDisplayID)
                 default:
                     throw BenchmarkError.failed("Supply an explicit benchmark mode using scripts/benchmark-dev.sh")
                 }

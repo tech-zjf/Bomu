@@ -15,18 +15,27 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
 
     func run(media: URL, output: URL, scenario: WindowScenario,
              cycles: Int, soakSeconds: Double, suiteDirectory: URL? = nil,
-             previewSeconds: Double = 0) async throws {
+             previewSeconds: Double = 0, initialDisplayID: UInt32? = nil) async throws {
         let manifest = try suiteDirectory.map { try MediaSuiteManifest.read(from: $0) }
         let expectedOpenCount = UInt64((manifest?.samples.count ?? 0) + 1)
         let screens = NSScreen.screens
+        let selectedScreen: NSScreen?
+        if let initialDisplayID {
+            selectedScreen = try screens.first { try DisplayMeasurement.id(of: $0) == initialDisplayID }
+        } else {
+            selectedScreen = NSScreen.main
+        }
+        guard let selectedScreen else { throw BenchmarkError.failed("Initial display is unavailable") }
+        let selectedDisplayID = try DisplayMeasurement.id(of: selectedScreen)
         var report = WindowLifecycleReport(scenario: scenario,
             requestedCycles: cycles, requestedSoakSeconds: soakSeconds,
-            screens: try screens.map(DisplayMeasurement.init), requestedMediaPreviewSeconds: previewSeconds)
+            screens: try screens.map(DisplayMeasurement.init), requestedMediaPreviewSeconds: previewSeconds,
+            requestedInitialDisplayID: initialDisplayID)
         let engine = MPVPlaybackEngine()
         let player = PlayerModel(engine: engine)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 960, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered,
-            defer: false, screen: NSScreen.main)
+            defer: false, screen: selectedScreen)
         switch scenario {
         case .singleWindow: window.title = "Bomu · 单窗口播放测试（静音）"
         case .mediaSuite: window.title = "Bomu · 30 个素材测试（单窗口，静音）"
@@ -61,6 +70,10 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                     && window.occlusionState.contains(.visible) && window.isOnActiveSpace
             }
             try await Task.sleep(for: .seconds(1))
+            guard let activeScreen = window.screen,
+                  try DisplayMeasurement.id(of: activeScreen) == selectedDisplayID else {
+                throw BenchmarkError.failed("Window moved away from its initial display during startup")
+            }
             player.prepare()
             try await waitUntil("player prepared") { player.isPrepared || player.startupError != nil }
             try require(player.startupError == nil, "Player initialization failed: \(player.startupError ?? "")")

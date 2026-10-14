@@ -12,7 +12,7 @@ if [[ "${1:-}" == --native ]]; then
     "$PROJECT_ROOT/scripts/generate-fixtures.sh"
   fi
   python3 "$PROJECT_ROOT/scripts/media_fixtures.py" "$PROJECT_ROOT/.build/fixtures"
-  echo "Native integration tests launch an application host and render-test window."
+  echo "Native integration tests reuse one application host window; no additional render-test window."
 fi
 exec xcodebuild \
   -project "$PROJECT_ROOT/Bomu.xcodeproj" -scheme "$SCHEME" -configuration Debug \

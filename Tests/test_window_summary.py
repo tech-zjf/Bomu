@@ -90,7 +90,7 @@ class WindowSummaryTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, '30 passing cases'):
             self.summarize()
 
-    def test_media_suite_rejects_window_switch_and_brief_occlusion(self):
+    def test_media_suite_rejects_window_display_and_visibility_changes(self):
         self.add_native_probe()
         self.report['scenario'] = 'media-suite'
         self.report['mediaVisibility'] = self.report['soakVisibility']
@@ -98,6 +98,12 @@ class WindowSummaryTests(unittest.TestCase):
             {'sample': {'file': str(index), 'coverage': 'test', 'expected': {'outcome': 'play'}},
              'windowNumber': 1, 'displayID': 1, 'passed': True} for index in range(30)]
         self.assertIn('Audio was muted', self.summarize())
+        self.report['requestedInitialDisplayID'] = 1
+        self.assertIn('Audio was muted', self.summarize())
+        self.report['requestedInitialDisplayID'] = 2
+        with self.assertRaisesRegex(SystemExit, 'requested initial display'):
+            self.summarize()
+        self.report['requestedInitialDisplayID'] = 1
         self.report['mediaSamples'][-1]['windowNumber'] = 2
         with self.assertRaisesRegex(SystemExit, 'one continuously visible window'):
             self.summarize()

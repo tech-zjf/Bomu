@@ -8,13 +8,24 @@ import XCTest
 final class MPVIntegrationTests: XCTestCase {
     func testRealPlaybackPauseSeekReplaceAndRelease() async throws {
         XCTAssertTrue(NSApplication.shared.isRunning, "Rendering tests require the Bomu application host")
+        try await waitUntil { NSApplication.shared.windows.contains { $0.canBecomeMain && $0.isVisible } }
+        let hostWindows = NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }
+        guard hostWindows.count == 1, let window = hostWindows.first else {
+            throw NSError(domain: "Bomu.IntegrationWindow", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Expected exactly one visible application host window"])
+        }
+        let originalContent = try XCTUnwrap(window.contentView)
+        let originalFrame = window.frame
+        let screenKey = NSDeviceDescriptionKey("NSScreenNumber")
+        let originalScreen = try XCTUnwrap(window.screen?.deviceDescription[screenKey] as? NSNumber)
+        let windowNumber = window.windowNumber
         let engine = MPVPlaybackEngine()
-        let window = NSWindow(contentRect: NSRect(x: 100, y: 100, width: 960, height: 540),
-                              styleMask: [.titled, .resizable], backing: .buffered, defer: false)
+        /** 测试只借用宿主窗口的内容；退出时恢复，不另建窗口、置前或关闭应用窗口。 */
         window.contentView = engine.videoView
-        window.isReleasedWhenClosed = false
-        window.orderFront(nil)
-        defer { window.contentView = nil; window.close() }
+        defer {
+            window.contentView = originalContent
+            window.setFrame(originalFrame, display: true)
+        }
         var state = PlaybackState()
         engine.onEvent = { state.receive($0) }
         do {
@@ -52,7 +63,10 @@ final class MPVIntegrationTests: XCTestCase {
             for index in 0..<20 {
                 window.setContentSize(NSSize(width: 900 + index * 3, height: 600 + index * 2))
                 await Task.yield()
+                XCTAssertEqual(window.screen?.deviceDescription[screenKey] as? NSNumber, originalScreen)
             }
+            XCTAssertEqual(window.windowNumber, windowNumber)
+            XCTAssertEqual(NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }.count, 1)
             let invalid = PlaybackRequest(id: 3, url: try fixture("corrupt"))
             state.open(invalid)
             engine.open(invalid)
@@ -72,6 +86,7 @@ final class MPVIntegrationTests: XCTestCase {
             XCTAssertFalse(closed.renderContextAlive)
             XCTAssertEqual(closed.coreCreationCount, 1, "Replacing media and resizing must reuse the native core")
             XCTAssertEqual(closed.renderContextCreationCount, 1, "The surface owns one render context until shutdown")
+            print("Native render test reused host window \(windowNumber), display \(originalScreen)")
         } catch {
             await engine.shutdown()
             throw error

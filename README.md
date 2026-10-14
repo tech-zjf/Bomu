@@ -12,6 +12,7 @@
 - 后续已补齐 30 个 CC0 合成素材并实际跑完单窗口回归：29/30 通过，MPEG-TS 中途定位后无新视频帧的问题仍待修复。同窗口 100 次暂停/恢复、一次最小化恢复和 120 秒持续播放已取得证据，见 [媒体矩阵验证](docs/playback/media-suite/validation.md)。
 - TS 问题已定位到解封装层，独立候选通过内核、15 分钟文件对照及连续定位/替换/退出回归；进一步通过单窗口 30/30 素材、100 次暂停恢复和 120 秒持续播放自动检查。人工观感待确认，尚未接入正式运行库，见 [候选验证](docs/playback/media-suite/desktop-candidate-validation.md)。
 - 播放用候选已补齐读取配置，通过格式/协议/符号清单比较、9 组内核回归与重复构建一致性检查，独立测试应用已备好，见 [运行库候选](docs/playback/media-suite/runtime-candidate.md)。
+- 已按用户选择固定 Xcode 27.0，重新通过正式构建、52 项 Python、12 项 Swift 逻辑和全部 5 项原生测试；新版候选也完成同屏单窗口回归，见 [工具链升级记录](docs/engineering/toolchain/requirements.md)。
 - 实际画面检查发现并修复了视频切到纯音频时残留上一帧的问题；渲染层按原生视频输出生命周期清屏，已复查音频/视频切换与资源释放。
 - 已实现 macOS 14+、Apple Silicon 的原生最小播放链路，固定 mpv 0.41.0 / FFmpeg 9.0.1。
 - 支持本地单文件打开、播放/暂停、定位、音量、原生全屏、停止和失败恢复。
@@ -32,7 +33,7 @@ python3 scripts/dependencies.py bootstrap
 
 也可以在依赖准备后使用 Xcode 打开 [Bomu.xcodeproj](Bomu.xcodeproj)，选择 **Bomu** scheme，在本机 Mac 上运行。
 
-脚本与 Xcode 构建均检查 [Dependencies.lock.json](Config/Dependencies.lock.json) 中的 Xcode、Swift 和 SDK 版本/build，以及实际架构和部署目标；不匹配时明确失败。工程锁定 Xcode 26.1.1（17B100）、Swift 6.2.1、macOS SDK 26.1（25B74），应用最低支持 macOS 14。工具链选择与校验范围见 [依赖说明](ThirdParty/libmpv/README.md)。
+脚本与 Xcode 构建均检查 [Dependencies.lock.json](Config/Dependencies.lock.json) 中的 Xcode、Swift 和 SDK 版本/build，以及实际架构和部署目标；不匹配时明确失败。工程锁定 Xcode 27.0（27A266a）、Swift 6.4、macOS SDK 27.0（26A425），应用最低支持 macOS 14。工具链选择与校验范围见 [依赖说明](ThirdParty/libmpv/README.md)。
 
 该脚本构建无分发签名的本地开发版本，产物位于 `.build/DerivedData/Build/Products/Debug/Bomu.app`。应用内携带运行库，不依赖本机 Homebrew 的 libmpv。它不是经过签名公证的发布包；当前依赖配置会阻止 Release 构建，详见 [依赖来源与许可边界](ThirdParty/libmpv/README.md)。
 
@@ -42,7 +43,7 @@ python3 scripts/dependencies.py bootstrap
 ./scripts/test-dev.sh
 ```
 
-`BomuLogicTests` 直接编译生产播放状态与模型源码，不依赖应用宿主或 libmpv。需要真实内核验证时，另外运行 `./scripts/test-dev.sh --native`；此入口会启动应用宿主与测试窗口，应先安排好桌面使用。
+`BomuLogicTests` 直接编译生产播放状态与模型源码，不依赖应用宿主或 libmpv。需要真实内核验证时，另外运行 `./scripts/test-dev.sh --native`；此入口启动一个应用宿主窗口，渲染用例借用并恢复该窗口的内容，包含同屏尺寸变化检查，不创建第二个窗口。
 
 首次原生测试需要本机 `ffmpeg` / `ffprobe`，用于生成有来源记录的合成测试片；生成器需包含 libx264、libx265 和 AAC 编码器。测试片、真实属性 manifest、依赖缓存和测试产物都在忽略的 `.build/` 下。原生自动测试静音运行，声音、颜色和同步仍有专门人工验收要求。
 
@@ -59,6 +60,8 @@ python3 scripts/dependencies.py bootstrap
 此命令构建并运行独立开发工具，在一个静音窗口中承载正式播放控件，检查暂停恢复、持续出帧及停止后的资源。窗口被遮挡导致可见播放断言不成立时，记录失败并退出，不反复置前重试。完整证据保存到 `.build/benchmarks/`；测量口径和限制见 [播放性能与资源验证](docs/playback/native-poc/benchmark.md)。
 
 不带参数只显示帮助。`--playback` 是首帧、CPU/内存和切换基线，会新建/关闭及缩放测试窗口；`--display-transitions` 会反复全屏与跨屏，仅在用户明确允许占用桌面时单独安排。普通“继续开发”不触发这两种测试。
+
+单窗口基准可通过 `BOMU_BENCHMARK_DISPLAY_ID` 明确选择初始屏幕，ID 来自本机显示器记录。工具直接在该屏幕创建窗口；无效或已断开的屏幕在创建窗口前失败，不自动换到另一块屏幕。运行报告保存请求的 ID，并核对各阶段仍在该屏幕。
 
 `--playback` 模式也会生成并解码校验闪光/短音同步片，静音检查帧提交目标。物理音画同步仍需外部测量；暂停交错状态与时序调整的依据见 [第一轮审查跟进](docs/playback/native-poc/review-follow-up.md)。
 

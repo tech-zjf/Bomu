@@ -12,17 +12,17 @@ SPEC.loader.exec_module(toolchain)
 class ToolchainTests(unittest.TestCase):
     def setUp(self):
         self.lock = {
-            'xcode': '26.1.1', 'xcodeBuild': '17B100',
-            'swift': '6.2.1', 'swiftBuild': 'swiftlang-6.2.1.4.8 clang-1700.4.4.1',
-            'macOSSDK': '26.1', 'macOSSDKBuild': '25B74',
+            'xcode': '27.0', 'xcodeBuild': '27A266a',
+            'swift': '6.4', 'swiftBuild': 'swiftlang-6.4.0.34.1 clang-2100.3.34.1',
+            'macOSSDK': '27.0', 'macOSSDKBuild': '26A425',
             'swiftLanguageVersion': '6.0', 'architecture': 'arm64', 'deploymentTarget': '14.0',
         }
         self.actual = {key: self.lock[key] for key in (
             'xcode', 'xcodeBuild', 'swift', 'swiftBuild', 'macOSSDK', 'macOSSDKBuild')}
         self.environment = {
             'ARCHS': 'arm64', 'MACOSX_DEPLOYMENT_TARGET': '14.0', 'SWIFT_VERSION': '6.0',
-            'PLATFORM_NAME': 'macosx', 'XCODE_PRODUCT_BUILD_VERSION': '17B100',
-            'SDK_VERSION': '26.1', 'SDK_PRODUCT_BUILD_VERSION': '25B74',
+            'PLATFORM_NAME': 'macosx', 'XCODE_PRODUCT_BUILD_VERSION': '27A266a',
+            'SDK_VERSION': '27.0', 'SDK_PRODUCT_BUILD_VERSION': '26A425',
         }
 
     def testMatchingCompilerAndBuildSettingsPass(self):
@@ -50,10 +50,10 @@ class ToolchainTests(unittest.TestCase):
     @patch.object(toolchain, 'output')
     def testInspectionUsesActualCompilerAndSDKOverrides(self, output):
         output.side_effect = [
-            'Xcode 26.1.1\nBuild version 17B100',
-            'swift-driver version: 1.127.14.1 Apple Swift version 6.2.1 '
-            '(swiftlang-6.2.1.4.8 clang-1700.4.4.1)\nTarget: arm64-apple-macosx26.0',
-            '26.1', '25B74',
+            'Xcode 27.0\nBuild version 27A266a',
+            'swift-driver version: 1.127.14.1 Apple Swift version 6.4 '
+            '(swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx26.0',
+            '27.0', '26A425',
         ]
         actual = toolchain.inspect_toolchain({'SWIFT_EXEC': '/selected/swiftc', 'SDKROOT': '/selected/MacOSX.sdk'})
         self.assertEqual(actual, self.actual)
@@ -64,8 +64,8 @@ class ToolchainTests(unittest.TestCase):
     @patch.object(toolchain, 'output')
     def testDefaultCompilerIsResolvedThroughSelectedXcode(self, output):
         output.side_effect = [
-            'Xcode 26.1.1\nBuild version 17B100', '/active/swiftc',
-            'Apple Swift version 6.2.1 (swiftlang-6.2.1.4.8 clang-1700.4.4.1)', '26.1', '25B74',
+            'Xcode 27.0\nBuild version 27A266a', '/active/swiftc',
+            'Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)', '27.0', '26A425',
         ]
         self.assertEqual(toolchain.inspect_toolchain({}), self.actual)
         self.assertEqual(output.call_args_list[1].args[0], ['/usr/bin/xcrun', '--find', 'swiftc'])
@@ -78,7 +78,7 @@ class ToolchainTests(unittest.TestCase):
 
     @patch.object(toolchain, 'output')
     def testUnrecognizedSwiftFailsExplicitly(self, output):
-        output.side_effect = ['Xcode 26.1.1\nBuild version 17B100', 'Swift preview compiler']
+        output.side_effect = ['Xcode 27.0\nBuild version 27A266a', 'Swift preview compiler']
         with self.assertRaisesRegex(ValueError, 'Swift'):
             toolchain.inspect_toolchain({'SWIFT_EXEC': '/preview/swiftc'})
 

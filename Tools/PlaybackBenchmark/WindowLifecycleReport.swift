@@ -31,6 +31,7 @@ struct WindowLifecycleReport: Encodable {
     let requestedCycles: Int
     let requestedSoakSeconds: Double
     let requestedMediaPreviewSeconds: Double
+    let requestedInitialDisplayID: UInt32?
     let screens: [DisplayMeasurement]
     var completed = false
     var failure: String?
@@ -44,12 +45,14 @@ struct WindowLifecycleReport: Encodable {
     var shutdown: PlaybackDiagnostics?
 
     init(scenario: WindowScenario, requestedCycles: Int, requestedSoakSeconds: Double,
-         screens: [DisplayMeasurement], requestedMediaPreviewSeconds: Double = 0) {
+         screens: [DisplayMeasurement], requestedMediaPreviewSeconds: Double = 0,
+         requestedInitialDisplayID: UInt32? = nil) {
         self.scenario = scenario
         measurement = scenario.measurement
         self.requestedCycles = requestedCycles
         self.requestedSoakSeconds = requestedSoakSeconds
         self.requestedMediaPreviewSeconds = requestedMediaPreviewSeconds
+        self.requestedInitialDisplayID = requestedInitialDisplayID
         self.screens = screens
     }
 

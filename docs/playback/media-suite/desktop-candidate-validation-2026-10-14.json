@@ -685,11 +685,12 @@
     "automatedWindowChecksPassed": true,
     "mediaPassed": 30,
     "mediaTotal": 30,
-    "manualVisualObservation": "pending-user-confirmation",
+    "manualVisualObservation": "not-observed-by-user",
     "physicalAVSynchronizationVerified": false,
     "listeningQualityVerified": false,
     "applicationExited": true,
-    "productionRuntimeChanged": false
+    "productionRuntimeChanged": false,
+    "manualVisualResponse": "没观察到，暂不确认"
   },
   "toolchainEnvironment": {
     "observedAt": "2026-10-14T04:06:43.231535+00:00",
@@ -714,7 +715,9 @@
       "check.log": "411522ec89779639df259fa9f595942811c505c31bc2eb85696023376304b203",
       "observation.json": "b40134fb801d2082ac71969dbc271e276d7ea18cb8dfcaa311681d7f5fbc4f4c"
     },
-    "choiceStatus": "pending-user-preference"
+    "choiceStatus": "upgrade-to-27.0-authorized",
+    "userChoice": "保留 27.0，重新固定并完整回归"
   },
-  "pythonTestsNote": "52 passing tests belong to the earlier preparation/code change; this turn changed documentation only and did not rerun that suite."
+  "pythonTestsNote": "52 passing tests belong to the earlier preparation/code change; this turn changed documentation only and did not rerun that suite.",
+  "followUpUpgradeValidation": "../../engineering/toolchain/validation-xcode27-2026-10-14.json"
 }

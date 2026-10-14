@@ -38,6 +38,12 @@ def main():
         actions += '+ native fullscreen entry/exit + new video frame after exit.'
     else:
         raise SystemExit(f'Unknown window scenario: {scenario}')
+    requested_display = report.get('requestedInitialDisplayID')
+    if scenario in {'single-window', 'media-suite'} and requested_display is not None:
+        checkpoints = [row['checkpoint'] for row in report['rounds']] + report['soak']
+        observed_displays = {item['displayID'] for item in checkpoints + report.get('mediaSamples', [])}
+        if observed_displays != {requested_display}:
+            raise SystemExit('The stationary benchmark did not remain on its requested initial display.')
     if report['schemaVersion'] >= 4:
         probe = report.get('occlusionProbe') or {}
         visibility = probe.get('visibility') or {}
