@@ -98,6 +98,16 @@
       "failure": "Window occlusion detected during case 26",
       "shutdownReleasedCore": true,
       "shutdownReleasedRenderContext": true
+    },
+    "dedicatedLifecycleAttempt": {
+      "report": ".build/benchmarks/20261014-154128/window-lifecycle.json",
+      "reportSHA256": "ea27b8a1bfafd36fbfffb935d3d69bb4793f131870c5f8f50f12cdd0708e86e9",
+      "passedCycles": 6,
+      "requestedCycles": 100,
+      "soakSamples": 0,
+      "failure": "The same ordinary window became occluded after cycle 6; no foreground or display changes were made",
+      "shutdownReleasedCore": true,
+      "shutdownReleasedRenderContext": true
     }
   },
   "sourceSHA256": {

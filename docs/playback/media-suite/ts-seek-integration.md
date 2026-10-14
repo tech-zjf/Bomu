@@ -50,6 +50,6 @@ flowchart TD
 | 生命周期 | 完整配置下完成 6/100 次暂停恢复后窗口被系统遮挡，测试主动中止；最小化恢复和 120 秒持续播放尚未在此配置下验收 |
 | 停止与关闭 | 交错回归停止后等待 native idle；测试结束或遮挡中止后 core 与 render context 均释放 |
 
-最终配置下的交错报告为 `.build/benchmarks/20261014-153312/window-lifecycle.json`。最终配置下的媒体套件报告为 `.build/benchmarks/20261014-153504/window-lifecycle.json`，30 项全部通过；其后 6 次暂停/恢复通过，第 7 次检查发现窗口被遮挡，套件按设计中止。前一次报告 `.build/benchmarks/20261014-153334/window-lifecycle.json` 在第 26 项时也观察到窗口变为不可见，因此不作为媒体覆盖率失败。旧配置报告 `.build/benchmarks/20261014-151402` 中的 100 次暂停恢复和 120 秒播放是在 FFmpeg overlay 仍关闭 muxer 的配置下完成，不能作为当前最终依赖的验收证据。最终配置报告摘要及文件身份见 [验证记录](ts-seek-integration-2026-10-14.json)。
+最终配置下的交错报告为 `.build/benchmarks/20261014-153312/window-lifecycle.json`。最终配置下的媒体套件报告为 `.build/benchmarks/20261014-153504/window-lifecycle.json`，30 项全部通过；其后 6 次暂停/恢复通过，第 7 次检查发现窗口被遮挡，套件按设计中止。随后单独运行生命周期场景，仍在第 6 次循环后检测到同一窗口被遮挡，报告为 `.build/benchmarks/20261014-154128/window-lifecycle.json`。两次报告都记录了 core 与 render context 释放；没有强制置前、切屏或再开测试窗口。前一次报告 `.build/benchmarks/20261014-153334/window-lifecycle.json` 在第 26 项时也观察到窗口变为不可见，因此不作为媒体覆盖率失败。旧配置报告 `.build/benchmarks/20261014-151402` 中的 100 次暂停恢复和 120 秒播放是在 FFmpeg overlay 仍关闭 muxer 的配置下完成，不能作为当前最终依赖的验收证据。最终配置报告摘要及文件身份见 [验证记录](ts-seek-integration-2026-10-14.json)。
 
 自动化确认视频帧提交、定位数值和恢复后的新帧，不替代人工观感、真实音频听感、实物显示器色彩校准或物理音画同步。用户此前对另一轮画面回答“没观察到，暂不确认”，本次也未作人工画面确认；声音静音，不把声音验收写成通过。发布流程仍需另行完成 GPL 义务、依赖许可证清单、签名和公证。
