@@ -1,12 +1,73 @@
 @testable import Bomu
 import AppKit
 import ImageIO
+import SwiftUI
 import XCTest
 
 /// Runs the real bundled libmpv and the same OpenGL surface as the application.
 /// Audible output, calibrated color and multi-display behavior still require manual acceptance.
 @MainActor
 final class MPVIntegrationTests: XCTestCase {
+    func testPlaybackOverlaySurvivesOneHundredWindowResizes() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let originalFrame = window.frame
+        let screenKey = NSDeviceDescriptionKey("NSScreenNumber")
+        let originalScreen = try XCTUnwrap(window.screen?.deviceDescription[screenKey] as? NSNumber)
+        let originalWindowNumber = window.windowNumber
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        let nowPlaying = NowPlayingController(player: player)
+        window.contentView = NSHostingView(rootView: PlayerScreen(
+            player: player,
+            videoView: engine.videoView,
+            nowPlaying: nowPlaying,
+            onReturnToLibrary: {}
+        ))
+        defer {
+            nowPlaying.deactivate()
+            window.contentView = originalContent
+            window.setFrame(originalFrame, display: true)
+        }
+
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(try fixture("h264-sdr"))
+            try await waitUntil { player.canControlPlayback }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+
+            let sizes = [NSSize(width: 960, height: 640), NSSize(width: 1280, height: 800),
+                         NSSize(width: 1440, height: 900)]
+            for index in 0..<100 {
+                window.setContentSize(sizes[index % sizes.count])
+                window.contentView?.layoutSubtreeIfNeeded()
+                try await Task.sleep(for: .milliseconds(16))
+                XCTAssertEqual(window.windowNumber, originalWindowNumber)
+                XCTAssertEqual(window.screen?.deviceDescription[screenKey] as? NSNumber, originalScreen)
+                XCTAssertEqual(NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }.count, 1)
+            }
+
+            let active = await engine.diagnostics()
+            XCTAssertEqual(active.coreCreationCount, 1, "Window resizing must reuse the playback core")
+            XCTAssertEqual(active.renderContextCreationCount, 1,
+                           "The SwiftUI video host must retain its render context across layout changes")
+            XCTAssertGreaterThan(active.videoFrameCount, 0, "The overlaid video surface must submit real frames")
+
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
     func testRealPlaybackPauseSeekReplaceAndRelease() async throws {
         let window = try await applicationHostWindow()
         let originalContent = try XCTUnwrap(window.contentView)
