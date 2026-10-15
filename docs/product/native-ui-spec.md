@@ -4,7 +4,7 @@ This document maps the approved visual reference to the current SwiftUI and AppK
 
 ## Current acceptance
 
-The source implementation covers the Home, Library, Folders, Favorites, Search, Player, and Settings surfaces. Overall visual acceptance is still open. A recent desktop inspection could not establish that the visible window was the current Debug build, so it does not count as acceptance evidence. Do not describe the interface as pixel-identical or fully accepted until the current build is checked in one ordinary Bomu window.
+The source implementation covers the Home, Library, Folders, Favorites, Search, Player, and Settings surfaces. A Screen 1 check explicitly selected the current Debug bundle by absolute path and used one ordinary Bomu window. At the window's current large size, the English Home grid and Folder list both showed actual file-size fallbacks for media whose technical metadata was unavailable; the accessibility tree exposed matching summaries without repeated “Unknown” values. This is partial layout and behavior evidence only. Overall visual acceptance remains open: the three specified sizes, reference comparison, keyboard focus order, and VoiceOver navigation are not yet verified. Do not describe the interface as pixel-identical or fully accepted.
 
 The app currently declares English as its supported language. The Simplified Chinese catalog remains in the source tree for later activation and is checked for key and format-argument parity.
 
