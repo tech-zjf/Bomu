@@ -550,12 +550,12 @@
         "error",
         "-y",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/20-h264-aac.ts",
+        "<REPO>/.build/media-suite/20-h264-aac.ts",
         "-map",
         "0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mp4"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/same-payload.mp4"
       ],
       [
         "ffmpeg",
@@ -564,12 +564,12 @@
         "error",
         "-y",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/20-h264-aac.ts",
+        "<REPO>/.build/media-suite/20-h264-aac.ts",
         "-map",
         "0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mkv"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/same-payload.mkv"
       ],
       [
         "ffmpeg",
@@ -580,12 +580,12 @@
         "-stream_loop",
         "23",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/same-payload.mp4",
+        "<REPO>/.build/seek-candidates/20261013-221627/media/same-payload.mp4",
         "-map",
         "0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.mp4"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/long.mp4"
       ],
       [
         "ffmpeg",
@@ -594,12 +594,12 @@
         "error",
         "-y",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.mp4",
+        "<REPO>/.build/seek-candidates/20261013-221627/media/long.mp4",
         "-map",
         "0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/long.ts"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/long.ts"
       ],
       [
         "ffmpeg",
@@ -608,12 +608,12 @@
         "error",
         "-y",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/14-hevc-main10.mp4",
+        "<REPO>/.build/media-suite/14-hevc-main10.mp4",
         "-map",
         "0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/hevc.ts"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/hevc.ts"
       ],
       [
         "ffmpeg",
@@ -622,12 +622,12 @@
         "error",
         "-y",
         "-i",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/media-suite/24-audio-aac.m4a",
+        "<REPO>/.build/media-suite/24-audio-aac.m4a",
         "-map",
         "0:a:0",
         "-c",
         "copy",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/audio.ts"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/audio.ts"
       ],
       [
         "ffmpeg",
@@ -655,7 +655,7 @@
         "4",
         "-c:a",
         "aac",
-        "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/media/mpeg2.ts"
+        "<REPO>/.build/seek-candidates/20261013-221627/media/mpeg2.ts"
       ]
     ],
     "decodedVideoSHA256": "SHA256=81c4765b97faa2439d9cca3342ce2c45d21aa9d44d0dfc938efee10bc5305c83"
@@ -2557,12 +2557,12 @@
       "error",
       "-y",
       "-i",
-      "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/window-fixture/window-stress-1080p.mp4",
+      "<REPO>/.build/window-fixture/window-stress-1080p.mp4",
       "-map",
       "0",
       "-c",
       "copy",
-      "/Users/zhengjunfeng/Desktop/temp/Bomu/.build/seek-candidates/20261013-221627/large-file/window-stress-1080p.ts"
+      "<REPO>/.build/seek-candidates/20261013-221627/large-file/window-stress-1080p.ts"
     ],
     "license": "CC0-1.0",
     "fullDecodePassed": true,

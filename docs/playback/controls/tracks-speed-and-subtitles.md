@@ -10,11 +10,12 @@
 
 速度菜单提供 0.5×、0.75×、1×、1.25×、1.5× 和 2×。模型与原生适配层将速度限制在 0.25× 到 4×，界面只显示内核回报值。
 
+轨道选择或外置字幕命令失败使用独立的 `commandFailed` 事件，不将其升级为播放会话失败。媒体仍保持播放；播放器页显示可关闭的音轨/字幕提示和有界诊断信息。新播放请求或再次尝试轨道操作会清除旧提示。无法访问的外置字幕使用友好说明，不把本机文件路径写入诊断文本。
+
 ## 验证
 
-- `PlayerModelTests.testTrackSelectionExternalSubtitlesAndOffsetUseCurrentRequest` 覆盖当前请求 ID、快速字幕偏移累加、归零、音轨/字幕/外置字幕命令；改动后完整 Xcode 27 回归为 126 项 Python 与 79 项无宿主 XCTest，失败/跳过均为 0。
-- Xcode 27.0 Debug 应用构建与 app-host 原生测试目标编译通过。
-- 已增加真实 libmpv 集成断言检查音轨解析和速度往返；锁屏期间测试宿主无法连接，因此尚未执行该用例。
-- 增加获许可的 AAC/ALAC 双音轨 fixture；新集成用例在同一个 app-host 窗口里暂停播放，按快照中的当前轨道 ID 切到另一轨再切回，并核对内核的活动轨道与 selected 标记。Xcode 27 app-host 测试 target 编译通过，锁屏期间未执行真实切换。
-- 2026-10-15 在屏幕 1 的唯一 Bomu 窗口用本地 AAC/ALAC 双音轨 fixture 验证 Track 1→Track 2 的菜单选中标记切换；音量设为 0，因此不声称听感通过。使用 `.build/fixtures/bomu-subtitle-verification.srt` 经系统文件面板加载字幕，画面出现 “Bomu subtitle verification”，选择 Off 后文字消失；延迟菜单从 0.0 调到 +0.5 秒后再重置为 0.0。测试文件只在被忽略的 `.build/`，没有加入仓库。
-- 播放速度的可见选择与实际速度听感、音轨切换听感，以及带同步提示音的字幕偏移效果仍待后续实测；本轮静音素材操作不构成这些验收证据。
+- `PlayerModelTests.testTrackSelectionExternalSubtitlesAndOffsetUseCurrentRequest` 覆盖当前请求 ID、快速字幕偏移累加、归零，以及音轨/字幕/外置字幕命令。
+- `PlaybackStateTests` 覆盖无效音轨/字幕命令后保留 `.ready` 阶段与当前快照、忽略旧请求或未就绪请求的错误，并允许关闭提示。`PlayerModelTests` 验证操作失败不会停止当前会话。
+- Xcode 27.0 下完整无宿主回归通过：135 项 Python、99 项 XCTest；Debug app/Objective-C bridge 构建和静态分析通过。
+- 真实 libmpv 错误路径尚未在本轮可见播放器测试中触发，因此“错误提示出现且画面继续播放”仍需原生验收。真实轨道解析与速度往返测试已实现；播放速度听感、音轨切换听感及字幕同步听感仍未覆盖。
+- 既有单窗口测试记录验证了双音轨菜单状态切换、外置字幕加载/关闭、字幕偏移调整/归零；该静音操作不作为音轨或速度听感证据。

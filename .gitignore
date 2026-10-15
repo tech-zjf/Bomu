@@ -44,3 +44,20 @@ build/
 # Distribution artifacts
 *.dmg
 *.ipa
+
+# Local-only product archives and early design exports
+/player_ui/
+/player_naming/
+/player_plan/交付文件/
+/player_plan/开发定稿/设计资源/
+/player_plan/开发定稿/Mori播放器开发手册.docx
+/player_plan/开发定稿/背景研究_2026年10月12日.docx
+/player_plan/开发定稿/开始开发.txt
+/player_plan/开发定稿/文件校验SHA256.txt
+/player_plan/开发定稿/调研来源.json
+/player_plan/build_final.py
+/player_plan/build_plan.py
+/player_plan/check_final.cjs
+/player_plan/check_html.cjs
+/player_ui/check-preview.cjs
+/资料迁移校验.json

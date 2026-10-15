@@ -6,7 +6,8 @@ typedef NS_ENUM(NSInteger, BMPlaybackUpdateKind) {
     BMPlaybackUpdateLoaded,
     BMPlaybackUpdateSnapshot,
     BMPlaybackUpdateEnded,
-    BMPlaybackUpdateFailed
+    BMPlaybackUpdateFailed,
+    BMPlaybackUpdateCommandFailed
 };
 
 typedef NS_ENUM(NSInteger, BMPlaybackFailureKind) {
@@ -14,6 +15,11 @@ typedef NS_ENUM(NSInteger, BMPlaybackFailureKind) {
     BMPlaybackFailurePermissionDenied,
     BMPlaybackFailureUnsupportedOrDamaged,
     BMPlaybackFailureEngine
+};
+
+typedef NS_ENUM(NSInteger, BMPlaybackCommandFailureKind) {
+    BMPlaybackCommandFailureAudioTrack,
+    BMPlaybackCommandFailureSubtitle
 };
 
 @interface BMPlaybackTrack : NSObject
@@ -44,6 +50,7 @@ typedef NS_ENUM(NSInteger, BMPlaybackFailureKind) {
 @property(nonatomic, readonly) double subtitleDelay;
 @property(nonatomic, readonly, nullable) NSString *message;
 @property(nonatomic, readonly) BMPlaybackFailureKind failureKind;
+@property(nonatomic, readonly) BMPlaybackCommandFailureKind commandFailureKind;
 @end
 
 /// On-demand, path-free diagnostics. Unknown native properties remain nil.

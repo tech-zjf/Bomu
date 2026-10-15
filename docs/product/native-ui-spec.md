@@ -1,56 +1,59 @@
-# Bomu 原生界面组件规格
+# Native interface specification
 
-本规格记录开发定稿 UI 到 SwiftUI/AppKit 的实现映射。视觉基准仍是 `player_plan/开发定稿/UI设计稿.html` 与 `设计规范.json`；沿用浅色和影片封面优先的方向，同时避免把原型中的圆角卡片铺满每个区域。层次主要由留白、文字、轻分隔线和原生菜单建立，不引入原型切换器、模拟数据或网页壳。
+This document maps the approved visual reference to the current SwiftUI and AppKit implementation. The reference is [`UI设计稿.html`](../../player_plan/开发定稿/UI设计稿.html), with shared values in [`设计规范.json`](../../player_plan/开发定稿/设计规范.json). The HTML is a design reference; it is not shipped as an application view.
 
-当前验收状态：2026-10-15 已在屏幕 1 的同一个普通窗口打开最新 Xcode 27 Debug 包，检查 Home、Library、Folders 和播放器页面。用户不满意此前的圆角比例，因此当前 native token 按小幅 2/3/4 pt 阶梯收敛，圆形播放控件保留语义形状。这与网页原型较大的卡片圆角存在有意差异。当前包仍使用合成色条测试媒体；它能验证布局、状态与真实播放，不能代表产品封面观感。A02/C05 整体验收仍未完成，不宣称达到像素级或百分百还原。
+## Current acceptance
 
-当前版本默认并只打包英文界面，因此系统菜单、面板、播放器、媒体库和设置均采用英文。简体中文翻译保存在 `zh-Hans.lproj`，并由本地化契约测试持续校验键与格式参数；当前不加入 Xcode 与 Bundle 的受支持语言列表，后续启用时无需改造本地化架构。
+The source implementation covers the Home, Library, Folders, Favorites, Search, Player, and Settings surfaces. Overall visual acceptance is still open. A recent desktop inspection could not establish that the visible window was the current Debug build, so it does not count as acceptance evidence. Do not describe the interface as pixel-identical or fully accepted until the current build is checked in one ordinary Bomu window.
 
-## 窗口和页面结构
+The app currently declares English as its supported language. The Simplified Chinese catalog remains in the source tree for later activation and is checked for key and format-argument parity.
 
-| 区域 | 原生实现 | 内容与状态 | 关键行为 |
-| --- | --- | --- | --- |
-| 主窗口与应用菜单 | `BomuApp` 的 `Window` 和 `.commands` | 系统标题栏；打开、播放/暂停、前后 10 秒菜单项及快捷键 | SwiftUI 场景持有一份 `AppLifecycle`，同一播放器和媒体库模型供页面使用 |
-| 主页面路由 | `MainWindowView` | 首页/媒体库与播放器两个常驻页面 | 透明度和命中测试切换可见页面；不得重建播放器或丢失浏览状态 |
-| 媒体库导航 | `MediaLibrarySidebar`、语义化 `Button` | 固定宽度侧栏分为 Your Media、Locations 和本机数据/设置； detail 由当前页面状态驱动 | 侧栏使用明确选中态，来源扫描可取消；避免 macOS 浮动玻璃侧栏带来的额外容器感 |
-| 首页和媒体列表 | `ScrollView`、`LazyVGrid`、`MediaLibraryCard` | 继续观看、最近加入、筛选、空库/空结果、离线来源、缩略图与真实文件属性 | 单击选择并显示选中态；独立播放/收藏按钮均有名称；右键菜单支持恢复播放和分类 |
-| 文件夹浏览 | `NavigationStack`、面包屑、`LazyVGrid`/`LazyVStack` | 在线/离线来源、真实子目录、空目录、媒体条目、网格/列表密度 | 子目录可进入和返回；目录滚动锚点按目录保留 |
-| 播放页 | `PlayerScreen`、AppKit `VideoHostView`、`PlaybackControls` | 空闲、启动失败、加载、播放/暂停、结束、失败、拖放目标 | 视频保持宽高比；系统全屏；控件约 2.5 秒隐藏，暂停/焦点/操作期间保持可见 |
-| 当前播放栏 | `MediaLibraryView.currentPlaybackBar` | 当前文件与播放/暂停状态 | 返回播放页或直接暂停/继续，不创建新播放请求 |
-| 设置 | 系统 `Settings` 场景、`SettingsView` | 播放、字幕、数据/隐私、更新状态 | 清除与归档导入先确认；设置及数据错误显示在设置窗口 |
+## Layout and components
 
-## 视觉 token 与实际尺寸
+| Surface | Native implementation | Reference behavior |
+| --- | --- | --- |
+| Application window | `BomuApp`, `MainWindowView` | System title bar and traffic lights; a single persistent player and library model |
+| Navigation | `MediaLibrarySidebar` | Home, Library, Folders, Favorites, Search, locations, and Settings; selection remains visible without an enclosing panel |
+| Home | `MediaLibraryView` and `MediaLibraryCard` | Two-column Continue Watching and three-column Recently Added sections; separate media artwork and details, with View All and source labels |
+| Library and Search | `MediaLibraryView` | Real indexed files, category and watched filters, and explicit empty/loading/error states |
+| Folder browser | `MediaLibraryFolderViews` | Real source roots and subdirectories, breadcrumbs, grid/list density, and preserved navigation state |
+| Playback | `PlayerScreen`, `PlaybackControls`, `VideoHostView` | One persistent video host with playback controls layered over the picture; media and control state come from the playback model |
+| Settings | `SettingsView` | Playback, subtitles, local data, privacy, and update information in the native Settings scene |
 
-原生单位使用 pt。颜色使用深海军蓝文字 `#141D2D`、次级文字 `#647084`、白色表面 `#FFFFFF` 和浅灰蓝侧栏 `#F0F4F8`。字体分两个角色：系统无衬线用于页面与分区标题、按钮、导航、正文、卡片和元数据；系统衬线只用于品牌展示。动态文件名和技术属性保持无衬线，时间用等宽数字。字体不随应用打包，中文启用后由系统本地化字体回退处理。当前品牌 32 pt、页面标题 27 pt、区块标题 17 pt、副标题 13 pt、媒体标题 14 pt、元数据 12 pt。播放器中央控制为 88 pt、跳转控件 62 pt，间距 26 pt；视频默认不裁切。
+## Visual tokens
 
-设计稿的窗口视觉角由 AppKit 管理，不把 20 pt 的窗口值误用在内容上。当前组件 token 为：拖放提示 6 pt、封面 4 pt、播放器画面 4 pt、选中态 2 pt、控件/字段 4 pt、紧凑表面 3 pt、文件夹图标底形 2 pt、标记 2 pt、空状态图标底形 10 pt。圆形播放键保留自身语义；文件夹列表和空状态不套外层卡片，离线来源用文字与细分隔线表达。侧栏选中项保留白色底，不添加橙色竖线或系统 tint 胶囊；“Add Folder”作为深色实心主操作并使用小半径。媒体列表封面不连同文字信息包进卡片，播放器顶栏和时间轴直接落在画面边缘渐层上。筛选使用无背景原生菜单，当前选项直接显示在标签中。页面与分区标题使用 SF 系统无衬线；系统衬线只用于品牌展示，正文与技术信息保持无衬线，时间使用等宽数字。HTML 是组件视觉基准；原生版本当前采用更利落的组件圆角，明确记录为用户反馈驱动的视觉差异，不宣称网页逐像素复刻。
+`AppTheme` is the single native source for shared visual values. Values below are points unless noted.
 
-主窗口默认 1100×720 pt。确认设计规范给出的三种验收尺寸为 960×640、1280×800、1440×900 pt；播放页最小内容尺寸 900×600 pt。主窗口受 `contentMinSize` 约束，因此保留常驻播放器的最小尺寸。设置窗口最小 520×340 pt。系统侧栏以 176 pt 为最小/理想宽度，并允许用户调宽到 260 pt；英文布局仍需三尺寸走查。
+| Role | Current value |
+| --- | --- |
+| Text / secondary text | `#141D2D` / `#647084` |
+| Surface / sidebar | `#FFFFFF` / `#F0F4F8` |
+| Separator / warm accent | `#E5EAF0` / `#EFB98F` |
+| Brand / page / section title | system serif 32 / system sans 27 / system sans 17 |
+| Media title / metadata / subtitle | system sans 14 / 12 / 13 |
+| Sidebar / content inset | 176 / 30 |
+| Grid gap / section gap | 17 / 28 |
+| Artwork / player / control / field radius | 4 / 4 / 4 / 4 |
+| Selection / compact surface / badge radius | 2 / 3 / 2 |
+| Empty-state icon backing radius | 10 |
 
-## 键盘和辅助功能约定
+System sans is used for interface text and media details; system serif is reserved for brand display; time values use monospaced digits. No external fonts are bundled.
 
-- 应用菜单注册打开（⌘O）、播放/暂停（空格）、后退/前进 10 秒（左右方向键）；文本输入及可编辑控件聚焦时不得拦截文本编辑。
-- 所有图标按钮提供本地化可访问名称；状态由真实播放器快照给出。无轨道、未知媒体属性、扫描错误与离线来源必须明确表达。
-- 侧栏、菜单、滑块和文件夹导航保留语义化 `Button`、`Menu`、`Slider`、`NavigationStack` 控件；筛选菜单显示已选值，并在菜单项中标示当前选项。
-- 减少透明度开启时，播放器控件背景改为高不透明黑色；目前界面没有自定义动画，减少动态效果不应改变播放行为。
-- 播放器画面不作为可访问控件；播放、暂停、定位、音量、轨道、队列和全屏由明确命名的控制项提供。
+Use radii only where the component needs a visible shape. Keep folder rows and empty states free of outer cards; the empty-state icon may have its own small backing. The play button remains circular. AppKit owns the native window corners.
 
-## 验收记录
+## Interaction and accessibility
 
-2026-10-15 在同一个普通 Bomu 窗口检查首页与媒体库。首页按两列显示继续观看、三列显示最近加入，并保留“View All”和“From this Mac”提示；侧栏分为“Your Media”和“Locations”。封面使用 8 pt 圆角，当前选中态为 6 pt、字段为 8 pt，播放器画面为 10 pt；顶栏工具保留 35 pt 点击区域但不再显示常驻方形底板。底边渐层承载白色时间/音量控件，中央传输控件仍为圆形。首页和媒体库显示的素材来自本机合成测试夹具，色条和棋盘是测试内容，不代表产品封面。真实媒体属性和播放进度仍来自本地文件与持久化记录。
+- Selecting a media item does not start playback. The separate play action and context menu expose playback, favorite, watched, and manual-category actions.
+- The playback page remains alive while browsing. Returning to the library does not stop playback; the current-playback bar reflects the same player state.
+- Open, pause, seek, playback speed, audio/subtitle tracks, queue, volume, and fullscreen controls use native semantic controls with localized accessibility names.
+- Playback controls remain visible while paused, while VoiceOver is active, or while a control is being used. Reduced transparency uses a more opaque control surface.
+- Media duration, codec, resolution, tracks, and thumbnails must come from the selected local file. Do not substitute fabricated metadata or sample artwork.
 
-当前默认英文且应用包只声明英文；简体中文目录保留全部匹配键和格式参数，待未来启用。首页与媒体库在当前桌面窗口目视检查；分类菜单实际切换到空结果后再恢复全部媒体。`./scripts/build-dev.sh -quiet` 构建通过，`./scripts/test-dev.sh --direct-hostless` 通过 95 项 XCTest 与 134 项 Python 测试。视觉方向沿用浅色基调，但不追求网页逐像素复刻：HTML 原型的网页壳、模拟封面和自绘导航由系统标题栏、原生控件及真实媒体资料替代。2026-10-15 在屏幕 1 的同一个普通窗口将首页与媒体库缩至约 960×640 pt；两页均无横向裁切，首页继续观看/最近加入列数合理，媒体库筛选与三列结果可见。屏幕当前可见窗口最大约 1116×720 pt，无法实测 1280×800 与 1440×900；VoiceOver、减少透明度/动态效果和完整焦点顺序也仍待验收，不记为通过。
+## Remaining acceptance
 
-2026-10-15 对照用户对圆角和整体观感的反馈，进一步将封面/播放器/普通表面降到 6 pt，选中态与文件夹图标降到 4 pt，字段保留 6 pt，标记降到 3 pt；侧栏选中态增加窄暖色指示线，封面播放按钮由 30 pt 缩到 26 pt。AppKit 原生窗口角保持系统控制。Xcode 27 Debug build 通过，并在屏幕 1 的一个正式窗口中复核首页；合成测试色条、真实媒体属性和滚动布局正常。该调整针对形状语言和强调比例，不宣称整体视觉已达到最终满意度；播放器页、VoiceOver/键盘焦点及三种窗口尺寸仍需后续验收。
+- Compare the current Debug build with the approved reference in one ordinary Bomu window on Screen 1; keep desktop interaction within that window.
+- Complete the 960×640, 1280×800, and 1440×900 layout checks, including keyboard focus order and VoiceOver navigation.
+- Confirm the visual hierarchy, typography, spacing, colors, and control proportions with the user. The listed token values document implementation; they do not prove visual acceptance.
+- Test real media artwork and metadata. Synthetic fixtures are for playback and behavior checks only.
 
-2026-10-15 后续用户明确反馈当前圆角和整体观感仍不满意。对照原型静态结构后，发现额外圆角主要来自原型没有的整块空状态底板和文件夹列表外框；本轮移除这两层，只保留空状态图标的局部底形，并将内容留白/栅格/区块间距校准到 30/17/28 pt。用户确认解锁后，应用清单仍列出两个 Bomu 运行实例，完整桌面状态请求超时；本轮没有选取或关闭任一实例，也没有新增窗口，因此没有把代码审阅或原型图当作当前运行界面的目视验收。A02/C05 继续未完成。
-
-同日复查 C05 文件夹页：来源列表进入 `fixtures` 后，主标题显示当前目录，路径区提供“‹ Folders”作为返回来源列表的明确入口；隐藏系统重复返回按钮后未丢失导航。网格和列表两种内容布局均正常呈现，Grid/List 标签没有挤压成多行；辅助功能树只暴露一次 Folder Layout 名称。屏幕 1 的同一个普通 Bomu 窗口实测进入与返回；Debug 构建和差异空白检查通过。此项只验收来源根目录往返，深层目录路径、键盘焦点与滚动锚点仍待验证。
-
-2026-10-15 用户再次指出整体圆角比例不协调。本轮实际将主题 token 调整为封面 8 pt、播放器 10 pt、选中态 6 pt、控件/字段 8 pt、紧凑表面 4 pt、标记 4 pt、空状态图标 16 pt；布局网格、侧栏宽度和内容边距对照规格后保持不变。Xcode 27 Debug 构建通过；在一个普通 Bomu 窗口内复看首页、媒体库和播放器，卡片/导航边角更克制，主列对齐与三列媒体网格未见横向裁切。播放画面来自合成色条夹具，不能代表真实影片封面；用户尚未验收新的整体观感，A02 仍未完成。
-
-2026-10-15 本轮从桌面读取到的窗口实际来自 10 月 14 日的中间构建，仍包含简体中文资源；当前开发包只声明英文，因此这张画面不能用来验收当前圆角与英文界面。卡片上的 `library.playedSeconds` 是合成测试视频烧录内容，不是应用叠层。修正了导航标题将 `String(localized:)` 结果传入 SwiftUI `Label` 的做法，改为传递 `LocalizedStringKey`。Xcode 27 Debug 构建通过；无窗口回归通过 135 项 Python 测试和 96 项 XCTest。重连旧应用后桌面清单出现两个同名 Bomu 实例，无法安全确认各自所在屏幕；已停止桌面操作，没有据此宣称当前界面目视验收完成。A02 继续未完成。
-
-2026-10-15 用户再次明确否定上一个圆角方案。本轮按首页图保留分散媒体封面和留白，缩小封面/播放器/选中项圆角；侧栏继续使用白底选中态、不加设计稿没有的橙色标记；Add Folder 改为小圆角深色主操作，离线来源取消外层卡片并改用分隔行，同时将根来源组件按实际职责命名为 Row。Xcode 27 Debug 构建通过。桌面窗口仍显示旧中文构建；应用菜单操作未能可靠替换当前进程，桌面清单仍返回两个同名 Bomu 运行记录，因此没有打开新窗口或把本轮界面记为目视通过。A02/C05 仍待当前包的单窗口目视验收。
-
-2026-10-15 最新视觉复核：用户解锁后，本轮先在原有单窗口中检查 Library、Folders 和播放控件；确认屏幕内容是合成色条夹具，色彩本身不作为封面审美依据。随后将封面/播放器/控件/字段收敛到 4 pt、普通表面 3 pt、选中态/标记/文件夹底形 2 pt；同步更新 token JSON 并构建通过。旧窗口关闭后只启动一个当前 Debug 窗口；首页显示英文文案、新半径下的选中导航与封面布局正常。用户未确认满意，整体 UI 仍未验收；三种窗口尺寸、VoiceOver 与键盘焦点也未完成。
+Record new evidence in [`progress.md`](../engineering/roadmap/progress.md) and update this specification only when the accepted design or implementation changes. Keep the product plan as the source for requirements and task dependencies.

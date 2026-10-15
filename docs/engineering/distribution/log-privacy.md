@@ -12,6 +12,6 @@ Bomu 当前没有应用级日志记录器、文件日志目标或遥测上传路
 
 - `Sources/Playback/MPV/BMMPVSession.m` 的 `configureCore` 设置 `config=no`、`terminal=no`、`load-scripts=no`，并禁用 ytdl；生产源代码没有应用级 Logger、`os_log`、`NSLog` 或 `print` 调用。
 - `Tools/PlaybackBenchmark/MediaSuiteBenchmark.swift` 在接受 manifest 前验证样本名不含 `/`；基准程序与生产应用使用不同 target。
-- `scripts/license_audit.py check` 核验全部 44 个锁定 dylib 的来源、许可与对应构建证据。当前仅剩 Bomu 项目自身的公开发行许可决定缺失；不能以依赖审计结果推断项目整体许可。
+- `scripts/license_audit.py check` 核验全部 44 个锁定 dylib 的来源、许可与对应构建证据，并确认 Bomu 自有代码采用 MIT。这个清单不是对组合分发义务的法律审查，也不替代发布所需的源代码提供与第三方许可证告知。
 
 若未来增加应用日志，必须在记录边界过滤 URL、绝对路径、媒体标题及凭据，并以行为测试证明默认隐私；不得默认开启未经用户知情的内容遥测。

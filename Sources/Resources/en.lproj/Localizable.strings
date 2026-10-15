@@ -100,6 +100,10 @@
 "player.subtitleReset" = "Reset to zero";
 "player.subtitleEarlier" = "Earlier by 0.5 seconds";
 "player.subtitleLater" = "Later by 0.5 seconds";
+"player.commandFailure.audio.title" = "Couldn't switch audio tracks";
+"player.commandFailure.audio.message" = "The selected audio track could not be enabled. Playback continues with the current track.";
+"player.commandFailure.subtitle.title" = "Couldn't load subtitles";
+"player.commandFailure.subtitle.message" = "The selected subtitle could not be loaded. Video playback continues; check the file and try again.";
 "player.trackNumber" = "Track %d";
 "player.fullscreen" = "Full Screen";
 "player.loading" = "Opening…";
@@ -174,6 +178,7 @@
 "persistence.errorTitle" = "Could not save playback data";
 "common.cancel" = "Cancel";
 "common.ok" = "OK";
+"common.dismiss" = "Dismiss";
 
 "library.metadata.oneAudioTrack" = "1 audio track";
 

@@ -47,6 +47,37 @@ final class PlaybackStateTests: XCTestCase {
         XCTAssertNil(PlaybackFailure(kind: .permissionDenied, detail: "/private/media/file.mkv").detail)
     }
 
+    func testCommandFailureLeavesPlaybackReadyAndCanBeDismissed() {
+        var state = PlaybackState()
+        state.open(request(1))
+        state.receive(.loaded(1))
+        state.receive(.snapshot(snapshot(1)))
+        let failure = PlaybackCommandFailure(kind: .subtitle, detail: "subtitle decoder error")
+
+        state.receive(.commandFailed(1, failure))
+
+        XCTAssertEqual(state.phase, .ready)
+        XCTAssertEqual(state.snapshot, snapshot(1))
+        XCTAssertEqual(state.commandFailure, failure)
+        state.dismissCommandFailure()
+        XCTAssertNil(state.commandFailure)
+    }
+
+    func testCommandFailureIsIgnoredForStaleOrUnreadyRequests() {
+        var state = PlaybackState()
+        state.open(request(1))
+        let failure = PlaybackCommandFailure(kind: .audioTrack)
+
+        state.receive(.commandFailed(1, failure))
+        XCTAssertNil(state.commandFailure)
+
+        state.receive(.loaded(1))
+        state.open(request(2))
+        state.receive(.commandFailed(1, failure))
+        XCTAssertNil(state.commandFailure)
+        XCTAssertEqual(state.phase, .opening)
+    }
+
     func testSnapshotCannotReviveEndedPlayback() {
         var state = PlaybackState()
         state.open(request(1))
@@ -134,6 +165,29 @@ final class PlayerModelTests: XCTestCase {
             PlaybackSeekRequest(requestID: id, target: .absolute(0)),
             PlaybackSeekRequest(requestID: id, target: .absolute(15))
         ])
+        await player.shutdown()
+    }
+
+    func testTrackCommandFailureDoesNotStopTheCurrentSession() async throws {
+        let engine = RecordingEngine()
+        let player = PlayerModel(engine: engine)
+        player.open(URL(fileURLWithPath: "/first.mp4"))
+        try await waitUntilPrepared(player)
+        let requestID = try XCTUnwrap(engine.requests.first?.id)
+        engine.onEvent?(.loaded(requestID))
+        let currentSnapshot = PlaybackSnapshot(requestID: requestID, pauseCommandID: 0,
+            position: 3, duration: 15, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 100)
+        engine.onEvent?(.snapshot(currentSnapshot))
+
+        engine.onEvent?(.commandFailed(requestID,
+            PlaybackCommandFailure(kind: .subtitle, detail: "subtitle file could not be read")))
+
+        XCTAssertEqual(player.state.phase, .ready)
+        XCTAssertEqual(player.state.snapshot, currentSnapshot)
+        XCTAssertEqual(player.state.commandFailure?.kind, .subtitle)
+        player.dismissCommandFailure()
+        XCTAssertNil(player.state.commandFailure)
         await player.shutdown()
     }
 

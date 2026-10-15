@@ -81,6 +81,40 @@ struct PlaybackFailure: Equatable, Sendable {
     }
 }
 
+struct PlaybackCommandFailure: Equatable, Sendable {
+    enum Kind: Equatable, Sendable {
+        case audioTrack
+        case subtitle
+    }
+
+    let kind: Kind
+    let detail: String?
+
+    init(kind: Kind, detail: String? = nil) {
+        self.kind = kind
+        guard let detail else {
+            self.detail = nil
+            return
+        }
+        let value = String(detail.trimmingCharacters(in: .whitespacesAndNewlines).prefix(300))
+        self.detail = value.isEmpty ? nil : value
+    }
+
+    var title: String {
+        switch kind {
+        case .audioTrack: String(localized: "player.commandFailure.audio.title")
+        case .subtitle: String(localized: "player.commandFailure.subtitle.title")
+        }
+    }
+
+    var explanation: String {
+        switch kind {
+        case .audioTrack: String(localized: "player.commandFailure.audio.message")
+        case .subtitle: String(localized: "player.commandFailure.subtitle.message")
+        }
+    }
+}
+
 struct PlaybackSnapshot: Equatable, Sendable {
     let requestID: UInt64
     var pauseCommandID: UInt64
@@ -103,6 +137,7 @@ enum PlaybackEvent: Equatable, Sendable {
     case snapshot(PlaybackSnapshot)
     case ended(UInt64)
     case failed(UInt64, PlaybackFailure)
+    case commandFailed(UInt64, PlaybackCommandFailure)
 }
 
 /// The current request is authoritative. Late events from replaced files have no effect.
@@ -118,17 +153,24 @@ struct PlaybackState: Equatable, Sendable {
     private(set) var request: PlaybackRequest?
     private(set) var phase: Phase = .idle
     private(set) var snapshot: PlaybackSnapshot?
+    private(set) var commandFailure: PlaybackCommandFailure?
 
     mutating func open(_ request: PlaybackRequest) {
         self.request = request
         phase = .opening
         snapshot = nil
+        commandFailure = nil
     }
 
     mutating func stop() {
         request = nil
         snapshot = nil
         phase = .idle
+        commandFailure = nil
+    }
+
+    mutating func dismissCommandFailure() {
+        commandFailure = nil
     }
 
     mutating func receive(_ event: PlaybackEvent) {
@@ -136,6 +178,7 @@ struct PlaybackState: Equatable, Sendable {
         case .loaded(let id):
             guard request?.id == id, phase == .opening else { return }
             phase = .ready
+            commandFailure = nil
         case .snapshot(let value):
             guard request?.id == value.requestID, phase == .ready else { return }
             // Once a newer command is observed, an older command's snapshot cannot roll it back.
@@ -148,6 +191,10 @@ struct PlaybackState: Equatable, Sendable {
             guard request?.id == id else { return }
             phase = .failed(failure)
             snapshot = nil
+            commandFailure = nil
+        case .commandFailed(let id, let failure):
+            guard request?.id == id, phase == .ready else { return }
+            commandFailure = failure
         }
     }
 }

@@ -109,6 +109,17 @@ final class MPVPlaybackEngine: PlaybackEngine {
                 kind = .engine
             }
             onEvent?(.failed(update.requestID, PlaybackFailure(kind: kind, detail: update.message)))
+        case .commandFailed:
+            let kind: PlaybackCommandFailure.Kind
+            switch update.commandFailureKind {
+            case .audioTrack: kind = .audioTrack
+            case .subtitle: kind = .subtitle
+            @unknown default:
+                assertionFailure("Unmapped native playback command failure")
+                kind = .subtitle
+            }
+            onEvent?(.commandFailed(update.requestID,
+                                    PlaybackCommandFailure(kind: kind, detail: update.message)))
         @unknown default:
             assertionFailure("Unmapped native playback event")
         }

@@ -1,7 +1,10 @@
 {
   "schemaVersion": 1,
   "project": {
-    "status": "unverified"
+    "status": "verified",
+    "licenseExpression": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSHA256": "47f3a2b612b287035e58f85def959e769090f249c5e77bc2357f6a12cc88d30b"
   },
   "libraries": {
     "libavformat.63.dylib": {

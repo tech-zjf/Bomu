@@ -20,7 +20,7 @@
     "grdbRevision": "b83108d10f42680d78f23fe4d4d80fc88dab3212"
   },
   "build": {
-    "command": "xcodebuild -project /Users/zhengjunfeng/Desktop/temp/Bomu/Bomu.xcodeproj -scheme Bomu -configuration Debug -destination platform=macOS,arch=arm64 -derivedDataPath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/DerivedData-a05-clean-20261014 -clonedSourcePackagesDirPath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/SourcePackages -packageCachePath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/SwiftPMCache CODE_SIGNING_ALLOWED=NO build -quiet",
+    "command": "xcodebuild -project <REPO>/Bomu.xcodeproj -scheme Bomu -configuration Debug -destination platform=macOS,arch=arm64 -derivedDataPath <REPO>/.build/DerivedData-a05-clean-20261014 -clonedSourcePackagesDirPath <REPO>/.build/SourcePackages -packageCachePath <REPO>/.build/SwiftPMCache CODE_SIGNING_ALLOWED=NO build -quiet",
     "freshDerivedDataDirectory": ".build/DerivedData-a05-clean-20261014",
     "result": "passed",
     "exitCode": 0,

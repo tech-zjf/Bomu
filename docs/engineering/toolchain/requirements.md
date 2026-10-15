@@ -49,7 +49,7 @@
 
 ## A05 干净构建复验
 
-2026-10-14 在新建的 `.build/DerivedData-a05-clean-20261014/` 中，以固定的绝对 SwiftPM checkout/cache 路径执行 arm64 Debug 构建，Xcode 返回 0，Bomu.app 可执行文件 SHA-256 为 `534b99cbd73a84f0b280ac2fb9a5e20c9eebccb3a75ac026497f4ee6916cfe42`。工具链、依赖锁、`Package.resolved` 与产物哈希见 [干净构建记录](clean-build-xcode27-2026-10-14.json)。此前一次诊断命令误用了相对 SwiftPM 路径并得到 `Missing package product 'GRDB'`；纠正为绝对路径后独立干净构建通过，那个误报不代表项目构建故障。
+2026-10-14 在新建的 `.build/DerivedData-a05-clean-20261014/` 中，以隔离的 SwiftPM checkout/cache 路径执行 arm64 Debug 构建，Xcode 返回 0，Bomu.app 可执行文件 SHA-256 为 `534b99cbd73a84f0b280ac2fb9a5e20c9eebccb3a75ac026497f4ee6916cfe42`。工具链、依赖锁、`Package.resolved` 与产物哈希见 [干净构建记录](clean-build-xcode27-2026-10-14.json)。此前一次诊断命令误用了相对 SwiftPM 路径并得到 `Missing package product 'GRDB'`；纠正后独立干净构建通过，那个误报不代表项目构建故障。
 
 ## 完成边界与下一步
 

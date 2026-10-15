@@ -26,6 +26,12 @@ struct PlayerScreen: View {
                             .padding(.top, 15)
                             .padding(.bottom, 12)
                     }
+                    if let failure = player.state.commandFailure {
+                        PlaybackCommandFailureNotice(failure: failure) {
+                            player.dismissCommandFailure()
+                        }
+                        .frame(width: videoWidth)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(12)
@@ -152,6 +158,43 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, minHeight: 420)
         .foregroundStyle(.white)
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
+    }
+}
+
+private struct PlaybackCommandFailureNotice: View {
+    let failure: PlaybackCommandFailure
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(failure.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                Text(failure.explanation)
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail = failure.detail {
+                    Text(detail)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 8)
+            Button("common.dismiss", action: dismiss)
+                .buttonStyle(.plain)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.background)
+        .accessibilityElement(children: .contain)
     }
 }
 

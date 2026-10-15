@@ -45,6 +45,7 @@ static NSString *BMGPUTimeModeName(BMGPURenderTimingMode mode) {
 @property(nonatomic) double subtitleDelay;
 @property(nonatomic, nullable) NSString *message;
 @property(nonatomic) BMPlaybackFailureKind failureKind;
+@property(nonatomic) BMPlaybackCommandFailureKind commandFailureKind;
 @end
 @implementation BMPlaybackUpdate
 @end
@@ -282,12 +283,16 @@ static const uint64_t BMVideoOutputObservation = 1;
 
 - (void)addExternalSubtitleURL:(NSURL *)url requestID:(uint64_t)requestID {
     dispatch_async(_controlQueue, ^{
-        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID ||
-            !url.isFileURL || ![url checkResourceIsReachableAndReturnError:nil]) return;
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID) return;
+        NSError *reachabilityError = nil;
+        if (!url.isFileURL || ![url checkResourceIsReachableAndReturnError:&reachabilityError]) {
+            [self publishCommandFailure:nil kind:BMPlaybackCommandFailureSubtitle];
+            return;
+        }
         const char *arguments[] = {"sub-add", url.fileSystemRepresentation, "select", NULL};
         int result = mpv_command(self->_handle, arguments);
-        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
-                                         kind:BMPlaybackFailureEngine];
+        if (result < 0) [self publishCommandFailure:[self errorForCode:result].localizedDescription
+                                                kind:BMPlaybackCommandFailureSubtitle];
     });
 }
 
@@ -307,8 +312,14 @@ static const uint64_t BMVideoOutputObservation = 1;
     dispatch_async(_controlQueue, ^{
         if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID) return;
         int64_t value = trackID;
-        mpv_set_property(self->_handle, property, MPV_FORMAT_INT64, &value);
-        [self samplePlayback];
+        int result = mpv_set_property(self->_handle, property, MPV_FORMAT_INT64, &value);
+        if (result < 0) {
+            BMPlaybackCommandFailureKind kind = strcmp(property, "aid") == 0
+                ? BMPlaybackCommandFailureAudioTrack : BMPlaybackCommandFailureSubtitle;
+            [self publishCommandFailure:[self errorForCode:result].localizedDescription kind:kind];
+        } else {
+            [self samplePlayback];
+        }
     });
 }
 
@@ -609,6 +620,13 @@ static const uint64_t BMVideoOutputObservation = 1;
     BMPlaybackUpdate *update = [self updateWithKind:BMPlaybackUpdateFailed];
     update.message = message;
     update.failureKind = kind;
+    [self publish:update];
+}
+
+- (void)publishCommandFailure:(nullable NSString *)message kind:(BMPlaybackCommandFailureKind)kind {
+    BMPlaybackUpdate *update = [self updateWithKind:BMPlaybackUpdateCommandFailed];
+    update.message = message;
+    update.commandFailureKind = kind;
     [self publish:update];
 }
 

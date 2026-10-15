@@ -19,7 +19,7 @@
 - `libudfread.3.dylib` 已直接核验 VideoLAN 1.2.0 tarball SHA 与锁一致，并从该 tarball 原样保存 LGPL-2.1 COPYING；其源文件版权头覆盖 VideoLAN authors 与 hpi1。Meson 选项、固定 IINA 构建脚本、成功 CI artifact 的 arm64 匹配及本地哈希见 [`libudfread-build-recipe.json`](../../../ThirdParty/libudfread-build-recipe.json)。
 - `libbs2b.0.dylib` 已直接核验 SourceForge 3.1.0 tarball SHA 与锁一致，并从归档根目录原样保存 MIT COPYING。配方还逐项记录 IINA 构建脚本对 configure/Makefile 输入所做的生成前编辑，避免把重建后的库误说成未经变换的发行归档产物；arm64 发布匹配见 [`libbs2b-build-recipe.json`](../../../ThirdParty/libbs2b-build-recipe.json)。
 - `libbluray.2.dylib` 已直接核验 libbluray 1.4.1 源码归档 SHA 与锁一致，并保存归档中的 LGPL-2.1 原文。固定 IINA 构建脚本禁用 BD-J、示例和开发工具，并使用单独锁定的外部 libudfread；本机 arm64 内容与对应成功 CI Release artifact 匹配。源码、外部依赖关系、构建选项与二进制哈希见 [`libbluray-build-recipe.json`](../../../ThirdParty/libbluray-build-recipe.json)。
-- Vorbis 1.3.7、SVT-AV1、libjpeg-turbo 与 mpv 的五个运行库现均精确采用固定 `deps-buildscripts` Release 附件二进制，并在锁、许可清单和配方中绑定其哈希；不再使用此前来源链不明的 IINA DMG 副本。相关源码归档、许可证原文、固定构建脚本和构建选项仍保留。mpv 配置默认启用 `gpl=true`，故记录 GPL-2.0-or-later；libjpeg-turbo 关闭 TurboJPEG，仅按 libjpeg API 的 IJG 许可记录。当前五项二进制身份已验证，但这不替代 Bomu 项目自身发行许可决定。
+- Vorbis 1.3.7、SVT-AV1、libjpeg-turbo 与 mpv 的五个运行库现均精确采用固定 `deps-buildscripts` Release 附件二进制，并在锁、许可清单和配方中绑定其哈希；不再使用此前来源链不明的 IINA DMG 副本。相关源码归档、许可证原文、固定构建脚本和构建选项仍保留。mpv 配置默认启用 `gpl=true`，故记录 GPL-2.0-or-later；libjpeg-turbo 关闭 TurboJPEG，仅按 libjpeg API 的 IJG 许可记录。
 - 字幕字体栈的 `libfontconfig.1.dylib`、`libfreetype.6.dylib` 与 `libharfbuzz.0.dylib` 已完成固定源码归档、原文 notice、固定 IINA 构建脚本与 CI 发布二进制匹配核验。FreeType 配置显式禁用循环依赖的 HarfBuzz，关闭未使用的 PNG、Brotli 和 BZip2，并选用 FreeType License；HarfBuzz 在 FreeType 完成后启用该依赖。三项配方记录实际构建开关与组件哈希。
 - `liblcms2.2.dylib` 已从 Little CMS 2.19 固定归档原样提取 MIT `LICENSE`，核对 IINA 的锁定构建脚本明确关闭未使用的 JPEG、TIFF 和 zlib 支持，并确认 arm64 二进制匹配成功 CI Release artifact。配方记录源码摘要、依赖选项及本地二进制哈希。
 - `libmujs.dylib` 与 `libzimg.2.dylib` 已分别绑定 MuJS 1.3.9 ISC 和 zimg 3.0.6 WTFPL-2.0 原文、锁定构建脚本、源归档 SHA 及 arm64 Release artifact 内容。配方保留 MuJS 的按架构源码副本构建/只安装动态库，以及 zimg 从固定归档运行 `autogen.sh` 生成构建文件的行为。
@@ -32,15 +32,15 @@
 - 另有六个 FFmpeg 9.0.1 库（`libavcodec`、`libavdevice`、`libavfilter`、`libavutil`、`libswresample`、`libswscale`）的 arm64 Mach-O 内容与 IINA 依赖构建提交 `f86d54276547df6d14104583ea604af67433f1e1` 成功 workflow 的 fat 发布包逐项匹配。该提交内 `versions.env` 锁定同一 FFmpeg 源码归档和 SHA-256，build workflow、源码 commit、成功 run、GitHub Release 附件哈希及六个本地锁定二进制哈希已组成可复核链。精确的上游文件快照及 Git blob SHA 保存在 `docs/engineering/distribution/iina-deps-buildscripts-f86d542-*`；逐库映射见 [`FFmpeg-upstream-build-recipe.json`](../../../ThirdParty/FFmpeg-upstream-build-recipe.json)。这六项与本仓库补丁版 `libavformat` 共用上游 FFmpeg GPL-2.0-or-later notice。
 - `libdav1d.7.dylib` 也已绑定到版本化 CI 证据：IINA 构建提交的 `versions.env` 固定 dav1d 1.5.3 源码 SHA-256；本地 arm64 Mach-O 内容与该提交成功 run 的 Release 依赖包匹配。BSD-2-Clause `COPYING` 来自 VideoLAN `dav1d` 1.5.3 tag，已逐字节验证 Git blob SHA 并保存在 [`dav1d-COPYING.txt`](../../../ThirdParty/dav1d-COPYING.txt)；构建与二进制哈希关系见 [`dav1d-build-recipe.json`](../../../ThirdParty/dav1d-build-recipe.json)。
 - `libunibreak.7.dylib` 的 7.0 源码归档 SHA、构建脚本和固定 IINA Release artifact 的 arm64 内容匹配已绑定；其上游 `LICENCE` 为自定义许可文本，不误标为标准 BSD。原文按 `LicenseRef-libunibreak` 保存并校验 Git blob SHA，构建关系见 [`libunibreak-build-recipe.json`](../../../ThirdParty/libunibreak-build-recipe.json)。
-- `python3 scripts/license_audit.py check` 读取 `Config/ThirdPartyLicenses.json`，逐库核对依赖锁中的二进制哈希、许可证表达式、版权文本、NOTICE 哈希、源码版本/哈希与构建配方哈希；同时将构建配方中的验证状态、逐库二进制摘要和发布件匹配结论与清单交叉核对。清单不能单独把配方仍标记为未验证或明确不匹配的二进制升级为已验证，NOTICE 与配方路径必须位于仓库内且摘要有效。审计失败时会按证据字段聚合并列出受影响组件，未验证记录仍会逐项显示其缺少的材料，不以一个状态错误遮盖后续缺项。截至 2026-10-15 本轮，运行库逐项核验数由 39/44 提高到 44/44；许可证审计剩余 4 项均属于 Bomu 项目自身的发行决定与对应证据字段（licenseExpression、licenseFile、licenseSHA256、verified evidence status）。GRDB 的 MIT 通知、来源 URL 与锁定 revision 已通过核对。项目许可不得由依赖来源推断，因此 Release 门仍拒绝公开发行。
+- `python3 scripts/license_audit.py check` 读取 `Config/ThirdPartyLicenses.json`，逐库核对依赖锁中的二进制哈希、许可证表达式、版权文本、NOTICE 哈希、源码版本/哈希与构建配方哈希；同时将构建配方中的验证状态、逐库二进制摘要和发布件匹配结论与清单交叉核对。清单不能单独把配方仍标记为未验证或明确不匹配的二进制升级为已验证，NOTICE 与配方路径必须位于仓库内且摘要有效。审计失败时会按证据字段聚合并列出受影响组件，未验证记录仍会逐项显示其缺少的材料，不以一个状态错误遮盖后续缺项。截至 2026-10-15，运行库逐项核验数为 44/44；Bomu 自有代码与项目文档使用 MIT，许可证文件哈希记录在同一清单中，项目和依赖来源审计均通过。GRDB 的 MIT 通知、来源 URL 与锁定 revision 已通过核对。这个审计只证明所列组件的许可证和来源材料完整，不裁定把 GPL/LGPL 运行库与应用一起分发所需的义务。
 
 ## 不能据此公开发布
 
-当前 SHA-256 能证明本机缓存与固定二进制一致，不能证明每个 dylib 的上游 tag、完整对应源代码、构建脚本、修改记录或许可证材料。FFmpeg 官方说明启用 GPL 部分会使 FFmpeg 适用 GPL；mpv 的版权说明也明确其许可随 GPL-only 代码和链接库而变化。这里记录的是上游许可事实，不是对 Bomu 发行兼容性的法律结论。
+当前 MIT 项目许可不把第三方二进制转为 MIT。SHA-256 能证明本机缓存与固定二进制一致，不能单独证明公开发行时的源代码提供方式、许可证告知与其它许可义务已经满足。FFmpeg 官方说明启用 GPL 部分会使 FFmpeg 适用 GPL；mpv 的版权说明也明确其许可随 GPL-only 代码和链接库而变化。逐项来源材料现已记录，但这里不作法律意见，也不代表打包分发兼容性或 GPL/LGPL 义务审查已经完成。
 
-公开发行前必须把依赖清单绑定到**镜像对应的具体构建版本**，为全部实际加载的组件补齐许可证、版权文本、源代码/源码提供方式、补丁与构建配置，并核对 Bomu 项目的分发许可是否满足组合依赖的条件。不能用当前 `master` 的依赖版本或通用 SBOM 代替该证据。完成该门后才允许解除 `scripts/dependencies.py` 对 Release 的保护。
+公开发行前必须审查全部实际加载组件的许可证义务，明确对应源代码/源码提供方式，核对补丁和构建配置，并确认应用与组合依赖的分发条件都得到满足。不能用通用 SBOM 或 Bomu 自身的 MIT 文件代替该审查。完成该门后才允许解除 `scripts/dependencies.py` 对 Release 的保护。
 
-之后每次变更依赖哈希或 GRDB revision，都必须同步更新 `Config/ThirdPartyLicenses.json` 中绑定到该二进制哈希或 revision 的证据，并重新运行许可证审计。构建 Release 时同一检查由 `scripts/dependencies.py embed` 自动执行；人工改动 `distributionReady` 不能绕过不完整的许可证审计。
+之后每次变更项目许可证、依赖哈希或 GRDB revision，都必须同步更新 `Config/ThirdPartyLicenses.json` 中绑定到该文件哈希、二进制哈希或 revision 的证据，并重新运行许可证审计。构建 Release 时同一检查由 `scripts/dependencies.py embed` 自动执行；人工改动 `distributionReady` 不能绕过不完整的许可证或来源审计。
 
 之后还要用 Developer ID 签名、公证并在干净系统检查 Gatekeeper。当前这台开发 Mac 没有有效的代码签名身份，内部 DMG 使用 ad-hoc 签名，不能用于公证或浏览器下载验收。C12 官网下载与 C13 Sparkle feed 应使用经核验的发行包。
 

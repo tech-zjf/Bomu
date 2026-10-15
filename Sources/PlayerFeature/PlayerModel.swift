@@ -263,16 +263,19 @@ final class PlayerModel {
 
     func selectAudioTrack(_ id: Int) {
         guard canControlPlayback, let requestID = state.request?.id else { return }
+        state.dismissCommandFailure()
         engine.setAudioTrack(id: id, requestID: requestID)
     }
 
     func selectSubtitleTrack(_ id: Int) {
         guard canControlPlayback, let requestID = state.request?.id else { return }
+        state.dismissCommandFailure()
         engine.setSubtitleTrack(id: id, requestID: requestID)
     }
 
     func addExternalSubtitle(_ url: URL) {
-        guard canControlPlayback, let requestID = state.request?.id, url.isFileURL else { return }
+        guard canControlPlayback, let requestID = state.request?.id else { return }
+        state.dismissCommandFailure()
         engine.addExternalSubtitle(url, requestID: requestID)
     }
 
@@ -297,6 +300,7 @@ final class PlayerModel {
     func dismissPersistenceError() { persistenceError = nil }
     func dismissInputError() { inputError = nil }
     func dismissHistoryClearError() { historyClearError = nil }
+    func dismissCommandFailure() { state.dismissCommandFailure() }
 
     func clearPlaybackHistory() async {
         guard let historyStore else {
