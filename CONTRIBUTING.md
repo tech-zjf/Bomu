@@ -15,6 +15,8 @@ python3 scripts/dependencies.py bootstrap
 
 Native playback tests require a visible app-host window. Run them only when needed, using one ordinary Bomu window on the active test display. Do not commit generated `.build` output, user media, credentials, or machine-specific signing files.
 
+When reproducing playback issues, generate local synthetic media with `python3 scripts/prepare-test-media.py`. These fixtures stay under `.build/fixtures/`; do not upload personal video files in an issue.
+
 ## Design and review
 
 - Keep SwiftUI focused on presentation and user intent. Playback and rendering details belong behind their existing adapters; persistence owns its database connection and migrations.
