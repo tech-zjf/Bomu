@@ -100,6 +100,28 @@ class LicenseAuditTests(unittest.TestCase):
     def test_complete_pinned_evidence_passes(self):
         self.assertEqual([], license_audit.collect_gaps(self.lock, self.manifest, self.root))
 
+    def test_source_license_reference_files_are_hashed_and_confined(self):
+        recipe_path = self.root / 'recipes/component.txt'
+        recipe = json.loads(recipe_path.read_text())
+        reference = {
+            'path': 'licenses/component.txt',
+            'sha256': self.digest('licenses/component.txt'),
+        }
+        recipe['sourceLicense'] = {'referenceFiles': [reference]}
+        recipe_path.write_text(json.dumps(recipe))
+        record = self.manifest['libraries']['libsample.dylib']
+        record['buildRecipeSHA256'] = self.digest('recipes/component.txt')
+
+        gaps = license_audit.collect_gaps(self.lock, self.manifest, self.root)
+        self.assertFalse(any('source license reference' in gap for gap in gaps), gaps)
+
+        reference['path'] = '../licenses/component.txt'
+        recipe_path.write_text(json.dumps(recipe))
+        record['buildRecipeSHA256'] = self.digest('recipes/component.txt')
+        gaps = license_audit.collect_gaps(self.lock, self.manifest, self.root)
+        self.assertIn(
+            'libsample.dylib: source license reference file missing or hash mismatch', gaps)
+
     def test_current_unverified_distribution_reports_each_runtime_gap(self):
         current_lock = json.loads(license_audit.LOCK_PATH.read_text())
         manifest = {'project': {'status': 'unverified'}, 'libraries': {}, 'swiftPackages': {}}
@@ -550,6 +572,29 @@ class LicenseAuditTests(unittest.TestCase):
             current_manifest['libraries']['libfreetype.6.dylib']['buildRecipeFile']).read_text())
         self.assertIn('--without-harfbuzz', freetype['buildSystem']['configureFlags'])
         self.assertIn('FreeType License', freetype['buildSystem']['licenseNotes'][0])
+
+    def test_libjpeg_license_reference_keeps_the_upstream_relative_link_intact(self):
+        repository_root = license_audit.ROOT
+        current_lock = json.loads((repository_root / 'Config/Dependencies.lock.json').read_text())
+        current_manifest = json.loads(
+            (repository_root / 'Config/ThirdPartyLicenses.json').read_text())
+        record = current_manifest['libraries']['libjpeg.62.dylib']
+        recipe_path = repository_root / record['buildRecipeFile']
+        recipe = json.loads(recipe_path.read_text())
+        references = recipe['sourceLicense']['referenceFiles']
+        reference_paths = {item['path'] for item in references}
+        license_path = repository_root / 'ThirdParty/libjpeg-turbo/LICENSE.md'
+
+        self.assertEqual({
+            'ThirdParty/libjpeg-turbo/LICENSE.md',
+            'ThirdParty/libjpeg-turbo/README.ijg',
+        }, reference_paths)
+        self.assertTrue((license_path.parent / 'README.ijg').is_file())
+        self.assertIn('[README.ijg](README.ijg)', license_path.read_text())
+        self.assertFalse(any(
+            gap.startswith('libjpeg.62.dylib:')
+            for gap in license_audit.collect_gaps(
+                current_lock, current_manifest, repository_root)))
 
     def test_lcms_record_uses_mit_source_and_disables_unused_formats(self):
         repository_root = license_audit.ROOT

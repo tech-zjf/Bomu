@@ -52,7 +52,7 @@ def collect_gaps(lock, manifest, root=ROOT):
         if recipe_path and (recipe_hash is None or recipe_hash != record.get('buildRecipeSHA256')):
             gaps.append(f'{name}: build recipe missing or hash mismatch')
         elif recipe_hash is not None:
-            gaps.extend(_recipe_binary_gaps(name, record, root / recipe_path))
+            gaps.extend(_recipe_binary_gaps(name, record, root / recipe_path, root))
 
     package_records = manifest.get('swiftPackages', {})
     for name in sorted(set(package_records) - set(lock.get('swiftPackages', {}))):
@@ -105,13 +105,32 @@ def _is_sha256(value):
     return isinstance(value, str) and re.fullmatch(r'[0-9a-fA-F]{64}', value) is not None
 
 
-def _recipe_binary_gaps(name, record, recipe_path):
+def _recipe_binary_gaps(name, record, recipe_path, repository_root):
     try:
         recipe = json.loads(recipe_path.read_text())
     except (OSError, json.JSONDecodeError):
         return [f'{name}: build recipe is not valid JSON']
 
     gaps = []
+    source_license = recipe.get('sourceLicense', {})
+    if not isinstance(source_license, dict):
+        gaps.append(f'{name}: source license reference evidence is invalid')
+        source_license = {}
+    reference_files = source_license.get('referenceFiles', [])
+    if not isinstance(reference_files, list):
+        gaps.append(f'{name}: source license reference evidence is invalid')
+        reference_files = []
+    for reference in reference_files:
+        if not isinstance(reference, dict):
+            gaps.append(f'{name}: source license reference evidence is invalid')
+            continue
+        path = reference.get('path')
+        expected_hash = reference.get('sha256')
+        if not path or not _is_sha256(expected_hash):
+            gaps.append(f'{name}: source license reference path or SHA-256 is invalid')
+        elif _hash_at(repository_root, path) != expected_hash:
+            gaps.append(f'{name}: source license reference file missing or hash mismatch')
+
     recipe_status = recipe.get('verificationStatus')
     if isinstance(recipe_status, dict):
         recipe_status = recipe_status.get('status')

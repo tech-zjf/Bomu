@@ -4,7 +4,7 @@ Last reviewed: 2026-10-15. The requirements and dependencies remain in [`开发�
 
 ## Verified baseline
 
-- `./scripts/test-dev.sh --direct-hostless`: 137 Python tests and 99 XCTest cases passed, including the playback-command failure isolation regressions.
+- `./scripts/test-dev.sh --direct-hostless`: 139 Python tests and 99 XCTest cases passed, including the playback-command failure isolation regressions.
 - `./scripts/build-dev.sh`: full Debug app and Objective-C bridge build passed with Xcode 27.0.
 - `./scripts/build-dev.sh --analyze`: passed with Xcode 27.0.
 - `./scripts/package-internal-dev.sh`: the arm64 internal DMG passed the 44-dylib / 47-Mach-O runtime-closure checks, ad-hoc signature verification, and `hdiutil verify`. SHA-256: `34b03ec76e5bbf5a34c2f15e2d2fb5f4dd33c675c5db3f4d206240b99659308e`.

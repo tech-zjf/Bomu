@@ -558,13 +558,13 @@
       "binarySHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
       "licenseExpression": "LicenseRef-IJG",
       "copyright": "Independent JPEG Group; D. R. Commander; libjpeg-turbo contributors",
-      "noticeFile": "ThirdParty/libjpeg-turbo-NOTICE.txt",
+      "noticeFile": "ThirdParty/libjpeg-turbo/NOTICE.txt",
       "noticeSHA256": "2478ede1a32be53e0b9e577be7b12c0b3f6b817490372bfd248733094aaa7610",
       "sourceURL": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz",
       "sourceVersion": "jpeg-turbo 3.1.4.1",
       "sourceSHA256": "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022",
       "buildRecipeFile": "ThirdParty/jpeg-turbo-build-recipe.json",
-      "buildRecipeSHA256": "fcc1c2602d12d7c30a659f59039427e3df8009f4878194467b55d731a8748801"
+      "buildRecipeSHA256": "45bf318d76996e8b8ad61bece4a3f6ae83095c266c24d8a786d38b262329e05f"
     },
     "libmpv.2.dylib": {
       "status": "verified",

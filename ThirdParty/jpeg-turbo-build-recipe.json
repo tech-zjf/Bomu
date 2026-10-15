@@ -10,8 +10,18 @@
   "sourceLicense": {
     "expression": "LicenseRef-IJG",
     "copyright": "Independent JPEG Group; D. R. Commander; libjpeg-turbo contributors",
-    "noticeFile": "ThirdParty/libjpeg-turbo-NOTICE.txt",
-    "noticeSHA256": "2478ede1a32be53e0b9e577be7b12c0b3f6b817490372bfd248733094aaa7610"
+    "noticeFile": "ThirdParty/libjpeg-turbo/NOTICE.txt",
+    "noticeSHA256": "2478ede1a32be53e0b9e577be7b12c0b3f6b817490372bfd248733094aaa7610",
+    "referenceFiles": [
+      {
+        "path": "ThirdParty/libjpeg-turbo/LICENSE.md",
+        "sha256": "e10114e6e40f3d0311c401ca25245ac5ef459a43c20f976fd63f03e816f5741f"
+      },
+      {
+        "path": "ThirdParty/libjpeg-turbo/README.ijg",
+        "sha256": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6"
+      }
+    ]
   },
   "buildSystem": {
     "repository": "https://github.com/iina/deps-buildscripts",
