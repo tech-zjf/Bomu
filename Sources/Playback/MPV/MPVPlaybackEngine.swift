@@ -28,7 +28,10 @@ final class MPVPlaybackEngine: PlaybackEngine {
         }
     }
 
-    func open(_ request: PlaybackRequest) { session.open(request.url, requestID: request.id) }
+    func open(_ request: PlaybackRequest, options: PlaybackOpenOptions) {
+        let startPosition = options.startPosition.map { NSNumber(value: $0.seconds) }
+        session.open(request.url, requestID: request.id, startPosition: startPosition)
+    }
     func setPaused(_ request: PlaybackPauseRequest) {
         session.setPaused(request.isPaused, requestID: request.requestID, commandID: request.commandID)
     }

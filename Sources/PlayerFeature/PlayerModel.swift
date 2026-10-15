@@ -29,7 +29,6 @@ final class PlayerModel {
     @ObservationIgnored private var mediaImportTask: Task<Void, Never>?
     @ObservationIgnored private var mediaDiscoveryTask: Task<[URL], any Error>?
     @ObservationIgnored private var mediaImportID: UInt64 = 0
-    @ObservationIgnored private var resumePosition: Double?
     @ObservationIgnored private var resumeHistory: PlaybackHistory?
     @ObservationIgnored private var resumeMode: ResumeMode = .preference
     @ObservationIgnored private var lastRequestedVolume: Double?
@@ -211,7 +210,6 @@ final class PlayerModel {
         let request = PlaybackRequest(id: nextRequestID, url: url)
         self.resumeMode = resumeMode
         historySuppressedRequestID = nil
-        resumePosition = nil
         resumeHistory = nil
         pendingPause = nil
         pendingSubtitleDelay = nil
@@ -493,12 +491,6 @@ final class PlayerModel {
             engine.setSpeed(preferences.defaultSpeed)
             engine.setSubtitleDelay(preferences.defaultSubtitleDelay, requestID: requestID)
             startProgressPersistence()
-        case .snapshot(let snapshot) where state.request?.id == snapshot.requestID:
-            if let resumePosition, let duration = snapshot.duration, duration.isFinite, duration > 0 {
-                let target = min(duration, max(0, resumePosition))
-                engine.seek(PlaybackSeekRequest(requestID: snapshot.requestID, target: .absolute(target)))
-                self.resumePosition = nil
-            }
         case .ended(let requestID) where state.request?.id == requestID && state.phase == .ended:
             if preferences.automaticallyPlayNext, queue.advance() != nil, let nextURL = queue.currentURL {
                 openMedia(nextURL)
@@ -529,7 +521,7 @@ final class PlayerModel {
 
     private func restoreAndOpen(_ request: PlaybackRequest) {
         guard let historyStore else {
-            engine.open(request)
+            engine.open(request, options: PlaybackOpenOptions())
             return
         }
         let pendingWrite = persistenceTask
@@ -547,18 +539,23 @@ final class PlayerModel {
                 case .savedCheckpoint: shouldResumePosition = true
                 case .beginning: shouldResumePosition = false
                 }
-                self.resumePosition = shouldResumePosition ? saved?.position : nil
+                let startPosition: PlaybackStartPosition?
+                if shouldResumePosition, let saved {
+                    startPosition = PlaybackStartPosition(seconds: saved.position)
+                } else {
+                    startPosition = nil
+                }
                 self.resumeHistory = saved
                 if let saved {
                     self.lastRequestedVolume = saved.volume
                     engine.setVolume(saved.volume)
                 }
-                engine.open(request)
+                engine.open(request, options: PlaybackOpenOptions(startPosition: startPosition))
             } catch {
                 guard !Task.isCancelled, let self,
                       self.state.request?.id == request.id, self.isPrepared else { return }
                 self.persistenceError = error.localizedDescription
-                engine.open(request)
+                engine.open(request, options: PlaybackOpenOptions())
             }
         }
     }

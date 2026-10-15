@@ -6,7 +6,7 @@ import Foundation
 protocol PlaybackEngine: AnyObject {
     var onEvent: ((PlaybackEvent) -> Void)? { get set }
     func prepare() async throws
-    func open(_ request: PlaybackRequest)
+    func open(_ request: PlaybackRequest, options: PlaybackOpenOptions)
     func setPaused(_ request: PlaybackPauseRequest)
     func seek(_ request: PlaybackSeekRequest)
     func setVolume(_ volume: Double)
@@ -17,4 +17,10 @@ protocol PlaybackEngine: AnyObject {
     func setSubtitleDelay(_ seconds: Double, requestID: UInt64)
     func stop()
     func shutdown() async
+}
+
+extension PlaybackEngine {
+    func open(_ request: PlaybackRequest) {
+        open(request, options: PlaybackOpenOptions())
+    }
 }

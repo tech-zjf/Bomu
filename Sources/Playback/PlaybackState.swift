@@ -6,6 +6,23 @@ struct PlaybackRequest: Equatable, Sendable {
     let url: URL
 }
 
+struct PlaybackStartPosition: Equatable, Sendable {
+    let seconds: Double
+
+    init?(seconds: Double) {
+        guard seconds.isFinite, seconds >= 0 else { return nil }
+        self.seconds = seconds
+    }
+}
+
+struct PlaybackOpenOptions: Equatable, Sendable {
+    let startPosition: PlaybackStartPosition?
+
+    init(startPosition: PlaybackStartPosition? = nil) {
+        self.startPosition = startPosition
+    }
+}
+
 /// Identifies an asynchronous pause intent within a file request.
 struct PlaybackPauseRequest: Equatable, Sendable {
     let requestID: UInt64

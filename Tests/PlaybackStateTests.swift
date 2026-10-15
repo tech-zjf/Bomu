@@ -277,7 +277,8 @@ final class PlayerModelTests: XCTestCase {
             requestID: requestID, pauseCommandID: 0, position: 0.2, duration: 120,
             isPaused: false, isSeeking: false, isBuffering: false, isSeekable: true, volume: 37
         )))
-        XCTAssertEqual(engine.seeks, [PlaybackSeekRequest(requestID: requestID, target: .absolute(42))])
+        XCTAssertEqual(engine.openOptions.first?.startPosition?.seconds, 42)
+        XCTAssertTrue(engine.seeks.isEmpty, "Restored playback starts at its saved position without a post-load seek")
         XCTAssertEqual(engine.audioTracks, [3])
         XCTAssertEqual(engine.subtitleTracks, [5])
 
@@ -306,6 +307,7 @@ final class PlayerModelTests: XCTestCase {
         try await waitUntil { restartedEngine.requests.count == 1 }
         let restartedRequestID = try XCTUnwrap(restartedEngine.requests.first?.id)
         XCTAssertEqual(restartedEngine.volumes, [28], "A fresh player applies the saved volume before opening")
+        XCTAssertEqual(restartedEngine.openOptions.first?.startPosition?.seconds, 47.5)
         restartedEngine.onEvent?(.loaded(restartedRequestID))
         XCTAssertEqual(restartedEngine.audioTracks, [4])
         XCTAssertEqual(restartedEngine.subtitleTracks, [6])
@@ -313,8 +315,7 @@ final class PlayerModelTests: XCTestCase {
             requestID: restartedRequestID, pauseCommandID: 0, position: 0.2, duration: 120,
             isPaused: false, isSeeking: false, isBuffering: false, isSeekable: true, volume: 28
         )))
-        XCTAssertEqual(restartedEngine.seeks,
-                       [PlaybackSeekRequest(requestID: restartedRequestID, target: .absolute(47.5))])
+        XCTAssertTrue(restartedEngine.seeks.isEmpty)
         await restartedPlayer.shutdown()
     }
 
@@ -366,22 +367,23 @@ final class PlayerModelTests: XCTestCase {
         try await waitUntilPrepared(player)
         try await waitUntil { engine.requests.count == 1 }
         let continuedID = try XCTUnwrap(engine.requests.first?.id)
+        XCTAssertEqual(engine.openOptions.first?.startPosition?.seconds, 42)
         engine.onEvent?(.loaded(continuedID))
         engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: continuedID, pauseCommandID: 0,
             position: 0.2, duration: 120, isPaused: false, isSeeking: false,
             isBuffering: false, isSeekable: true, volume: 70)))
-        try await waitUntil { engine.seeks.count == 1 }
-        XCTAssertEqual(engine.seeks.first?.target, .absolute(42))
+        XCTAssertTrue(engine.seeks.isEmpty)
 
         player.playFromBeginning(url)
         try await waitUntil { engine.requests.count == 2 }
         let beginningID = try XCTUnwrap(engine.requests.last?.id)
+        XCTAssertNil(engine.openOptions.last?.startPosition)
         engine.onEvent?(.loaded(beginningID))
         engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: beginningID, pauseCommandID: 0,
             position: 0.1, duration: 120, isPaused: false, isSeeking: false,
             isBuffering: false, isSeekable: true, volume: 70)))
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(engine.seeks.map(\.target), [.absolute(42)])
+        XCTAssertTrue(engine.seeks.isEmpty)
         await player.shutdown()
     }
 
@@ -411,11 +413,12 @@ final class PlayerModelTests: XCTestCase {
         let originalQueue = player.queue
         XCTAssertEqual(originalQueue.items.map(\.lastPathComponent), ["episode-1.mp4", "episode-2.mp4"])
         let endedRequestID = try XCTUnwrap(engine.requests.first?.id)
+        XCTAssertEqual(engine.openOptions.first?.startPosition?.seconds, 42)
         engine.onEvent?(.loaded(endedRequestID))
         engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: endedRequestID, pauseCommandID: 0,
             position: 0.2, duration: 120, isPaused: false, isSeeking: false,
             isBuffering: false, isSeekable: true, volume: 70)))
-        try await waitUntil { engine.seeks == [PlaybackSeekRequest(requestID: endedRequestID, target: .absolute(42))] }
+        XCTAssertTrue(engine.seeks.isEmpty)
         engine.onEvent?(.ended(endedRequestID))
         XCTAssertEqual(player.state.phase, .ended)
 
@@ -427,8 +430,9 @@ final class PlayerModelTests: XCTestCase {
             position: 0.2, duration: 120, isPaused: false, isSeeking: false,
             isBuffering: false, isSeekable: true, volume: 70)))
 
-        XCTAssertEqual(engine.seeks.map(\.target), [.absolute(42)],
-                       "Replay is an explicit start-from-beginning action, regardless of the resume preference")
+        XCTAssertNil(engine.openOptions.last?.startPosition,
+                     "Replay is an explicit start-from-beginning action, regardless of the resume preference")
+        XCTAssertTrue(engine.seeks.isEmpty)
         XCTAssertEqual(player.queue, originalQueue, "Replaying an item must retain the playback queue")
         await player.shutdown()
     }
@@ -450,20 +454,20 @@ final class PlayerModelTests: XCTestCase {
         player.continuePlayback(url)
         try await waitUntilPrepared(player)
         try await waitUntil { engine.requests.count == 1 }
+        XCTAssertEqual(engine.openOptions.first?.startPosition?.seconds, 42)
         let failedRequestID = try XCTUnwrap(engine.requests.first?.id)
         engine.onEvent?(.failed(failedRequestID, PlaybackFailure(kind: .unsupportedOrDamaged)))
         XCTAssertEqual(player.state.phase, .failed(PlaybackFailure(kind: .unsupportedOrDamaged)))
 
         player.retryCurrentMedia()
         try await waitUntil { engine.requests.count == 2 }
+        XCTAssertEqual(engine.openOptions.last?.startPosition?.seconds, 42)
         let retriedRequestID = try XCTUnwrap(engine.requests.last?.id)
         engine.onEvent?(.loaded(retriedRequestID))
         engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: retriedRequestID, pauseCommandID: 0,
             position: 0.2, duration: 120, isPaused: false, isSeeking: false,
             isBuffering: false, isSeekable: true, volume: 70)))
-        try await waitUntil { engine.seeks.count == 1 }
-
-        XCTAssertEqual(engine.seeks.first?.target, .absolute(42))
+        XCTAssertTrue(engine.seeks.isEmpty)
         await player.shutdown()
     }
 
@@ -837,6 +841,7 @@ final class PlayerModelTests: XCTestCase {
 private final class RecordingEngine: PlaybackEngine {
     var onEvent: ((PlaybackEvent) -> Void)?
     var requests: [PlaybackRequest] = []
+    var openOptions: [PlaybackOpenOptions] = []
     var pauses: [Bool] = []
     var seeks: [PlaybackSeekRequest] = []
     var volumes: [Double] = []
@@ -853,7 +858,10 @@ private final class RecordingEngine: PlaybackEngine {
         await Task.yield()
         if shouldFailPreparation { throw PreparationFailure.engineUnavailable }
     }
-    func open(_ request: PlaybackRequest) { requests.append(request) }
+    func open(_ request: PlaybackRequest, options: PlaybackOpenOptions) {
+        requests.append(request)
+        openOptions.append(options)
+    }
     func setPaused(_ request: PlaybackPauseRequest) { pauses.append(request.isPaused) }
     func seek(_ request: PlaybackSeekRequest) { seeks.append(request) }
     func setVolume(_ volume: Double) { volumes.append(volume) }

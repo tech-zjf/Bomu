@@ -7,6 +7,39 @@
 #import <string.h>
 #import <unistd.h>
 
+static int BMLoadFileAtStartPosition(mpv_handle *handle, NSURL *url, double seconds) {
+    if (!isfinite(seconds) || seconds < 0) return MPV_ERROR_INVALID_PARAMETER;
+
+    NSString *startValue = [NSString stringWithFormat:@"%.9f", seconds];
+    char *optionKeys[] = {(char *)"start"};
+    mpv_node optionValues[] = {{
+        .format = MPV_FORMAT_STRING,
+        .u.string = (char *)startValue.UTF8String
+    }};
+    mpv_node_list options = {
+        .num = 1,
+        .values = optionValues,
+        .keys = optionKeys
+    };
+    mpv_node arguments[] = {
+        {.format = MPV_FORMAT_STRING, .u.string = (char *)"loadfile"},
+        {.format = MPV_FORMAT_STRING, .u.string = (char *)url.fileSystemRepresentation},
+        {.format = MPV_FORMAT_STRING, .u.string = (char *)"replace"},
+        {.format = MPV_FORMAT_INT64, .u.int64 = -1},
+        {.format = MPV_FORMAT_NODE_MAP, .u.list = &options}
+    };
+    mpv_node_list argumentList = {
+        .num = (int)(sizeof(arguments) / sizeof(arguments[0])),
+        .values = arguments,
+        .keys = NULL
+    };
+    mpv_node command = {
+        .format = MPV_FORMAT_NODE_ARRAY,
+        .u.list = &argumentList
+    };
+    return mpv_command_node(handle, &command, NULL);
+}
+
 static NSString *BMGPUTimeAvailability(BMGPURenderTimingStatus status) {
     switch (status) {
         case BMGPURenderTimingStatusDisabled: return @"disabled";
@@ -179,7 +212,7 @@ static const uint64_t BMVideoOutputObservation = 1;
     });
 }
 
-- (void)openURL:(NSURL *)url requestID:(uint64_t)requestID {
+- (void)openURL:(NSURL *)url requestID:(uint64_t)requestID startPosition:(NSNumber *)startPosition {
     dispatch_async(_controlQueue, ^{
         if (!self->_handle || self->_closing) return;
         self->_requestID = requestID;
@@ -206,8 +239,12 @@ static const uint64_t BMVideoOutputObservation = 1;
         close(descriptor);
         int paused = 0;
         int result = mpv_set_property(self->_handle, "pause", MPV_FORMAT_FLAG, &paused);
-        const char *arguments[] = {"loadfile", url.fileSystemRepresentation, "replace", NULL};
-        if (result >= 0) result = mpv_command(self->_handle, arguments);
+        if (result >= 0 && startPosition) {
+            result = BMLoadFileAtStartPosition(self->_handle, url, startPosition.doubleValue);
+        } else if (result >= 0) {
+            const char *arguments[] = {"loadfile", url.fileSystemRepresentation, "replace", NULL};
+            result = mpv_command(self->_handle, arguments);
+        }
         if (result >= 0) {
             self->_openCount += 1;
             result = mpv_get_property(self->_handle, "playlist/0/id", MPV_FORMAT_INT64,

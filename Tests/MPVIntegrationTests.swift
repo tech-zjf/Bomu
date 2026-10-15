@@ -83,8 +83,19 @@ final class MPVIntegrationTests: XCTestCase {
             XCTAssertLessThanOrEqual(playbackFailure.detail?.count ?? 0, 300)
             let recovered = PlaybackRequest(id: 4, url: try fixture("h264-sdr"))
             state.open(recovered)
-            engine.open(recovered)
+            var firstRestoredPosition: Double?
+            engine.onEvent = { event in
+                if case .snapshot(let snapshot) = event, snapshot.requestID == recovered.id,
+                   firstRestoredPosition == nil {
+                    firstRestoredPosition = snapshot.position
+                }
+                state.receive(event)
+            }
+            let restoredPosition = try XCTUnwrap(PlaybackStartPosition(seconds: 5))
+            engine.open(recovered, options: PlaybackOpenOptions(startPosition: restoredPosition))
             try await waitUntil { state.snapshot?.requestID == 4 && (state.snapshot?.position ?? 0) > 0.3 }
+            XCTAssertEqual(try XCTUnwrap(firstRestoredPosition), 5, accuracy: 0.4,
+                           "The first native snapshot must begin at the restored position")
             engine.seek(PlaybackSeekRequest(requestID: recovered.id, target: .absolute(14.8)))
             try await waitUntil { state.phase == .ended }
             state.stop()

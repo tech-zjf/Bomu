@@ -99,7 +99,7 @@ NS_SWIFT_UI_ACTOR
 @property(nonatomic, readonly) NSView *videoView;
 @property(nonatomic, copy, nullable) void (^onUpdate)(BMPlaybackUpdate *update);
 - (void)prepareWithCompletion:(void (^)(NSError * _Nullable error))completion;
-- (void)openURL:(NSURL *)url requestID:(uint64_t)requestID;
+- (void)openURL:(NSURL *)url requestID:(uint64_t)requestID startPosition:(nullable NSNumber *)startPosition;
 - (void)setPaused:(BOOL)paused requestID:(uint64_t)requestID commandID:(uint64_t)commandID;
 - (void)seekSeconds:(double)seconds relative:(BOOL)relative requestID:(uint64_t)requestID
     NS_SWIFT_NAME(seek(seconds:relative:requestID:));
