@@ -22,7 +22,7 @@
     "buildScript": {
       "path": "buildscripts/build-libsoxr.sh",
       "gitBlobSHA1": "67c91361aabbd3c4efa4a29770f0ebe5beb7488e",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libsoxr.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libsoxr.sh"
     },
     "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
     "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",

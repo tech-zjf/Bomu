@@ -6,7 +6,7 @@ Bomu is a native video player for local media on macOS. It is built with Swift, 
 
 Bomu is in early development. The core local-playback path is implemented, but the v0.0 acceptance work and later product features are not complete. See the [current development status](docs/engineering/roadmap/progress.md) and the [83-item acceptance plan](player_plan/开发定稿/开发任务.json).
 
-Original Bomu source and project documentation are licensed under the [MIT License](LICENSE). Third-party code, bundled runtime components, and test media keep their own licenses and terms; see the [license and provenance record](docs/engineering/distribution/license-provenance.md) and [`ThirdParty/libmpv/README.md`](ThirdParty/libmpv/README.md). Choosing MIT does not complete release readiness: Developer ID signing, notarization, and clean-machine installation still require acceptance.
+Bomu-authored source and documentation are licensed under the [MIT License](LICENSE). Third-party code, notices, bundled runtime components, media fixtures, and upstream materials retain their own terms; see the [license and provenance record](docs/engineering/distribution/license-provenance.md) and [`ThirdParty/libmpv/README.md`](ThirdParty/libmpv/README.md). Choosing MIT does not complete release readiness: Developer ID signing, notarization, and clean-machine installation still require acceptance.
 
 ## Requirements
 

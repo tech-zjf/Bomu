@@ -21,12 +21,12 @@
     "buildScript": {
       "path": "buildscripts/build-mpv.sh",
       "gitBlobSHA1": "a7c21ab44d15705d659ea18e511777123a664aa7",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-mpv.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-mpv.sh"
     },
     "sharedBuildScript": {
       "path": "buildscripts/common.sh",
       "gitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-common.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/common.sh"
     },
     "patchesApplied": [],
     "deploymentTarget": "11.0 (upstream deps-buildscripts common.sh)",

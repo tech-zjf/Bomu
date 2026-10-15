@@ -1,6 +1,6 @@
 # Contributing to Bomu
 
-Thanks for your interest in Bomu. The project is in pre-release development. Original Bomu source and project documentation are licensed under the [MIT License](LICENSE); third-party components remain under their own licenses. By submitting a contribution, you agree that it may be distributed under the project's MIT License. You retain your copyright, and no separate CLA is currently required. Please discuss substantial features and behavior changes in an issue first; small, focused fixes can be proposed directly.
+Thanks for your interest in Bomu. The project is in pre-release development. Bomu-authored source and documentation are licensed under the [MIT License](LICENSE); third-party components and upstream materials retain their own terms. By submitting a contribution, you agree that your contribution may be distributed under the project's MIT License. You retain your copyright, and no separate CLA is currently required. Please discuss substantial features and behavior changes in an issue first; small, focused fixes can be proposed directly.
 
 ## Development setup
 

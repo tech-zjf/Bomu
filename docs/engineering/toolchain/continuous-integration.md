@@ -12,4 +12,4 @@ Job 安装合成媒体生成需要的 FFmpeg，运行 `scripts/dependencies.py b
 
 本机若处于锁屏状态，Xcode `test` action 可能等待无法启动的 XCTest worker。`scripts/test-dev.sh --direct-hostless` 提供等价的 hostless 验证入口：先运行同一组 Python 回归，再通过 `build-for-testing` 编译 `BomuLogicTests`，最后用 `xcrun xctest` 执行完整逻辑测试 bundle；不启动 app 或原生播放器窗口。该模式不接受测试过滤参数；需要选择用例时使用默认 Xcode test action。CI 继续采用默认 action，以保留标准 XCTest 结果记录。
 
-2026-10-15 本机执行 `./scripts/test-dev.sh --direct-hostless`：136 项 Python 与 99 项 XCTest 全部通过；`./scripts/build-dev.sh --for-testing -quiet` 编译 app-host 测试 target 成功，并核对 MPEG-2 样片已随测试 bundle 打包。该构建仅编译测试，不启动播放器；真实内核与可见窗口验收仍单独记录。随后更新的 SwiftUI 界面改动另经 Debug 构建与 Xcode 静态分析；无宿主模式不覆盖实际窗口里的鼠标、键盘或 VoiceOver 验收。另验证 Bash 语法，并确认该模式拒绝组合 native 参数或 XCTest 过滤参数。
+2026-10-15 本机执行 `./scripts/test-dev.sh --direct-hostless`：137 项 Python 与 99 项 XCTest 全部通过；`./scripts/build-dev.sh --for-testing -quiet` 编译 app-host 测试 target 成功，并核对 MPEG-2 样片已随测试 bundle 打包。该构建仅编译测试，不启动播放器；真实内核与可见窗口验收仍单独记录。随后更新的 SwiftUI 界面改动另经 Debug 构建与 Xcode 静态分析；无宿主模式不覆盖实际窗口里的鼠标、键盘或 VoiceOver 验收。另验证 Bash 语法，并确认该模式拒绝组合 native 参数或 XCTest 过滤参数。

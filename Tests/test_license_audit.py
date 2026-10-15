@@ -65,6 +65,38 @@ class LicenseAuditTests(unittest.TestCase):
     def digest(self, relative_path):
         return hashlib.sha256((self.root / relative_path).read_bytes()).hexdigest()
 
+    def assert_upstream_reference(self, evidence, repository, commit):
+        self.assertNotIn('localSnapshot', evidence)
+        self.assertRegex(commit, r'\A[0-9a-f]{40}\Z')
+        self.assertEqual(
+            f'{repository}/blob/{commit}/{evidence["path"]}', evidence['url'])
+        self.assertRegex(evidence['gitBlobSHA1'], r'\A[0-9a-f]{40}\Z')
+
+    def test_upstream_build_sources_are_pinned_without_vendoring_code(self):
+        repository_root = license_audit.ROOT
+        upstream_repository = 'https://github.com/iina/deps-buildscripts'
+
+        for recipe_path in sorted((repository_root / 'ThirdParty').glob('*-build-recipe.json')):
+            recipe = json.loads(recipe_path.read_text())
+            build_system = recipe.get('buildSystem', {})
+            commit = build_system.get('commit')
+            if not commit:
+                continue
+
+            def inspect(value):
+                if isinstance(value, dict):
+                    if 'localSnapshot' in value:
+                        self.fail(f'{recipe_path.name} vendors an upstream source snapshot')
+                    if value.get('path', '').startswith(('buildscripts/', '.github/')):
+                        self.assert_upstream_reference(value, upstream_repository, commit)
+                    for child in value.values():
+                        inspect(child)
+                elif isinstance(value, list):
+                    for child in value:
+                        inspect(child)
+
+            inspect(build_system)
+
     def test_complete_pinned_evidence_passes(self):
         self.assertEqual([], license_audit.collect_gaps(self.lock, self.manifest, self.root))
 
@@ -190,10 +222,10 @@ class LicenseAuditTests(unittest.TestCase):
             self.assertTrue(recipe['binaryMatch']['components'][name]['matchesReleaseArtifact'])
 
         for entry in ('versionsFile', 'workflow'):
-            snapshot = repository_root / recipe['buildSystem'][entry]['localSnapshot']
-            content = snapshot.read_bytes()
-            git_blob = hashlib.sha1(f'blob {len(content)}\0'.encode() + content).hexdigest()
-            self.assertEqual(recipe['buildSystem'][entry]['gitBlobSHA1'], git_blob)
+            self.assert_upstream_reference(
+                recipe['buildSystem'][entry],
+                'https://github.com/iina/deps-buildscripts',
+                recipe['buildSystem']['commit'])
 
     def test_dav1d_record_matches_pinned_iina_release_and_source_notice(self):
         repository_root = license_audit.ROOT
@@ -500,16 +532,15 @@ class LicenseAuditTests(unittest.TestCase):
                 record = current_manifest['libraries'][name]
                 recipe = json.loads((repository_root / record['buildRecipeFile']).read_text())
                 notice = (repository_root / record['noticeFile']).read_bytes()
-                script_snapshot = (repository_root /
-                    recipe['buildSystem']['buildScript']['localSnapshot']).read_bytes()
                 gaps = license_audit.collect_gaps(
                     current_lock, current_manifest, repository_root)
 
                 self.assertFalse(any(gap.startswith(f'{name}:') for gap in gaps), gaps)
                 self.assertEqual(hashlib.sha256(notice).hexdigest(), record['noticeSHA256'])
-                self.assertEqual(hashlib.sha1(
-                    f'blob {len(script_snapshot)}\0'.encode() + script_snapshot).hexdigest(),
-                    recipe['buildSystem']['buildScript']['gitBlobSHA1'])
+                self.assert_upstream_reference(
+                    recipe['buildSystem']['buildScript'],
+                    'https://github.com/iina/deps-buildscripts',
+                    recipe['buildSystem']['commit'])
                 self.assertEqual(current_lock['libraries'][name]['sha256'],
                                  recipe['binaryMatch']['workspaceBinarySHA256'])
                 self.assertTrue(recipe['binaryMatch']['matchesReleaseArtifact'])
@@ -721,39 +752,32 @@ class LicenseAuditTests(unittest.TestCase):
         for evidence in recipe['noticeFiles'].values():
             path = repository_root / evidence['path']
             self.assertEqual(evidence['sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
-        script = repository_root / recipe['buildSystem']['buildScript']['localSnapshot']
-        content = script.read_bytes()
-        git_blob = hashlib.sha1(f'blob {len(content)}\0'.encode() + content).hexdigest()
-        self.assertEqual(recipe['buildSystem']['buildScript']['gitBlobSHA1'], git_blob)
+        self.assert_upstream_reference(
+            recipe['buildSystem']['buildScript'],
+            'https://github.com/iina/deps-buildscripts',
+            recipe['buildSystem']['commit'])
 
     def test_iina_release_binary_adoption_keeps_sources_and_verifies_exact_assets(self):
         repository_root = license_audit.ROOT
         current_lock = json.loads((repository_root / 'Config/Dependencies.lock.json').read_text())
         current_manifest = json.loads(
             (repository_root / 'Config/ThirdPartyLicenses.json').read_text())
-        versions = (repository_root /
-                    'docs/engineering/distribution/iina-deps-buildscripts-f86d542-versions.env').read_text()
         expected = {
-            'libSvtAv1Enc.4.dylib': ('svt-av1', 'SVT_AV1_SHA256',
+            'libSvtAv1Enc.4.dylib': ('d9cb8d5fccbed565d038ae304cb00c5610f1f62388868102ca22132e7844921b',
                                      'BSD-2-Clause AND BSD-3-Clause-Clear', '2b72f9d1714dc6bff530c0cdfc5d3ba15cd2a1ac'),
-            'libjpeg.62.dylib': ('jpeg-turbo', 'JPEG_TURBO_SHA256',
+            'libjpeg.62.dylib': ('ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022',
                                  'LicenseRef-IJG', '3cded44d22e3010ec1cf9c0412f6821fe61241d0'),
-            'libmpv.2.dylib': ('mpv', 'MPV_SHA256',
+            'libmpv.2.dylib': ('ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209',
                                'GPL-2.0-or-later', 'a7c21ab44d15705d659ea18e511777123a664aa7'),
         }
-        for name, (recipe_name, version_key, expression, script_blob) in expected.items():
+        for name, (expected_source_sha, expression, script_blob) in expected.items():
             with self.subTest(name=name):
                 record = current_manifest['libraries'][name]
                 recipe_path = repository_root / record['buildRecipeFile']
                 recipe = json.loads(recipe_path.read_text())
                 source = recipe['source']
                 notice = (repository_root / record['noticeFile']).read_bytes()
-                script = (repository_root /
-                          recipe['buildSystem']['buildScript']['localSnapshot']).read_bytes()
-                common = (repository_root /
-                          recipe['buildSystem']['sharedBuildScript']['localSnapshot']).read_bytes()
-                script_git_blob = hashlib.sha1(f'blob {len(script)}\0'.encode() + script).hexdigest()
-                common_git_blob = hashlib.sha1(f'blob {len(common)}\0'.encode() + common).hexdigest()
+                build_system = recipe['buildSystem']
                 gaps = license_audit.collect_gaps(current_lock, current_manifest, repository_root)
                 binary = recipe['binaryComparison']
                 artifact = current_lock['verifiedRuntimeArtifact']
@@ -762,11 +786,17 @@ class LicenseAuditTests(unittest.TestCase):
                 self.assertEqual(expression, record['licenseExpression'])
                 self.assertEqual(current_lock['libraries'][name]['sha256'], record['binarySHA256'])
                 self.assertEqual(source['archiveSHA256'], record['sourceSHA256'])
-                self.assertIn(f'{version_key}="{source["archiveSHA256"]}"', versions)
+                self.assertEqual(expected_source_sha, source['archiveSHA256'])
                 self.assertEqual(hashlib.sha256(notice).hexdigest(), record['noticeSHA256'])
-                self.assertEqual(script_blob, script_git_blob)
-                self.assertEqual(recipe['buildSystem']['sharedBuildScript']['gitBlobSHA1'],
-                                 common_git_blob)
+                self.assertEqual(script_blob, build_system['buildScript']['gitBlobSHA1'])
+                self.assert_upstream_reference(
+                    build_system['buildScript'],
+                    'https://github.com/iina/deps-buildscripts', build_system['commit'])
+                self.assert_upstream_reference(
+                    build_system['sharedBuildScript'],
+                    'https://github.com/iina/deps-buildscripts', build_system['commit'])
+                self.assertEqual('1a026356437a58092d88fa0d4f9fa54619850270',
+                                 build_system['sharedBuildScript']['gitBlobSHA1'])
                 self.assertTrue(binary['canonicalContentMatch'])
                 self.assertFalse(binary['versionedIINAEndpointArm64Match'])
                 self.assertEqual('verified', binary['verificationStatus'])

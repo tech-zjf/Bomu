@@ -19,7 +19,7 @@
     "versionsFile": {
       "path": "versions.env",
       "gitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-versions.env"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/versions.env"
     },
     "buildScript": {
       "path": "buildscripts/build-ffmpeg.sh",
@@ -34,10 +34,10 @@
     "workflow": {
       "path": ".github/workflows/build.yml",
       "gitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build.yml",
       "successfulRunID": 35411161790,
       "runCommit": "f86d54276547df6d14104583ea604af67433f1e1",
-      "arm64Job": "success"
+      "arm64Job": "success",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/.github/workflows/build.yml"
     },
     "patchesApplied": []
   },

@@ -20,7 +20,7 @@
     "buildScript": {
       "path": "buildscripts/build-mujs.sh",
       "gitBlobSHA1": "ab0a67bbeba42116dd94f40c3afb42ab0727860b",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-mujs.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-mujs.sh"
     },
     "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
     "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",

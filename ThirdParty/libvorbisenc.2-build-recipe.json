@@ -22,8 +22,7 @@
     "buildScript": {
       "path": "buildscripts/build-libvorbis.sh",
       "gitBlobSHA1": "6e699399c23c4fe80059c9d23da333830f603f89",
-      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libvorbis.sh",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libvorbis.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libvorbis.sh"
     },
     "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
     "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",

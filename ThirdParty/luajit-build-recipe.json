@@ -19,7 +19,7 @@
     "buildScript": {
       "path": "buildscripts/build-luajit.sh",
       "gitBlobSHA1": "3c27d7622db1c397c2ace1e2df30be8b186a56ce",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-luajit.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-luajit.sh"
     },
     "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
     "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",

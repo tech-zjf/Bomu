@@ -21,12 +21,12 @@
     "buildScript": {
       "path": "buildscripts/build-jpeg-turbo.sh",
       "gitBlobSHA1": "3cded44d22e3010ec1cf9c0412f6821fe61241d0",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-jpeg-turbo.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-jpeg-turbo.sh"
     },
     "sharedBuildScript": {
       "path": "buildscripts/common.sh",
       "gitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
-      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-common.sh"
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/common.sh"
     },
     "patchesApplied": [],
     "deploymentTarget": "11.0 (upstream deps-buildscripts common.sh)",

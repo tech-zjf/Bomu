@@ -31,7 +31,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libavdevice.63.dylib": {
       "status": "verified",
@@ -44,7 +44,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libavfilter.12.dylib": {
       "status": "verified",
@@ -57,7 +57,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libavutil.61.dylib": {
       "status": "verified",
@@ -70,7 +70,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libswresample.7.dylib": {
       "status": "verified",
@@ -83,7 +83,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libswscale.10.dylib": {
       "status": "verified",
@@ -96,7 +96,7 @@
       "sourceVersion": "FFmpeg 9.0.1",
       "sourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
       "buildRecipeFile": "ThirdParty/FFmpeg-upstream-build-recipe.json",
-      "buildRecipeSHA256": "bf3583c8edb0385109026068c8127891d45e9cb33db3f62f228c90981279644b"
+      "buildRecipeSHA256": "5729c7791257580eb96b9e44db0f8d51b3055c4267c90a5562469542c3d29ee6"
     },
     "libdav1d.7.dylib": {
       "status": "verified",
@@ -291,7 +291,7 @@
       "sourceVersion": "libvorbis 1.3.7",
       "sourceSHA256": "b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b",
       "buildRecipeFile": "ThirdParty/libvorbis.0-build-recipe.json",
-      "buildRecipeSHA256": "b6757f75f27b1a705956d4355589a755ca3c680dfd3d4a5d3feb2bfaf5d4c316"
+      "buildRecipeSHA256": "8189a35dc98a82af322c06ecadcad2872d2801c91d187a780567779bf4743da2"
     },
     "libvorbisenc.2.dylib": {
       "status": "verified",
@@ -304,7 +304,7 @@
       "sourceVersion": "libvorbis 1.3.7",
       "sourceSHA256": "b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b",
       "buildRecipeFile": "ThirdParty/libvorbisenc.2-build-recipe.json",
-      "buildRecipeSHA256": "9ed17c6f10af021b0c5e2a13156e8f3644f0411c85552aae88c9b1e204504c31"
+      "buildRecipeSHA256": "c797e4b36007043e7849494c0da770a714e3aaefd031f3259187c406c21aa85a"
     },
     "libfontconfig.1.dylib": {
       "status": "verified",
@@ -317,7 +317,7 @@
       "sourceVersion": "fontconfig 2.18.1",
       "sourceSHA256": "e9309564717b6301230112b173f36c288489479d381d2f0add1210ca5b16ba7e",
       "buildRecipeFile": "ThirdParty/fontconfig-build-recipe.json",
-      "buildRecipeSHA256": "abab6d9c7c933ba2d9bbac10013362709ac99d06cbad048e195ad2195175b130"
+      "buildRecipeSHA256": "b40d98dc078f5802fa14eb5efbab9cddde1bc5643e8c931714c59426aab6d892"
     },
     "libfreetype.6.dylib": {
       "status": "verified",
@@ -330,7 +330,7 @@
       "sourceVersion": "freetype 2.14.3",
       "sourceSHA256": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f",
       "buildRecipeFile": "ThirdParty/freetype-build-recipe.json",
-      "buildRecipeSHA256": "6595c03c15621c70dab0b818b3c041bf954546fb482849ccfed66bfd9bfb3f82"
+      "buildRecipeSHA256": "50be23f440844b6a503b158918d8da87645857de2dc7530abdbf192a837f923f"
     },
     "libharfbuzz.0.dylib": {
       "status": "verified",
@@ -343,7 +343,7 @@
       "sourceVersion": "harfbuzz 14.2.1",
       "sourceSHA256": "a54a5d8e9380a41fbb762ce367bcbf7704792dfca0d93f1bbca86c5a57902e0e",
       "buildRecipeFile": "ThirdParty/harfbuzz-build-recipe.json",
-      "buildRecipeSHA256": "ac92631187adc2fd14ff93498fbfd64a909988232a9458836c9a7ccf431f2777"
+      "buildRecipeSHA256": "b6255e758c402a365731401074432c28e7b0e6ae7834cb28925a415433ac5c6d"
     },
     "liblcms2.2.dylib": {
       "status": "verified",
@@ -356,7 +356,7 @@
       "sourceVersion": "Little CMS 2.19",
       "sourceSHA256": "49e7e134e4299733dd0eda434fa468997a28ab3d33fa397c642b03644f552216",
       "buildRecipeFile": "ThirdParty/lcms2-build-recipe.json",
-      "buildRecipeSHA256": "f77ab0d10a69fa50a1e52b7ddcbc37ea125113906515ececc8ff55fa7e8a1de0"
+      "buildRecipeSHA256": "4250f1e79cc29021417abb2b24c8f8fef65793a14c75886109d55e6c4e86b22f"
     },
     "libmujs.dylib": {
       "status": "verified",
@@ -369,7 +369,7 @@
       "sourceVersion": "mujs 1.3.9",
       "sourceSHA256": "956d5a20dd4efe5aa58673558787b9e2539255f9bf62585e90e1921fa040d89d",
       "buildRecipeFile": "ThirdParty/mujs-build-recipe.json",
-      "buildRecipeSHA256": "5639114c29b5ff8bfce9610f626f9ea89f18768905bcdf25f76eef1c42fbb3c5"
+      "buildRecipeSHA256": "97e8d62d3fa271e064c7cff21987f09587b1d2d7c3227880c2336a5acc299b57"
     },
     "libzimg.2.dylib": {
       "status": "verified",
@@ -382,7 +382,7 @@
       "sourceVersion": "zimg 3.0.6",
       "sourceSHA256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
       "buildRecipeFile": "ThirdParty/zimg-build-recipe.json",
-      "buildRecipeSHA256": "fed9e4b7d49a3090f7568304b397a99c4d81e62f168f94316e1c14bf3e072354"
+      "buildRecipeSHA256": "c731d515f4ab78e4636e112048431d6fd4a7c7c52604ae7c410398a9f6f91214"
     },
     "libsoxr.0.dylib": {
       "status": "verified",
@@ -395,7 +395,7 @@
       "sourceVersion": "soxr 0.1.3",
       "sourceSHA256": "b111c15fdc8c029989330ff559184198c161100a59312f5dc19ddeb9b5a15889",
       "buildRecipeFile": "ThirdParty/libsoxr-build-recipe.json",
-      "buildRecipeSHA256": "5ae2f085ff71639aa9ea79c240e430163294ea5de2513a48bf655013696a7e42"
+      "buildRecipeSHA256": "fe52bc74d8259f5ab1f6dde234bcf788a143ddf22aa95925a823b9e7b9bcfb62"
     },
     "libuchardet.0.dylib": {
       "status": "verified",
@@ -408,7 +408,7 @@
       "sourceVersion": "uchardet 0.0.8",
       "sourceSHA256": "e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0",
       "buildRecipeFile": "ThirdParty/uchardet-build-recipe.json",
-      "buildRecipeSHA256": "330a43e510844f3a652875c77b0bf392319b61a5bcb83e8ae7a8ff8f9c3818f6"
+      "buildRecipeSHA256": "e0df5adef9c47bcfb4ec2ec2c5715941df62e035bc9360f0f061e4bb424e4641"
     },
     "libarchive.13.dylib": {
       "status": "verified",
@@ -421,7 +421,7 @@
       "sourceVersion": "libarchive 3.8.8",
       "sourceSHA256": "3873a88801da067d0528a989af06877710529d50ee8fe6f3970cbb4302efb918",
       "buildRecipeFile": "ThirdParty/libarchive-build-recipe.json",
-      "buildRecipeSHA256": "1e18d24763aba10fd3a2642b4c02b4759de0ccd0b3f8585b71ba77bb7a5332e0"
+      "buildRecipeSHA256": "a8b6a2a52f96520883784854e5f31e3b45dbe19b9450c75f9eea2f7f2835c827"
     },
     "libluajit-5.1.2.dylib": {
       "status": "verified",
@@ -434,7 +434,7 @@
       "sourceVersion": "luajit 8e6520a7aecd0517e792b359afbbfd7274791f5f",
       "sourceSHA256": "9c4c370559352e0622231d5a1f28e95ff56e2dce6308238e6588b0943aac5e63",
       "buildRecipeFile": "ThirdParty/luajit-build-recipe.json",
-      "buildRecipeSHA256": "2a2e15753828f09084fbc8431a37336802749cffaadac13d95478c4b42525251"
+      "buildRecipeSHA256": "5a04be271adcb03f910d01ee6194f098b964bc9968f9bf30111290473e6c5452"
     },
     "librubberband.3.dylib": {
       "status": "verified",
@@ -447,7 +447,7 @@
       "sourceVersion": "rubberband 4.0.0",
       "sourceSHA256": "af050313ee63bc18b35b2e064e5dce05b276aaf6d1aa2b8a82ced1fe2f8028e9",
       "buildRecipeFile": "ThirdParty/rubberband-build-recipe.json",
-      "buildRecipeSHA256": "a7600b8f3bdd2b1a4552148025f4590f850e001fc70052a5e70cba9cb545ba1e"
+      "buildRecipeSHA256": "214cbc1264ee81b73a6813850c5a4827f97d66f4e3c7c783f4c2a9b9ad5e8a70"
     },
     "libjxl.0.11.dylib": {
       "status": "verified",
@@ -460,7 +460,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libjxl_cms.0.11.dylib": {
       "status": "verified",
@@ -473,7 +473,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libjxl_threads.0.11.dylib": {
       "status": "verified",
@@ -486,7 +486,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libbrotlicommon.1.dylib": {
       "status": "verified",
@@ -499,7 +499,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libbrotlidec.1.dylib": {
       "status": "verified",
@@ -512,7 +512,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libbrotlienc.1.dylib": {
       "status": "verified",
@@ -525,7 +525,7 @@
       "sourceVersion": "JPEG XL 0.11.2 and recursively pinned submodules",
       "sourceSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
       "buildRecipeFile": "ThirdParty/libjxl-build-recipe.json",
-      "buildRecipeSHA256": "d248797da4176f4a94c63b79a4568bcf07d027532717202d05228d7fb42044d9"
+      "buildRecipeSHA256": "056d4ff625c08f4eae14c6b85d963cc79518fc7df1e2fad5f4d2ae7376374bc0"
     },
     "libplacebo.360.dylib": {
       "status": "verified",
@@ -538,7 +538,7 @@
       "sourceVersion": "libplacebo 7.360.1 with recursively pinned submodules",
       "sourceSHA256": "df549098d69fa0e58df2f4923e7a334ad674692d6dafd05ea740e7557230f3b4",
       "buildRecipeFile": "ThirdParty/libplacebo-build-recipe.json",
-      "buildRecipeSHA256": "9bddbeb87d217b75f298cbc6fe4b9b54923882e31dc24afed2637e30073d7f9a"
+      "buildRecipeSHA256": "eceacc9f7ac267a62a92b38a8f363b104a61859b22baa82ebda0fd2ceb076dd6"
     },
     "libSvtAv1Enc.4.dylib": {
       "status": "verified",
@@ -551,7 +551,7 @@
       "sourceVersion": "svt-av1 4.2.0",
       "sourceSHA256": "d9cb8d5fccbed565d038ae304cb00c5610f1f62388868102ca22132e7844921b",
       "buildRecipeFile": "ThirdParty/svt-av1-build-recipe.json",
-      "buildRecipeSHA256": "387b5dd389fca32a464175776f3e2d6560a6261fa0ae68ccb1c160ae6b77302b"
+      "buildRecipeSHA256": "51a38b5917c9f32d991bce2f7571e13ecbeee046a6bb6aeccb5052f6925cb9bd"
     },
     "libjpeg.62.dylib": {
       "status": "verified",
@@ -564,7 +564,7 @@
       "sourceVersion": "jpeg-turbo 3.1.4.1",
       "sourceSHA256": "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022",
       "buildRecipeFile": "ThirdParty/jpeg-turbo-build-recipe.json",
-      "buildRecipeSHA256": "4315ebfc2aeeb854adcfbbc64932c027a5b4f6c9f1ca0f6226e1bd0d71766b74"
+      "buildRecipeSHA256": "fcc1c2602d12d7c30a659f59039427e3df8009f4878194467b55d731a8748801"
     },
     "libmpv.2.dylib": {
       "status": "verified",
@@ -577,7 +577,7 @@
       "sourceVersion": "mpv 0.41.0",
       "sourceSHA256": "ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209",
       "buildRecipeFile": "ThirdParty/mpv-build-recipe.json",
-      "buildRecipeSHA256": "048c2ff79875b4b7321b0a21034aa665aa833840b18308a7d5276f68d13c5fce"
+      "buildRecipeSHA256": "3ba83893e3446889d7445cfd03555c2fc05f1e0f52de85c3fbf9dd7d77f8ad9f"
     }
   },
   "swiftPackages": {
