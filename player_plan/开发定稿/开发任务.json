@@ -35,7 +35,7 @@
       "acceptance": "优先复核 IINA 和 Owl 的五任务路径；其他竞品按可安装条件补充，不阻塞播放 POC",
       "size": "M",
       "priority": "P1",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.0",
       "dependsOn": [
         "A01"
