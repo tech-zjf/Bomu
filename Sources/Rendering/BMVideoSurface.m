@@ -3,8 +3,43 @@
 #import <OpenGL/gl3.h>
 #import <mpv/render_gl.h>
 #import <dlfcn.h>
+#import <stdio.h>
+#import <stdatomic.h>
+#import <string.h>
 
 @class BMVideoLayer;
+
+#if BM_ENABLE_GPU_RENDER_TIMING
+#define BM_GPU_RENDER_QUERY_COUNT 8
+typedef struct {
+    GLuint startIdentifier;
+    GLuint endIdentifier;
+    GLuint elapsedIdentifier;
+    BOOL pending;
+} BMGPURenderQuery;
+
+// Benchmark-only interception: mpv/libplacebo also use GL_TIME_ELAPSED internally.
+// Suppress only their profiling queries when the benchmark wraps the complete render call.
+static atomic_bool BMGPUSuppressLibraryElapsedQueries = ATOMIC_VAR_INIT(false);
+static PFNGLBEGINQUERYPROC BMOriginalBeginQuery;
+static PFNGLENDQUERYPROC BMOriginalEndQuery;
+
+static void APIENTRY BMInterceptBeginQuery(GLenum target, GLuint identifier) {
+    if (target == GL_TIME_ELAPSED &&
+        atomic_load_explicit(&BMGPUSuppressLibraryElapsedQueries, memory_order_relaxed)) {
+        return;
+    }
+    if (BMOriginalBeginQuery) BMOriginalBeginQuery(target, identifier);
+}
+
+static void APIENTRY BMInterceptEndQuery(GLenum target) {
+    if (target == GL_TIME_ELAPSED &&
+        atomic_load_explicit(&BMGPUSuppressLibraryElapsedQueries, memory_order_relaxed)) {
+        return;
+    }
+    if (BMOriginalEndQuery) BMOriginalEndQuery(target);
+}
+#endif
 
 /// A render-only owner. It never issues normal mpv commands or waits on the control queue.
 @interface BMGLRenderer : NSObject {
@@ -18,6 +53,11 @@
     BOOL didDraw;
     BOOL videoOutputConfigured;
     BMRenderStatistics statistics;
+#if BM_ENABLE_GPU_RENDER_TIMING
+    BMGPURenderQuery gpuRenderQueries[BM_GPU_RENDER_QUERY_COUNT];
+    NSUInteger nextGPURenderQueryIndex;
+    BMGPURenderTimingMode gpuRenderTimingMode;
+#endif
 }
 @property(nonatomic, weak) BMVideoLayer *layer;
 @property(nonatomic, readonly, nullable) NSError *creationError;
@@ -25,6 +65,13 @@
 - (void)setVideoOutputConfigured:(BOOL)configured;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion;
+#if BM_ENABLE_GPU_RENDER_TIMING
+- (void)initializeGPURenderTiming;
+- (void)collectCompletedGPURenderQueries;
+- (NSInteger)beginGPURenderTimingQuery;
+- (void)endGPURenderTimingQueryAtIndex:(NSInteger)index;
+- (void)deleteGPURenderTimingQueries;
+#endif
 @end
 
 @interface BMVideoLayer : CAOpenGLLayer
@@ -35,7 +82,23 @@
 @property(nonatomic, strong) BMGLRenderer *renderer;
 @end
 
-static void *BMOpenGLSymbol(void *unused, const char *name) { return dlsym(RTLD_DEFAULT, name); }
+static void *BMOpenGLSymbol(void *unused, const char *name) {
+    void *symbol = dlsym(RTLD_DEFAULT, name);
+#if BM_ENABLE_GPU_RENDER_TIMING
+    if (!symbol) return NULL;
+    if (strcmp(name, "glBeginQuery") == 0 || strcmp(name, "glBeginQueryARB") == 0 ||
+        strcmp(name, "glBeginQueryEXT") == 0) {
+        BMOriginalBeginQuery = (PFNGLBEGINQUERYPROC)symbol;
+        return (void *)BMInterceptBeginQuery;
+    }
+    if (strcmp(name, "glEndQuery") == 0 || strcmp(name, "glEndQueryARB") == 0 ||
+        strcmp(name, "glEndQueryEXT") == 0) {
+        BMOriginalEndQuery = (PFNGLENDQUERYPROC)symbol;
+        return (void *)BMInterceptEndQuery;
+    }
+#endif
+    return symbol;
+}
 static void BMRenderWakeup(void *source) {
     dispatch_source_merge_data((__bridge dispatch_source_t)source, 1);
 }
@@ -77,6 +140,9 @@ static void BMRenderWakeup(void *source) {
         [self->lock lock];
         CGLLockContext(self->context);
         CGLSetCurrentContext(self->context);
+#if BM_ENABLE_GPU_RENDER_TIMING
+        [self initializeGPURenderTiming];
+#endif
         mpv_opengl_init_params gl = { .get_proc_address = BMOpenGLSymbol };
         int advanced = 1;
         mpv_render_param parameters[] = {
@@ -96,6 +162,15 @@ static void BMRenderWakeup(void *source) {
             mpv_render_context_set_update_callback(self->renderContext, BMRenderWakeup,
                                                    (__bridge void *)self->_updateSource);
         }
+#if BM_ENABLE_GPU_RENDER_TIMING
+        if (result < 0) {
+            [self deleteGPURenderTimingQueries];
+            self->gpuRenderTimingMode = BMGPURenderTimingModeDisabled;
+            self->statistics.gpuRenderTimingStatus = BMGPURenderTimingStatusDisabled;
+            self->statistics.gpuRenderTimingMode = BMGPURenderTimingModeDisabled;
+            atomic_store_explicit(&BMGPUSuppressLibraryElapsedQueries, false, memory_order_relaxed);
+        }
+#endif
         CGLSetCurrentContext(NULL);
         CGLUnlockContext(self->context);
         [self->lock unlock];
@@ -133,8 +208,21 @@ static void BMRenderWakeup(void *source) {
                 self->renderContext = NULL;
                 self->clockCore = NULL;
             }
+#if BM_ENABLE_GPU_RENDER_TIMING
+            if (self->gpuRenderTimingMode == BMGPURenderTimingModeElapsed) {
+                atomic_store_explicit(&BMGPUSuppressLibraryElapsedQueries, false, memory_order_relaxed);
+            }
+            [self collectCompletedGPURenderQueries];
+            [self deleteGPURenderTimingQueries];
+#endif
             CGLSetCurrentContext(NULL);
             CGLUnlockContext(self->context);
+            CGLReleaseContext(self->context);
+            self->context = NULL;
+        }
+        if (self->pixelFormat) {
+            CGLReleasePixelFormat(self->pixelFormat);
+            self->pixelFormat = NULL;
         }
         if (self->_updateSource) {
             dispatch_source_cancel(self->_updateSource);
@@ -148,12 +236,181 @@ static void BMRenderWakeup(void *source) {
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion {
     dispatch_async(_renderQueue, ^{
         [self->lock lock];
+#if BM_ENABLE_GPU_RENDER_TIMING
+        if (self->context) {
+            CGLLockContext(self->context);
+            CGLContextObj previous = CGLGetCurrentContext();
+            CGLSetCurrentContext(self->context);
+            [self collectCompletedGPURenderQueries];
+            CGLSetCurrentContext(previous);
+            CGLUnlockContext(self->context);
+        }
+#endif
         BMRenderStatistics value = self->statistics;
         value.contextAlive = self->renderContext != NULL;
+        value.graphicsContextAlive = self->context != NULL;
         [self->lock unlock];
         dispatch_async(dispatch_get_main_queue(), ^{ completion(value); });
     });
 }
+
+#if BM_ENABLE_GPU_RENDER_TIMING
+- (void)initializeGPURenderTiming {
+    self->statistics.gpuRenderTimingStatus = BMGPURenderTimingStatusExtensionUnavailable;
+    GLint majorVersion = 0;
+    GLint minorVersion = 0;
+    const GLubyte *versionString = glGetString(GL_VERSION);
+    if (versionString) {
+        sscanf((const char *)versionString, "%d.%d", &majorVersion, &minorVersion);
+    }
+    BOOL supportsTimerQueries = majorVersion > 3 || (majorVersion == 3 && minorVersion >= 3);
+    if (!supportsTimerQueries) {
+        GLint extensionCount = 0;
+        glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+        for (GLint index = 0; index < extensionCount; index++) {
+            const GLubyte *extension = glGetStringi(GL_EXTENSIONS, (GLuint)index);
+            if (extension && (strcmp((const char *)extension, "GL_ARB_timer_query") == 0 ||
+                              strcmp((const char *)extension, "GL_EXT_disjoint_timer_query") == 0)) {
+                supportsTimerQueries = YES;
+                break;
+            }
+        }
+    }
+    if (!supportsTimerQueries) return;
+
+    self->statistics.gpuRenderTimingStatus = BMGPURenderTimingStatusCounterUnavailable;
+    GLint counterBits = 0;
+    glGetQueryiv(GL_TIMESTAMP, GL_QUERY_COUNTER_BITS, &counterBits);
+    BMGPURenderTimingMode mode = BMGPURenderTimingModeTimestamp;
+    if (counterBits <= 0) {
+        glGetQueryiv(GL_TIME_ELAPSED, GL_QUERY_COUNTER_BITS, &counterBits);
+        mode = BMGPURenderTimingModeElapsed;
+    }
+    if (counterBits <= 0) return;
+
+    self->statistics.gpuRenderTimingStatus = BMGPURenderTimingStatusQueryAllocationFailed;
+    self->gpuRenderTimingMode = mode;
+    self->statistics.gpuRenderTimingMode = mode;
+    if (mode == BMGPURenderTimingModeElapsed) {
+        atomic_store_explicit(&BMGPUSuppressLibraryElapsedQueries, true, memory_order_relaxed);
+    }
+    NSUInteger identifiersPerQuery = mode == BMGPURenderTimingModeTimestamp ? 2 : 1;
+    NSUInteger identifierCount = BM_GPU_RENDER_QUERY_COUNT * identifiersPerQuery;
+    GLuint identifiers[BM_GPU_RENDER_QUERY_COUNT * 2] = {0};
+    glGenQueries((GLsizei)identifierCount, identifiers);
+    for (NSUInteger index = 0; index < BM_GPU_RENDER_QUERY_COUNT; index++) {
+        NSUInteger baseIndex = index * identifiersPerQuery;
+        NSUInteger endIndex = baseIndex + (identifiersPerQuery - 1);
+        if (identifiers[baseIndex] == 0 || identifiers[endIndex] == 0) {
+            glDeleteQueries((GLsizei)identifierCount, identifiers);
+            memset(self->gpuRenderQueries, 0, sizeof(self->gpuRenderQueries));
+            self->gpuRenderTimingMode = BMGPURenderTimingModeDisabled;
+            self->statistics.gpuRenderTimingMode = BMGPURenderTimingModeDisabled;
+            atomic_store_explicit(&BMGPUSuppressLibraryElapsedQueries, false, memory_order_relaxed);
+            return;
+        }
+        if (mode == BMGPURenderTimingModeTimestamp) {
+            self->gpuRenderQueries[index].startIdentifier = identifiers[baseIndex];
+            self->gpuRenderQueries[index].endIdentifier = identifiers[endIndex];
+        } else {
+            self->gpuRenderQueries[index].elapsedIdentifier = identifiers[baseIndex];
+        }
+    }
+    self->statistics.gpuRenderTimingStatus = BMGPURenderTimingStatusSupported;
+}
+
+- (void)collectCompletedGPURenderQueries {
+    for (NSUInteger index = 0; index < BM_GPU_RENDER_QUERY_COUNT; index++) {
+        BMGPURenderQuery *query = &self->gpuRenderQueries[index];
+        if (!query->pending) continue;
+
+        GLuint resultIdentifier = self->gpuRenderTimingMode == BMGPURenderTimingModeElapsed
+            ? query->elapsedIdentifier : query->endIdentifier;
+        GLint available = GL_FALSE;
+        glGetQueryObjectiv(resultIdentifier, GL_QUERY_RESULT_AVAILABLE, &available);
+        if (!available) continue;
+
+        GLuint64 intervalNanoseconds = 0;
+        if (self->gpuRenderTimingMode == BMGPURenderTimingModeElapsed) {
+            glGetQueryObjectui64v(resultIdentifier, GL_QUERY_RESULT, &intervalNanoseconds);
+        } else {
+            GLuint64 startTimestamp = 0;
+            GLuint64 endTimestamp = 0;
+            glGetQueryObjectui64v(query->startIdentifier, GL_QUERY_RESULT, &startTimestamp);
+            glGetQueryObjectui64v(query->endIdentifier, GL_QUERY_RESULT, &endTimestamp);
+            if (endTimestamp < startTimestamp) {
+                self->statistics.gpuRenderDroppedSampleCount += 1;
+                self->statistics.gpuRenderPendingQueryCount -= 1;
+                query->pending = NO;
+                continue;
+            }
+            intervalNanoseconds = endTimestamp - startTimestamp;
+        }
+        {
+            self->statistics.gpuRenderTimingSampleCount += 1;
+            if (UINT64_MAX - self->statistics.gpuRenderIntervalNanoseconds < intervalNanoseconds) {
+                self->statistics.gpuRenderIntervalNanoseconds = UINT64_MAX;
+            } else {
+                self->statistics.gpuRenderIntervalNanoseconds += intervalNanoseconds;
+            }
+        }
+        self->statistics.gpuRenderPendingQueryCount -= 1;
+        query->pending = NO;
+    }
+}
+
+- (NSInteger)beginGPURenderTimingQuery {
+    if (self->statistics.gpuRenderTimingStatus != BMGPURenderTimingStatusSupported) return NSNotFound;
+    [self collectCompletedGPURenderQueries];
+
+    for (NSUInteger offset = 0; offset < BM_GPU_RENDER_QUERY_COUNT; offset++) {
+        NSUInteger index = (self->nextGPURenderQueryIndex + offset) % BM_GPU_RENDER_QUERY_COUNT;
+        BMGPURenderQuery *query = &self->gpuRenderQueries[index];
+        if (query->pending) continue;
+        if (self->gpuRenderTimingMode == BMGPURenderTimingModeElapsed) {
+            glBeginQuery(GL_TIME_ELAPSED, query->elapsedIdentifier);
+        } else {
+            glQueryCounter(query->startIdentifier, GL_TIMESTAMP);
+        }
+        self->nextGPURenderQueryIndex = (index + 1) % BM_GPU_RENDER_QUERY_COUNT;
+        return (NSInteger)index;
+    }
+
+    self->statistics.gpuRenderDroppedSampleCount += 1;
+    return NSNotFound;
+}
+
+- (void)endGPURenderTimingQueryAtIndex:(NSInteger)index {
+    if (index == NSNotFound) return;
+    if (self->gpuRenderTimingMode == BMGPURenderTimingModeElapsed) {
+        glEndQuery(GL_TIME_ELAPSED);
+    } else {
+        glQueryCounter(self->gpuRenderQueries[index].endIdentifier, GL_TIMESTAMP);
+    }
+    self->gpuRenderQueries[index].pending = YES;
+    self->statistics.gpuRenderPendingQueryCount += 1;
+}
+
+- (void)deleteGPURenderTimingQueries {
+    GLuint identifiers[BM_GPU_RENDER_QUERY_COUNT * 2] = {0};
+    NSUInteger identifiersPerQuery = self->gpuRenderTimingMode == BMGPURenderTimingModeTimestamp ? 2 : 1;
+    NSUInteger identifierCount = BM_GPU_RENDER_QUERY_COUNT * identifiersPerQuery;
+    for (NSUInteger index = 0; index < BM_GPU_RENDER_QUERY_COUNT; index++) {
+        NSUInteger baseIndex = index * identifiersPerQuery;
+        if (self->gpuRenderTimingMode == BMGPURenderTimingModeTimestamp) {
+            identifiers[baseIndex] = self->gpuRenderQueries[index].startIdentifier;
+            identifiers[baseIndex + 1] = self->gpuRenderQueries[index].endIdentifier;
+        } else {
+            identifiers[baseIndex] = self->gpuRenderQueries[index].elapsedIdentifier;
+        }
+        self->gpuRenderQueries[index].startIdentifier = 0;
+        self->gpuRenderQueries[index].endIdentifier = 0;
+        self->gpuRenderQueries[index].elapsedIdentifier = 0;
+        self->gpuRenderQueries[index].pending = NO;
+    }
+    glDeleteQueries((GLsizei)identifierCount, identifiers);
+}
+#endif
 
 - (void)dealloc {
     NSAssert(!renderContext, @"Release the renderer before the mpv core");
@@ -184,22 +441,39 @@ static void BMRenderWakeup(void *source) {
 }
 
 - (CGLPixelFormatObj)copyCGLPixelFormatForDisplayMask:(uint32_t)mask {
-    return CGLRetainPixelFormat(_renderer->pixelFormat);
+    BMGLRenderer *renderer = self.renderer;
+    if (!renderer) return [super copyCGLPixelFormatForDisplayMask:mask];
+    [renderer->lock lock];
+    CGLPixelFormatObj pixelFormat = renderer->pixelFormat;
+    if (pixelFormat) CGLRetainPixelFormat(pixelFormat);
+    [renderer->lock unlock];
+    return pixelFormat ?: [super copyCGLPixelFormatForDisplayMask:mask];
 }
 
 - (CGLContextObj)copyCGLContextForPixelFormat:(CGLPixelFormatObj)format {
-    return CGLRetainContext(_renderer->context);
+    BMGLRenderer *renderer = self.renderer;
+    if (!renderer) return [super copyCGLContextForPixelFormat:format];
+    [renderer->lock lock];
+    CGLContextObj context = renderer->context;
+    if (context) CGLRetainContext(context);
+    [renderer->lock unlock];
+    return context ?: [super copyCGLContextForPixelFormat:format];
 }
 
 - (void)display {
     BMGLRenderer *renderer = self.renderer;
-    if (!renderer || !renderer->context) return;
+    if (!renderer) return;
     // Core Animation can also request a draw on the main thread (resize/backing changes).
     // Both paths share this lock and the same current CGL context; there is no control-queue wait.
     [renderer->lock lock];
-    CGLLockContext(renderer->context);
+    CGLContextObj context = renderer->context;
+    if (!context) {
+        [renderer->lock unlock];
+        return;
+    }
+    CGLLockContext(context);
     CGLContextObj previous = CGLGetCurrentContext();
-    CGLSetCurrentContext(renderer->context);
+    CGLSetCurrentContext(context);
     renderer->didDraw = NO;
     if (renderer->renderContext) mpv_render_context_update(renderer->renderContext);
     if (NSThread.isMainThread) {
@@ -225,7 +499,7 @@ static void BMRenderWakeup(void *source) {
         renderer->statistics.skippedFrameCount += 1;
     }
     CGLSetCurrentContext(previous);
-    CGLUnlockContext(renderer->context);
+    CGLUnlockContext(context);
     [renderer->lock unlock];
 }
 
@@ -238,8 +512,13 @@ static void BMRenderWakeup(void *source) {
           forLayerTime:(CFTimeInterval)time displayTime:(const CVTimeStamp *)timestamp {
     BMGLRenderer *renderer = self.renderer;
     [renderer->lock lock];
-    CGLLockContext(renderer->context);
-    CGLSetCurrentContext(renderer->context);
+    CGLContextObj context = renderer->context;
+    if (!context) {
+        [renderer->lock unlock];
+        return;
+    }
+    CGLLockContext(context);
+    CGLSetCurrentContext(context);
     renderer->statistics.drawCount += 1;
     glDisable(GL_SCISSOR_TEST);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -264,7 +543,13 @@ static void BMRenderWakeup(void *source) {
             {MPV_RENDER_PARAM_OPENGL_FBO, &fbo}, {MPV_RENDER_PARAM_FLIP_Y, &flip},
             {MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, &block}, {MPV_RENDER_PARAM_INVALID, NULL}
         };
+#if BM_ENABLE_GPU_RENDER_TIMING
+        NSInteger gpuQueryIndex = [renderer beginGPURenderTimingQuery];
+#endif
         int result = mpv_render_context_render(renderer->renderContext, parameters);
+#if BM_ENABLE_GPU_RENDER_TIMING
+        [renderer endGPURenderTimingQueryAtIndex:gpuQueryIndex];
+#endif
         renderer->didDraw = YES;
         BOOL newFrame = infoResult >= 0 && (frame.flags & MPV_RENDER_FRAME_INFO_PRESENT) &&
             !(frame.flags & (MPV_RENDER_FRAME_INFO_REDRAW | MPV_RENDER_FRAME_INFO_REPEAT));
@@ -294,11 +579,14 @@ static void BMRenderWakeup(void *source) {
         // Allow 2 ms for clock/scheduling precision when detecting systematic early submission.
         if (error < -2000) stats->earlySubmissionCount += 1;
     }
+#if BM_ENABLE_GPU_RENDER_TIMING
+    [renderer collectCompletedGPURenderQueries];
+#endif
     if (submittedVideoFrame && renderer->statistics.firstVideoFrameUptime == 0) {
         // Commands submitted to the layer FBO, not GPU completion or physical display scanout.
         renderer->statistics.firstVideoFrameUptime = CACurrentMediaTime();
     }
-    CGLUnlockContext(renderer->context);
+    CGLUnlockContext(context);
     [renderer->lock unlock];
 }
 @end
@@ -327,7 +615,12 @@ static void BMRenderWakeup(void *source) {
 }
 
 - (void)shutdownWithCompletion:(void (^)(void))completion {
-    [_renderer shutdownWithCompletion:completion];
+    [_renderer shutdownWithCompletion:^{
+        // Detach the CAOpenGLLayer so Core Animation releases its retained context and pixel format.
+        self.layer = nil;
+        self.wantsLayer = NO;
+        completion();
+    }];
 }
 
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion {

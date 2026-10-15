@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "component": "libarchive.13.dylib",
+  "source": {
+    "url": "https://github.com/libarchive/libarchive/releases/download/v3.8.8/libarchive-3.8.8.tar.xz",
+    "version": "3.8.8",
+    "archiveSHA256": "3873a88801da067d0528a989af06877710529d50ee8fe6f3970cbb4302efb918",
+    "licenseArchiveEntry": "libarchive-3.8.8/COPYING"
+  },
+  "sourceLicense": {
+    "expression": "BSD-2-Clause AND BSD-3-Clause AND CC0-1.0",
+    "files": [
+      {
+        "path": "ThirdParty/libarchive-COPYING.txt",
+        "sha256": "30e556b3959e3985d66efefec5eaac51d4995053caa1d3cffe6eb916f146f229",
+        "source": "libarchive-3.8.8/COPYING"
+      },
+      {
+        "path": "ThirdParty/libarchive-UC-Regents-source-notice.txt",
+        "sha256": "392c10521e000f136f7e67e205ad820158ca085445c3975ac2c92ee68d146f11",
+        "source": "libarchive/archive_read_support_filter_compress.c lines 1-58"
+      },
+      {
+        "path": "ThirdParty/libarchive-CC0-1.0.txt",
+        "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+        "source": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+        "selectedFor": "archive_blake2.h, archive_blake2_impl.h, archive_blake2s_ref.c, archive_blake2sp_ref.c"
+      }
+    ],
+    "blake2SourceFileSHA256": {
+      "archive_blake2.h": "23f9d734a79558f0bd8bba5d0b742e65865b6deb003be39cea8ba8806de321bb",
+      "archive_blake2_impl.h": "2e285a36ccb7c41078514d31585a625c646dd233c940f90f698243ac915f425c",
+      "archive_blake2s_ref.c": "bd4217c21aa970cea07fb0a1209fa5370daa2935927b7273317bfbe715e003ca",
+      "archive_blake2sp_ref.c": "c3891562aa2e1bd043a71a0c7f0cca46378644e384cd65f078efd1d3ea363631"
+    },
+    "localNotice": "ThirdParty/libarchive-NOTICE.txt"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libarchive.sh",
+      "gitBlobSHA1": "a93b00c91c08c5fde7a4ef6f6b2e67fe4388d207",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libarchive.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "cmakeOptions": [
+      "-DENABLE_TEST=OFF",
+      "-DENABLE_INSTALL=ON",
+      "-DENABLE_OPENSSL=OFF",
+      "-DENABLE_LIBB2=OFF",
+      "-DENABLE_LZO=OFF",
+      "-DENABLE_LZ4=ON",
+      "-DENABLE_ZSTD=ON",
+      "-DENABLE_ZLIB=ON",
+      "-DENABLE_BZip2=OFF",
+      "-DENABLE_LIBXML2=OFF",
+      "-DENABLE_EXPAT=OFF"
+    ],
+    "compiledLicenseNotes": [
+      "The legacy compress filter source is included and carries the UC Regents attribution preserved in the notice.",
+      "With libb2 disabled, upstream compiles the reference BLAKE2 sources; this recipe selects CC0 1.0 for those files.",
+      "zlib, zstd, and lz4 dependencies are separately locked runtime components."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+    "canonicalArm64SHA256": "e4c28d03ada9d9875d9486334efaa470a40969e02fb271b3fd0cdb5874267038",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

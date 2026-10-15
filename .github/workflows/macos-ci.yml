@@ -1,0 +1,56 @@
+name: macOS CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Xcode 27 arm64 build and logic tests
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install fixture generator
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            brew install ffmpeg
+          fi
+          command -v ffprobe
+
+      - name: Verify locked toolchain
+        run: python3 scripts/toolchain.py --json
+
+      - name: Bootstrap and verify pinned runtime
+        run: python3 scripts/dependencies.py bootstrap
+
+      - name: Run Python and hostless Swift tests
+        run: ./scripts/test-dev.sh -quiet
+
+      - name: Build application
+        run: ./scripts/build-dev.sh -quiet
+
+      - name: Analyze application
+        run: ./scripts/build-dev.sh --analyze -quiet
+
+      - name: Verify bundled runtime closure
+        run: python3 scripts/package_internal.py .build/DerivedData/Build/Products/Debug/Bomu.app
+
+      - name: Compile native playback integration tests
+        run: ./scripts/build-dev.sh --for-testing -quiet

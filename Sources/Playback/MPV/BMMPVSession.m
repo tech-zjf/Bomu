@@ -1,7 +1,31 @@
 #import "BMMPVSession.h"
 #import "BMVideoSurface.h"
 #import <mpv/client.h>
+#import <errno.h>
+#import <fcntl.h>
 #import <math.h>
+#import <string.h>
+#import <unistd.h>
+
+static NSString *BMGPUTimeAvailability(BMGPURenderTimingStatus status) {
+    switch (status) {
+        case BMGPURenderTimingStatusDisabled: return @"disabled";
+        case BMGPURenderTimingStatusExtensionUnavailable: return @"extension-unavailable";
+        case BMGPURenderTimingStatusCounterUnavailable: return @"counter-unavailable";
+        case BMGPURenderTimingStatusQueryAllocationFailed: return @"query-allocation-failed";
+        case BMGPURenderTimingStatusSupported: return @"supported";
+    }
+    return @"unknown";
+}
+
+static NSString *BMGPUTimeModeName(BMGPURenderTimingMode mode) {
+    switch (mode) {
+        case BMGPURenderTimingModeDisabled: return @"disabled";
+        case BMGPURenderTimingModeTimestamp: return @"timestamp";
+        case BMGPURenderTimingModeElapsed: return @"elapsed";
+    }
+    return @"unknown";
+}
 
 @interface BMPlaybackUpdate ()
 @property(nonatomic) BMPlaybackUpdateKind kind;
@@ -14,14 +38,32 @@
 @property(nonatomic) BOOL buffering;
 @property(nonatomic) BOOL seekable;
 @property(nonatomic) double volume;
+@property(nonatomic) double speed;
+@property(nonatomic, nullable) NSNumber *audioTrackID;
+@property(nonatomic, nullable) NSNumber *subtitleTrackID;
+@property(nonatomic, copy) NSArray<BMPlaybackTrack *> *tracks;
+@property(nonatomic) double subtitleDelay;
 @property(nonatomic, nullable) NSString *message;
+@property(nonatomic) BMPlaybackFailureKind failureKind;
 @end
 @implementation BMPlaybackUpdate
+@end
+
+@interface BMPlaybackTrack ()
+@property(nonatomic) int64_t trackID;
+@property(nonatomic, copy) NSString *trackType;
+@property(nonatomic, copy, nullable) NSString *language;
+@property(nonatomic, copy, nullable) NSString *title;
+@property(nonatomic) BOOL selected;
+@property(nonatomic) BOOL external;
+@end
+@implementation BMPlaybackTrack
 @end
 
 @interface BMPlaybackDiagnostics ()
 @property(nonatomic) BOOL coreAlive;
 @property(nonatomic) BOOL renderContextAlive;
+@property(nonatomic) BOOL graphicsContextAlive;
 @property(nonatomic) uint64_t coreCreationCount;
 @property(nonatomic) uint64_t renderContextCreationCount;
 @property(nonatomic, nullable) NSNumber *idle;
@@ -47,6 +89,12 @@
 @property(nonatomic) int64_t submissionErrorTotalUS;
 @property(nonatomic) int64_t submissionErrorMinimumUS;
 @property(nonatomic) int64_t submissionErrorMaximumUS;
+@property(nonatomic, copy) NSString *gpuRenderTimingAvailability;
+@property(nonatomic, copy) NSString *gpuRenderTimingMode;
+@property(nonatomic) uint64_t gpuRenderTimingSampleCount;
+@property(nonatomic) uint64_t gpuRenderIntervalNanoseconds;
+@property(nonatomic) uint64_t gpuRenderPendingQueryCount;
+@property(nonatomic) uint64_t gpuRenderDroppedSampleCount;
 @end
 @implementation BMPlaybackDiagnostics
 @end
@@ -67,11 +115,21 @@
     uint64_t _openCount;
     uint64_t _snapshotCount;
 }
+- (NSArray<BMPlaybackTrack *> *)currentTracks;
 @end
 
 // The source stays alive until mpv_set_wakeup_callback(..., NULL, NULL) returns.
 static void BMMPVWakeup(void *context) {
     dispatch_source_merge_data((__bridge dispatch_source_t)context, 1);
+}
+
+static const mpv_node *BMMapValue(const mpv_node *map, const char *key) {
+    if (map->format != MPV_FORMAT_NODE_MAP || !map->u.list) return NULL;
+    mpv_node_list *values = map->u.list;
+    for (int index = 0; index < values->num; index++) {
+        if (values->keys[index] && strcmp(values->keys[index], key) == 0) return &values->values[index];
+    }
+    return NULL;
 }
 
 static const uint64_t BMVideoOutputObservation = 1;
@@ -128,10 +186,23 @@ static const uint64_t BMVideoOutputObservation = 1;
         self->_desiredEntryID = -1;
         self->_loaded = NO;
         [self setSampling:NO];
-        if (!url.isFileURL || ![url checkResourceIsReachableAndReturnError:nil]) {
-            [self publishFailure:NSLocalizedString(@"error.fileUnavailable", nil)];
+        NSError *reachabilityError = nil;
+        if (!url.isFileURL || ![url checkResourceIsReachableAndReturnError:&reachabilityError]) {
+            BMPlaybackFailureKind kind = BMPlaybackFailureUnavailable;
+            if ([self isPermissionError:reachabilityError]) kind = BMPlaybackFailurePermissionDenied;
+            NSString *message = reachabilityError.localizedDescription ?: NSLocalizedString(@"error.fileUnavailable", nil);
+            [self publishFailure:message kind:kind];
             return;
         }
+        int descriptor = open(url.fileSystemRepresentation, O_RDONLY | O_CLOEXEC | O_NONBLOCK);
+        if (descriptor < 0) {
+            NSError *accessError = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
+            BMPlaybackFailureKind kind = [self isPermissionError:accessError]
+                ? BMPlaybackFailurePermissionDenied : BMPlaybackFailureUnavailable;
+            [self publishFailure:accessError.localizedDescription kind:kind];
+            return;
+        }
+        close(descriptor);
         int paused = 0;
         int result = mpv_set_property(self->_handle, "pause", MPV_FORMAT_FLAG, &paused);
         const char *arguments[] = {"loadfile", url.fileSystemRepresentation, "replace", NULL};
@@ -141,7 +212,8 @@ static const uint64_t BMVideoOutputObservation = 1;
             result = mpv_get_property(self->_handle, "playlist/0/id", MPV_FORMAT_INT64,
                                       &self->_desiredEntryID);
         }
-        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription];
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:[self failureKindForMPVCode:result]];
     });
 }
 
@@ -152,7 +224,8 @@ static const uint64_t BMVideoOutputObservation = 1;
         int flag = paused;
         int result = mpv_set_property(self->_handle, "pause", MPV_FORMAT_FLAG, &flag);
         if (result < 0) {
-            [self publishFailure:[self errorForCode:result].localizedDescription];
+            [self publishFailure:[self errorForCode:result].localizedDescription
+                             kind:BMPlaybackFailureEngine];
             return;
         }
         // Only snapshots sampled after the property succeeds acknowledge this command.
@@ -172,7 +245,8 @@ static const uint64_t BMVideoOutputObservation = 1;
         const char *mode = relative ? "relative+exact" : "absolute+exact";
         const char *arguments[] = {"seek", target.UTF8String, mode, NULL};
         int result = mpv_command(self->_handle, arguments);
-        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription];
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:BMPlaybackFailureEngine];
     });
 }
 
@@ -182,7 +256,59 @@ static const uint64_t BMVideoOutputObservation = 1;
         if (!self->_handle || self->_closing) return;
         double value = fmin(100, fmax(0, volume));
         int result = mpv_set_property(self->_handle, "volume", MPV_FORMAT_DOUBLE, &value);
-        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription];
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:BMPlaybackFailureEngine];
+    });
+}
+
+- (void)setSpeed:(double)speed {
+    if (!isfinite(speed)) return;
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing) return;
+        double value = fmin(4, fmax(0.25, speed));
+        int result = mpv_set_property(self->_handle, "speed", MPV_FORMAT_DOUBLE, &value);
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:BMPlaybackFailureEngine];
+    });
+}
+
+- (void)setAudioTrackID:(int64_t)trackID requestID:(uint64_t)requestID {
+    [self setTrackID:trackID property:"aid" requestID:requestID];
+}
+
+- (void)setSubtitleTrackID:(int64_t)trackID requestID:(uint64_t)requestID {
+    [self setTrackID:trackID property:"sid" requestID:requestID];
+}
+
+- (void)addExternalSubtitleURL:(NSURL *)url requestID:(uint64_t)requestID {
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID ||
+            !url.isFileURL || ![url checkResourceIsReachableAndReturnError:nil]) return;
+        const char *arguments[] = {"sub-add", url.fileSystemRepresentation, "select", NULL};
+        int result = mpv_command(self->_handle, arguments);
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:BMPlaybackFailureEngine];
+    });
+}
+
+- (void)setSubtitleDelay:(double)seconds requestID:(uint64_t)requestID {
+    if (!isfinite(seconds)) return;
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID) return;
+        double value = fmin(30, fmax(-30, seconds));
+        int result = mpv_set_property(self->_handle, "sub-delay", MPV_FORMAT_DOUBLE, &value);
+        if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
+                                         kind:BMPlaybackFailureEngine];
+        else [self samplePlayback];
+    });
+}
+
+- (void)setTrackID:(int64_t)trackID property:(const char *)property requestID:(uint64_t)requestID {
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID) return;
+        int64_t value = trackID;
+        mpv_set_property(self->_handle, property, MPV_FORMAT_INT64, &value);
+        [self samplePlayback];
     });
 }
 
@@ -258,6 +384,7 @@ static const uint64_t BMVideoOutputObservation = 1;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self->_surface collectStatistics:^(BMRenderStatistics render) {
                 value.renderContextAlive = render.contextAlive;
+                value.graphicsContextAlive = render.graphicsContextAlive;
                 value.renderContextCreationCount = render.contextCreationCount;
                 value.drawCount = render.drawCount;
                 value.videoFrameCount = render.videoFrameCount;
@@ -269,6 +396,12 @@ static const uint64_t BMVideoOutputObservation = 1;
                 value.submissionErrorTotalUS = render.submissionErrorTotalUS;
                 value.submissionErrorMinimumUS = render.submissionErrorMinimumUS;
                 value.submissionErrorMaximumUS = render.submissionErrorMaximumUS;
+                value.gpuRenderTimingAvailability = BMGPUTimeAvailability(render.gpuRenderTimingStatus);
+                value.gpuRenderTimingMode = BMGPUTimeModeName(render.gpuRenderTimingMode);
+                value.gpuRenderTimingSampleCount = render.gpuRenderTimingSampleCount;
+                value.gpuRenderIntervalNanoseconds = render.gpuRenderIntervalNanoseconds;
+                value.gpuRenderPendingQueryCount = render.gpuRenderPendingQueryCount;
+                value.gpuRenderDroppedSampleCount = render.gpuRenderDroppedSampleCount;
                 if (render.firstVideoFrameUptime > 0) {
                     value.firstVideoFrameUptime = @(render.firstVideoFrameUptime);
                 }
@@ -288,6 +421,9 @@ static const uint64_t BMVideoOutputObservation = 1;
         // BMVideoLayer must not wait inside an AppKit draw. Let mpv issue audio-timed
         // frames when due, with no advance-render headroom that would require that wait.
         {"video-sync", "audio"}, {"video-timing-offset", "0"},
+        // Some demuxers return a keyframe after the requested point during precise seeks.
+        // Read slightly earlier so mpv can decode forward to the actual target.
+        {"hr-seek-demuxer-offset", "0.5"},
         {"target-prim", "bt.709"}, {"target-trc", "srgb"}
     };
     for (size_t index = 0; index < sizeof(options) / sizeof(options[0]); index++) {
@@ -348,12 +484,14 @@ static const uint64_t BMVideoOutputObservation = 1;
                 [self setSampling:NO];
                 if (end->reason == MPV_END_FILE_REASON_EOF) [self publishKind:BMPlaybackUpdateEnded];
                 if (end->reason == MPV_END_FILE_REASON_ERROR) {
-                    [self publishFailure:[self errorForCode:end->error].localizedDescription];
+                    [self publishFailure:[self errorForCode:end->error].localizedDescription
+                                     kind:[self failureKindForMPVCode:end->error]];
                 }
                 break;
             }
             case MPV_EVENT_QUEUE_OVERFLOW:
-                [self publishFailure:NSLocalizedString(@"error.eventOverflow", nil)];
+                [self publishFailure:NSLocalizedString(@"error.eventOverflow", nil)
+                                 kind:BMPlaybackFailureEngine];
                 break;
             default:
                 break;
@@ -383,10 +521,55 @@ static const uint64_t BMVideoOutputObservation = 1;
     update.seeking = [self flagProperty:"seeking"];
     update.buffering = [self flagProperty:"paused-for-cache"];
     update.seekable = [self flagProperty:"seekable"];
+    update.audioTrackID = [self optionalIntegerProperty:"aid"];
+    update.subtitleTrackID = [self optionalIntegerProperty:"sid"];
     double volume = 0;
     if (mpv_get_property(_handle, "volume", MPV_FORMAT_DOUBLE, &volume) >= 0) update.volume = volume;
+    double speed = 1;
+    if (mpv_get_property(_handle, "speed", MPV_FORMAT_DOUBLE, &speed) >= 0) update.speed = speed;
+    double subtitleDelay = 0;
+    if (mpv_get_property(_handle, "sub-delay", MPV_FORMAT_DOUBLE, &subtitleDelay) >= 0) {
+        update.subtitleDelay = subtitleDelay;
+    }
+    update.tracks = [self currentTracks];
     _snapshotCount += 1;
     [self publish:update];
+}
+
+- (NSArray<BMPlaybackTrack *> *)currentTracks {
+    mpv_node node = {0};
+    if (mpv_get_property(_handle, "track-list", MPV_FORMAT_NODE, &node) < 0) return @[];
+    NSMutableArray<BMPlaybackTrack *> *tracks = [NSMutableArray array];
+    if (node.format == MPV_FORMAT_NODE_ARRAY && node.u.list) {
+        mpv_node_list *items = node.u.list;
+        for (int index = 0; index < items->num; index++) {
+            const mpv_node *entry = &items->values[index];
+            const mpv_node *identifier = BMMapValue(entry, "id");
+            const mpv_node *type = BMMapValue(entry, "type");
+            if (!identifier || identifier->format != MPV_FORMAT_INT64 ||
+                !type || type->format != MPV_FORMAT_STRING || !type->u.string) continue;
+            NSString *trackType = [NSString stringWithUTF8String:type->u.string];
+            if (![@[@"audio", @"sub", @"video"] containsObject:trackType]) continue;
+            BMPlaybackTrack *track = [[BMPlaybackTrack alloc] init];
+            track.trackID = identifier->u.int64;
+            track.trackType = trackType;
+            const mpv_node *language = BMMapValue(entry, "lang");
+            if (language && language->format == MPV_FORMAT_STRING && language->u.string) {
+                track.language = [NSString stringWithUTF8String:language->u.string];
+            }
+            const mpv_node *title = BMMapValue(entry, "title");
+            if (title && title->format == MPV_FORMAT_STRING && title->u.string) {
+                track.title = [NSString stringWithUTF8String:title->u.string];
+            }
+            const mpv_node *selected = BMMapValue(entry, "selected");
+            track.selected = selected && selected->format == MPV_FORMAT_FLAG && selected->u.flag != 0;
+            const mpv_node *external = BMMapValue(entry, "external");
+            track.external = external && external->format == MPV_FORMAT_FLAG && external->u.flag != 0;
+            [tracks addObject:track];
+        }
+    }
+    mpv_free_node_contents(&node);
+    return tracks;
 }
 
 - (BOOL)flagProperty:(const char *)name {
@@ -410,12 +593,13 @@ static const uint64_t BMVideoOutputObservation = 1;
     BMPlaybackUpdate *update = [[BMPlaybackUpdate alloc] init];
     update.kind = kind;
     update.requestID = _requestID;
+    update.tracks = @[];
     return update;
 }
 
 - (void)publishKind:(BMPlaybackUpdateKind)kind { [self publish:[self updateWithKind:kind]]; }
 
-- (void)publishFailure:(NSString *)message {
+- (void)publishFailure:(NSString *)message kind:(BMPlaybackFailureKind)kind {
     _loaded = NO;
     [self setSampling:NO];
     if (_handle) {
@@ -424,7 +608,25 @@ static const uint64_t BMVideoOutputObservation = 1;
     }
     BMPlaybackUpdate *update = [self updateWithKind:BMPlaybackUpdateFailed];
     update.message = message;
+    update.failureKind = kind;
     [self publish:update];
+}
+
+- (BOOL)isPermissionError:(NSError *)error {
+    if (!error) return NO;
+    if ([error.domain isEqualToString:NSCocoaErrorDomain]) {
+        return error.code == NSFileReadNoPermissionError || error.code == NSFileWriteNoPermissionError;
+    }
+    if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
+        return error.code == EACCES || error.code == EPERM;
+    }
+    return NO;
+}
+
+- (BMPlaybackFailureKind)failureKindForMPVCode:(int)code {
+    if (code == MPV_ERROR_LOADING_FAILED || code == MPV_ERROR_UNKNOWN_FORMAT ||
+        code == MPV_ERROR_NOTHING_TO_PLAY) return BMPlaybackFailureUnsupportedOrDamaged;
+    return BMPlaybackFailureEngine;
 }
 
 - (void)publish:(BMPlaybackUpdate *)update {

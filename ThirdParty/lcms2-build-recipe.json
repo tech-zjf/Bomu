@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "component": "liblcms2.2.dylib",
+  "source": {
+    "url": "https://downloads.sourceforge.net/project/lcms/lcms/2.19/lcms2-2.19.tar.gz",
+    "version": "2.19",
+    "archiveSHA256": "49e7e134e4299733dd0eda434fa468997a28ab3d33fa397c642b03644f552216",
+    "archiveEntry": "lcms2-2.19/LICENSE"
+  },
+  "sourceLicense": {
+    "file": "LICENSE",
+    "localSnapshot": "ThirdParty/lcms2-LICENSE.txt",
+    "archiveEntrySHA256": "6dbd60437f8ef91d8de1f08ad75882547fd4931bfcc3566a0735f28db1484d31",
+    "spdx": "MIT"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-little-cms2.sh",
+      "gitBlobSHA1": "75d492290b96acc4c1a50ef5498b62fe94f76681",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-little-cms2.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "configureFlags": [
+      "--enable-shared",
+      "--disable-static",
+      "--without-jpeg",
+      "--without-tiff",
+      "--without-zlib"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+    "canonicalArm64SHA256": "20bdd9e3a9caf459b3ee23517536720e2cd460dce2b02c2dfca4b06c766f62fe",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

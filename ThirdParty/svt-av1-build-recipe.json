@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "component": "libSvtAv1Enc.4.dylib",
+  "source": {
+    "url": "https://github.com/AOMediaCodec/SVT-AV1/archive/refs/tags/v4.2.0.tar.gz",
+    "version": "4.2.0",
+    "archiveSHA256": "d9cb8d5fccbed565d038ae304cb00c5610f1f62388868102ca22132e7844921b",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da"
+  },
+  "sourceLicense": {
+    "expression": "BSD-2-Clause AND BSD-3-Clause-Clear",
+    "copyright": "Intel Corporation, Alliance for Open Media, and SVT-AV1 contributors",
+    "noticeFile": "ThirdParty/svt-av1-NOTICE.txt",
+    "noticeSHA256": "b7cdcd83ef2d34d68ac1a55552744d3e41e73855e504c155da046ab9a65119f4"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "buildScript": {
+      "path": "buildscripts/build-svt-av1.sh",
+      "gitBlobSHA1": "2b72f9d1714dc6bff530c0cdfc5d3ba15cd2a1ac",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-svt-av1.sh"
+    },
+    "sharedBuildScript": {
+      "path": "buildscripts/common.sh",
+      "gitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-common.sh"
+    },
+    "patchesApplied": [],
+    "deploymentTarget": "11.0 (upstream deps-buildscripts common.sh)",
+    "architecture": "arm64 slice from the universal dependency build",
+    "buildOptions": [
+      "-DBUILD_APPS=OFF",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "dependencies": [],
+    "mesonOrCMakeCommonOptions": [
+      "release",
+      "shared-library",
+      "arm64",
+      "macOS deployment target 11.0"
+    ]
+  },
+  "binaryComparison": {
+    "workspaceBinarySHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
+    "fixedReleaseArtifactCanonicalArm64SHA256": "3d0a494f2d311f368c8d96571eaec9aefc15365ee273bd0334c3454b9f94a3c1",
+    "canonicalContentMatch": true,
+    "versionedIINAEndpointArm64Match": false,
+    "comparisonReport": "docs/engineering/distribution/iina-runtime-artifact-adoption-2026-10-15.json",
+    "verificationStatus": "verified",
+    "reason": "The locked runtime file is copied byte-for-byte from the SHA-256-verified IINA deps-buildscripts Release ZIP. The release tag resolves to the recorded source commit, and the successful workflow run produced the release asset.",
+    "workspaceCanonicalArm64SHA256": "3d0a494f2d311f368c8d96571eaec9aefc15365ee273bd0334c3454b9f94a3c1",
+    "fixedReleaseArtifactSHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
+    "previousDMGWorkspaceBinarySHA256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23"
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true,
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "fileSHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac"
+  }
+}

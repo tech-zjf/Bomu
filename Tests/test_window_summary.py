@@ -24,7 +24,15 @@ class WindowSummaryTests(unittest.TestCase):
             'measurement': 'test', 'requestedCycles': 0, 'screens': [], 'rounds': [], 'soak': [],
             'soakVisibility': {'startedAtSeconds': 0, 'endedAtSeconds': 10,
                                'changes': [{'elapsedSeconds': 0, 'isVisible': True}]},
-            'stopped': {'process': [{'cpuSeconds': 1, 'uptime': 1}, {'cpuSeconds': 1, 'uptime': 6}]},
+            'stopped': {'process': [{'cpuSeconds': 1, 'uptime': 1, 'taskEnergyCounterRaw': 10,
+                                     'gpuUtilisationCounterRaw': 4},
+                                    {'cpuSeconds': 1, 'uptime': 6, 'taskEnergyCounterRaw': 25,
+                                     'gpuUtilisationCounterRaw': 14}],
+                        'before': {'gpuRenderTiming': {'availability': 'supported', 'mode': 'elapsed', 'sampleCount': 20,
+                                                        'intervalNanoseconds': 1_000_000}},
+                        'after': {'gpuRenderTiming': {'availability': 'supported', 'mode': 'elapsed', 'sampleCount': 20,
+                                                       'intervalNanoseconds': 1_000_000,
+                                                       'pendingQueryCount': 0, 'droppedSampleCount': 0}}},
             'shutdown': {'coreAlive': False, 'renderContextAlive': False},
         }
 
@@ -34,6 +42,25 @@ class WindowSummaryTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 window_summary.main()
         return (self.directory / 'summary.md').read_text()
+
+    def add_soak_samples(self):
+        timing = lambda count, average: {
+            'sampleCount': count, 'averageErrorMilliseconds': average, 'earlyFrameCount': 0}
+        self.report['soak'] = [
+            {'positionSeconds': 0, 'displayID': 1, 'backingScale': 2,
+             'process': {'uptime': 1, 'cpuSeconds': 1, 'physicalFootprintBytes': 2**20,
+                         'taskEnergyCounterRaw': 100, 'gpuUtilisationCounterRaw': 40},
+             'playback': {'videoFrameCount': 0, 'frameTiming': timing(0, 0),
+                          'gpuRenderTiming': {'availability': 'supported', 'mode': 'elapsed', 'sampleCount': 10,
+                                              'intervalNanoseconds': 2_000_000}}},
+            {'positionSeconds': 10, 'displayID': 1, 'backingScale': 2,
+             'process': {'uptime': 11, 'cpuSeconds': 1.5, 'physicalFootprintBytes': 2**20,
+                         'taskEnergyCounterRaw': 250, 'gpuUtilisationCounterRaw': 90},
+             'playback': {'videoFrameCount': 300, 'frameTiming': timing(300, 2),
+                          'gpuRenderTiming': {'availability': 'supported', 'mode': 'elapsed', 'sampleCount': 310,
+                                              'intervalNanoseconds': 20_000_000,
+                                              'pendingQueryCount': 0, 'droppedSampleCount': 1}}},
+        ]
 
     def test_brief_occlusion_cannot_pass_after_visibility_recovers(self):
         self.report['soakVisibility']['changes'] += [
@@ -51,6 +78,31 @@ class WindowSummaryTests(unittest.TestCase):
         summary = self.summarize()
         self.assertIn('no reported occlusion', summary)
         self.assertIn('does not establish full-frame physical visibility', summary)
+        self.assertIn('Stopped raw task-energy counter: 15 over 5.0 s (3.00 raw units/s)', summary)
+        self.assertIn('raw GPU-utilisation counter: 10 over 5.0 s (2.00 raw units/s)', summary)
+        self.assertIn('Stopped OpenGL GPU render interval: 0.000 ms across 0 completed intervals', summary)
+        self.assertIn('OpenGL GPU query mode: elapsed', summary)
+
+    def test_counter_span_preserves_unavailable_and_reset_states(self):
+        samples = [{'uptime': 1, 'counter': 8}, {'uptime': 2, 'counter': None}]
+        self.assertEqual(window_summary.raw_counter_span(samples, 'counter'), 'n/a')
+        samples[1]['counter'] = 2
+        self.assertEqual(window_summary.raw_counter_span(samples, 'counter'), 'reset')
+
+    def test_soak_summary_reports_raw_counter_spans_without_relabeling_units(self):
+        self.add_soak_samples()
+        summary = self.summarize()
+        self.assertIn('Raw task-energy counter: 150 over 10.0 s (15.00 raw units/s)', summary)
+        self.assertIn('raw GPU-utilisation counter: 50 over 10.0 s (5.00 raw units/s)', summary)
+        self.assertIn('OpenGL GPU render interval: 18.000 ms across 300 completed intervals', summary)
+
+    def test_soak_counter_gap_or_reset_remains_explicit(self):
+        self.add_soak_samples()
+        self.report['soak'][1]['process']['taskEnergyCounterRaw'] = None
+        self.report['soak'][1]['process']['gpuUtilisationCounterRaw'] = 2
+        summary = self.summarize()
+        self.assertIn('Raw task-energy counter: n/a', summary)
+        self.assertIn('raw GPU-utilisation counter: reset', summary)
 
     def test_legacy_report_does_not_claim_event_observation(self):
         self.report['schemaVersion'] = 2
@@ -82,6 +134,13 @@ class WindowSummaryTests(unittest.TestCase):
     def test_probe_interruption_is_separate_from_uninterrupted_soak(self):
         self.add_native_probe()
         self.assertIn('new video frames resumed', self.summarize())
+
+    def test_current_schema_is_accepted_with_native_probe_evidence(self):
+        self.add_native_probe()
+        self.report['schemaVersion'] = 9
+        summary = self.summarize()
+        self.assertIn('Completed single-window cycles', summary)
+        self.assertIn('OpenGL GPU query mode: elapsed', summary)
 
     def test_partial_media_suite_cannot_pass(self):
         self.add_native_probe()

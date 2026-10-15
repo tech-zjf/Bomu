@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "component": "libharfbuzz.0.dylib",
+  "source": {
+    "url": "https://github.com/harfbuzz/harfbuzz/releases/download/14.2.1/harfbuzz-14.2.1.tar.xz",
+    "version": "14.2.1",
+    "archiveSHA256": "a54a5d8e9380a41fbb762ce367bcbf7704792dfca0d93f1bbca86c5a57902e0e",
+    "archiveEntry": "harfbuzz-14.2.1/COPYING"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "archiveEntrySHA256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+    "localSnapshot": "ThirdParty/harfbuzz-COPYING.txt",
+    "spdx": "MIT"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-harfbuzz.sh",
+      "gitBlobSHA1": "4722d9ad8cbf698b8862a80fb774eff1a994a349",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-harfbuzz.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "externalDependencies": [
+      "Freetype",
+      "Apple CoreText"
+    ],
+    "mesonOptions": [
+      "-Dtests=disabled",
+      "-Dbenchmark=disabled",
+      "-Ddocs=disabled",
+      "-Dintrospection=disabled",
+      "-Dfreetype=enabled",
+      "-Dcoretext=enabled",
+      "-Dglib=disabled",
+      "-Dgobject=disabled",
+      "-Dicu=disabled"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+    "canonicalArm64SHA256": "dd7ae611bbe7460cb2e3f5d8bc8c3627af38ec4b24580587af74cad4e2914fe7",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

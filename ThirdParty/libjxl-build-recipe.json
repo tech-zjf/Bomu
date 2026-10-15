@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    "libjxl.0.11.dylib",
+    "libjxl_cms.0.11.dylib",
+    "libjxl_threads.0.11.dylib",
+    "libbrotlicommon.1.dylib",
+    "libbrotlidec.1.dylib",
+    "libbrotlienc.1.dylib"
+  ],
+  "sourceClosure": {
+    "repository": "https://github.com/libjxl/libjxl.git",
+    "tag": "v0.11.2",
+    "commit": "332feb17d17311c748445f7ee75c4fb55cc38530",
+    "submodules": [
+      {
+        "path": "testdata",
+        "url": "https://github.com/libjxl/testdata",
+        "commit": "ff8d743aaba05b3014f17e5475e576242fa979fc"
+      },
+      {
+        "path": "third_party/brotli",
+        "url": "https://github.com/google/brotli",
+        "commit": "36533a866ed1ca4b75cf049f4521e4ec5fe24727"
+      },
+      {
+        "path": "third_party/googletest",
+        "url": "https://github.com/google/googletest",
+        "commit": "6910c9d9165801d8827d628cb72eb7ea9dd538c5"
+      },
+      {
+        "path": "third_party/highway",
+        "url": "https://github.com/google/highway",
+        "commit": "457c891775a7397bdb0376bb1031e6e027af1c48"
+      },
+      {
+        "path": "third_party/lcms",
+        "url": "https://github.com/mm2/Little-CMS",
+        "commit": "5176347635785e53ee5cee92328f76fda766ecc6"
+      },
+      {
+        "path": "third_party/libjpeg-turbo",
+        "url": "https://github.com/libjpeg-turbo/libjpeg-turbo.git",
+        "commit": "8ecba3647edb6dd940463fedf38ca33a8e2a73d1"
+      },
+      {
+        "path": "third_party/libpng",
+        "url": "https://github.com/glennrp/libpng.git",
+        "commit": "872555f4ba910252783af1507f9e7fe1653be252"
+      },
+      {
+        "path": "third_party/sjpeg",
+        "url": "https://github.com/webmproject/sjpeg.git",
+        "commit": "94e0df6d0f8b44228de5be0ff35efb9f946a13c9"
+      },
+      {
+        "path": "third_party/skcms",
+        "url": "https://skia.googlesource.com/skcms",
+        "commit": "b2e692629c1fb19342517d7fb61f1cf83d075492"
+      },
+      {
+        "path": "third_party/zlib",
+        "url": "https://github.com/madler/zlib.git",
+        "commit": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf"
+      }
+    ]
+  },
+  "sourceClosureSHA256": "225e021d345215cbe2a1f6122c24b1764ac817e32baac48d576f44a3788bcf80",
+  "sourceDigestMethod": "SHA-256 of UTF-8 canonical JSON (sorted keys, compact separators) containing the root commit and all recursively pinned submodule paths, URLs and commit IDs.",
+  "sourceLicenses": {
+    "libjxl": "BSD-3-Clause; ThirdParty/libjxl-COPYING.txt",
+    "highway": "Apache-2.0; statically compiled submodule in libjxl.",
+    "lcms": "MIT; statically compiled by the libjxl_cms target when SKCMS is disabled.",
+    "brotli": "MIT; separate dynamic libraries from the pinned third_party/brotli submodule."
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libjxl.sh",
+      "gitBlobSHA1": "83e6a403774eb2f1c4656099043a2d957d588e0f",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libjxl.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "cmakeOptions": [
+      "-DJPEGXL_ENABLE_TOOLS=OFF",
+      "-DJPEGXL_ENABLE_JPEGLI=OFF",
+      "-DJPEGXL_ENABLE_DEVTOOLS=OFF",
+      "-DJPEGXL_ENABLE_EXAMPLES=OFF",
+      "-DJPEGXL_ENABLE_BENCHMARK=OFF",
+      "-DJPEGXL_ENABLE_FUZZERS=OFF",
+      "-DJPEGXL_ENABLE_MANPAGES=OFF",
+      "-DJPEGXL_ENABLE_DOXYGEN=OFF",
+      "-DJPEGXL_ENABLE_JNI=OFF",
+      "-DJPEGXL_ENABLE_SKCMS=OFF",
+      "-DJPEGXL_ENABLE_OPENEXR=OFF",
+      "-DJPEGXL_ENABLE_TRANSCODE_JPEG=OFF",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "submoduleBuildFacts": [
+      "JPEG XL builds the checked-out brotli submodule as shared libraries when not in bundled mode.",
+      "JPEG XL builds Highway as a static dependency.",
+      "With SKCMS disabled, libjxl_cms builds the pinned Little CMS submodule statically."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "components": {
+      "libjxl.0.11.dylib": {
+        "workspaceBinarySHA256": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+        "canonicalArm64SHA256": "60143a788d16f5e402ef4b437de5bb1724bb73a132e148cd7dae55a194316661",
+        "matchesReleaseArtifact": true
+      },
+      "libjxl_cms.0.11.dylib": {
+        "workspaceBinarySHA256": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+        "canonicalArm64SHA256": "f16357aaf1b1fe57c873cda6b8cdc4e51b2747d0f4f46f82bc00a263431fea09",
+        "matchesReleaseArtifact": true
+      },
+      "libjxl_threads.0.11.dylib": {
+        "workspaceBinarySHA256": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+        "canonicalArm64SHA256": "b68601d51b7e38b39e5d33776408ffbd7aac0a838b554a63924a9fce2b9e8b35",
+        "matchesReleaseArtifact": true
+      },
+      "libbrotlicommon.1.dylib": {
+        "workspaceBinarySHA256": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+        "canonicalArm64SHA256": "37ead1c65e6b98c32c8b790bad19171165a91ce635de6bdc1a55daa6d91c380c",
+        "matchesReleaseArtifact": true
+      },
+      "libbrotlidec.1.dylib": {
+        "workspaceBinarySHA256": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+        "canonicalArm64SHA256": "e59523e4d410031107b6644ea5f5a5c4c7e246530d4ac673188fc199361fd67d",
+        "matchesReleaseArtifact": true
+      },
+      "libbrotlienc.1.dylib": {
+        "workspaceBinarySHA256": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+        "canonicalArm64SHA256": "f40fc5c784b897cd0591b0267271a9a241d6176a2dcfddac2c8f250aa7a36b6d",
+        "matchesReleaseArtifact": true
+      }
+    },
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

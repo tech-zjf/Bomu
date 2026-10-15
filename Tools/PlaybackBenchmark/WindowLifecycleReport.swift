@@ -4,6 +4,7 @@ import QuartzCore
 enum WindowScenario: String, Encodable {
     case singleWindow = "single-window"
     case mediaSuite = "media-suite"
+    case b11Suite = "b11-suite"
     case replacementBurst = "replacement-burst"
     case displayTransitions = "display-transitions"
 
@@ -13,6 +14,8 @@ enum WindowScenario: String, Encodable {
             "Production PlayerScreen/PlayerModel; one stationary ordinary window held at floating level for visibility; acknowledged pause/resume, optional minimize/restore probe, then uninterrupted muted playback; no automatic resize, fullscreen or display migration"
         case .mediaSuite:
             "30 licensed media cases through the production PlayerScreen/PlayerModel in one stationary ordinary window held at floating level and one native session; then pause/resume, minimize/restore and uninterrupted muted playback"
+        case .b11Suite:
+            "60 licensed audiovisual cases, 100 acknowledged same-window file switches and 30-minute synchronized audiovisual playback through one production PlayerScreen/PlayerModel and one native session; muted automation with audio output verified"
         case .replacementBurst:
             "Production PlayerScreen/PlayerModel in one stationary ordinary window; cancel queued opens and issue rapid replacements, then verify the final MPEG-TS seek and recovery in the same native session"
         case .displayTransitions:
@@ -24,7 +27,7 @@ enum WindowScenario: String, Encodable {
 /// Separate evidence from the fixed-geometry CPU baseline: fullscreen animations
 /// and SwiftUI controls intentionally contribute work in this scenario.
 struct WindowLifecycleReport: Encodable {
-    let schemaVersion = 4
+    let schemaVersion = 9
     let recordedAt = Date()
     let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
     let logicalProcessors = ProcessInfo.processInfo.activeProcessorCount
@@ -39,6 +42,8 @@ struct WindowLifecycleReport: Encodable {
     var completed = false
     var failure: String?
     var mediaSamples: [MediaSampleMeasurement] = []
+    var fileSwitches: [FileSwitchMeasurement] = []
+    var systemSleepWake: SystemSleepWakeMeasurement?
     var replacementBurst: ReplacementBurstMeasurement?
     var mediaVisibility: WindowVisibilityMeasurement?
     var occlusionProbe: WindowOcclusionProbe?
@@ -67,6 +72,20 @@ struct WindowLifecycleReport: Encodable {
         encoder.dateEncodingStrategy = .iso8601
         try encoder.encode(self).write(to: url, options: .atomic)
     }
+}
+
+struct FileSwitchMeasurement: Encodable {
+    let index: Int
+    let file: String
+    let requestID: UInt64
+    let elapsedSeconds: Double
+    let diagnostics: PlaybackDiagnostics
+}
+
+struct SystemSleepWakeMeasurement: Encodable {
+    let sleepNotifications: Int
+    let wakeNotifications: Int
+    let recoveryEvidence: String
 }
 
 struct ReplacementBurstMeasurement: Encodable {
@@ -153,7 +172,7 @@ struct WindowCheckpoint: Encodable {
             throw BenchmarkError.failed("The production video surface detached from its window")
         }
         let diagnostics = await engine.diagnostics()
-        guard diagnostics.coreAlive && diagnostics.renderContextAlive,
+        guard diagnostics.coreAlive && diagnostics.renderContextAlive && diagnostics.graphicsContextAlive == true,
               diagnostics.coreCreationCount == 1, diagnostics.renderContextCreationCount == 1,
               diagnostics.openCount == expectedOpenCount else {
             throw BenchmarkError.failed("Window operations replaced or released the playback session")

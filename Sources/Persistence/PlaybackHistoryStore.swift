@@ -1,0 +1,1340 @@
+import Darwin
+import CryptoKit
+import Foundation
+import GRDB
+
+/// Owns durable media identity, resume history, and their schema migrations.
+actor PlaybackHistoryStore: MediaLibraryPersisting {
+    private let database: DatabaseQueue
+
+    init(path: String) throws {
+        var configuration = Configuration()
+        configuration.prepareDatabase { db in
+            try db.execute(sql: "PRAGMA foreign_keys = ON")
+            try db.execute(sql: "PRAGMA journal_mode = WAL")
+        }
+        database = try DatabaseQueue(path: path, configuration: configuration)
+        try Self.makeMigrator().migrate(database)
+        try database.write { db in
+            try db.execute(
+                sql: """
+                UPDATE media_scan_runs
+                SET status = 'cancelled', completed_at = COALESCE(completed_at, ?)
+                WHERE status = 'running'
+                """,
+                arguments: [Date.now.timeIntervalSince1970]
+            )
+        }
+    }
+
+    static func applicationStore() throws -> PlaybackHistoryStore {
+        let supportDirectory = try FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let databaseDirectory = supportDirectory.appending(path: "Bomu", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: databaseDirectory, withIntermediateDirectories: true)
+        return try PlaybackHistoryStore(path: databaseDirectory.appending(path: "playback.sqlite").path)
+    }
+
+    func history(for url: URL) async throws -> PlaybackHistory? {
+        let identity = try Self.identity(for: url)
+        return try await database.write { db in
+            let mediaFileID = try Self.resolve(identity, in: db)
+            if try Self.isHistoryExcluded(volumeID: identity.volumeID,
+                                          relativePath: identity.relativePath, in: db) {
+                try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
+                return nil
+            }
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT media_file_id, relative_path, position, audio_track_id,
+                       subtitle_track_id, volume, updated_at
+                FROM playback_history
+                JOIN media_files ON media_files.id = playback_history.media_file_id
+                WHERE media_file_id = ?
+                """,
+                arguments: [mediaFileID]
+            ) else { return nil }
+            return PlaybackHistory(
+                mediaFileID: row["media_file_id"],
+                relativePath: row["relative_path"],
+                position: row["position"],
+                audioTrackID: row["audio_track_id"],
+                subtitleTrackID: row["subtitle_track_id"],
+                volume: row["volume"],
+                updatedAt: Date(timeIntervalSince1970: row["updated_at"])
+            )
+        }
+    }
+
+    /// Makes a discovered file queryable before metadata extraction or thumbnail work begins.
+    func indexMediaFile(at url: URL) async throws -> Int64 {
+        let identity = try Self.identity(for: url)
+        return try await database.write { db in
+            let mediaFileID = try Self.resolve(identity, in: db)
+            if try Self.isHistoryExcluded(volumeID: identity.volumeID,
+                                          relativePath: identity.relativePath, in: db) {
+                try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
+                return mediaFileID
+            }
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
+            return mediaFileID
+        }
+    }
+
+    func beginScan(folder: URL, includingSubfolders: Bool) async throws -> MediaLibraryScanSession {
+        let source = try Self.sourceIdentity(for: folder)
+        let scanID = UUID().uuidString
+        return try await database.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO media_sources (volume_id, display_name, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(volume_id) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    updated_at = excluded.updated_at
+                """,
+                arguments: [source.volumeID, source.volumeName, Date.now.timeIntervalSince1970]
+            )
+            try db.execute(
+                sql: """
+                INSERT INTO media_source_roots
+                    (volume_id, relative_path, display_name, including_subfolders)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(volume_id, relative_path) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    including_subfolders = excluded.including_subfolders
+                """,
+                arguments: [source.volumeID, source.relativePath, source.displayName, includingSubfolders]
+            )
+            guard let rootID = try Int64.fetchOne(
+                db,
+                sql: "SELECT id FROM media_source_roots WHERE volume_id = ? AND relative_path = ?",
+                arguments: [source.volumeID, source.relativePath]
+            ) else {
+                throw PlaybackHistoryError.missingSourceRoot
+            }
+            let activeScan = try Int64.fetchOne(
+                db,
+                sql: "SELECT 1 FROM media_scan_runs WHERE source_root_id = ? AND status = 'running' LIMIT 1",
+                arguments: [rootID]
+            )
+            guard activeScan == nil else { throw PlaybackHistoryError.scanAlreadyRunning }
+            try db.execute(
+                sql: """
+                INSERT INTO media_scan_runs (id, source_root_id, started_at, status)
+                VALUES (?, ?, ?, 'running')
+                """,
+                arguments: [scanID, rootID, Date.now.timeIntervalSince1970]
+            )
+            try db.execute(sql: """
+                INSERT INTO media_source_directories
+                    (source_root_id, relative_path, display_name, last_seen_scan_id, is_present)
+                VALUES (?, ?, ?, ?, 1)
+                ON CONFLICT(source_root_id, relative_path) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    last_seen_scan_id = excluded.last_seen_scan_id,
+                    is_present = 1
+                """, arguments: [rootID, source.relativePath, source.displayName, scanID])
+            return MediaLibraryScanSession(id: scanID, sourceRootID: rootID)
+        }
+    }
+
+    func indexDirectory(at folder: URL, in scan: MediaLibraryScanSession) async throws {
+        let source = try Self.sourceIdentity(for: folder)
+        try await database.write { db in
+            try db.execute(sql: """
+                INSERT INTO media_source_directories
+                    (source_root_id, relative_path, display_name, last_seen_scan_id, is_present)
+                VALUES (?, ?, ?, ?, 1)
+                ON CONFLICT(source_root_id, relative_path) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    last_seen_scan_id = excluded.last_seen_scan_id,
+                    is_present = 1
+                """, arguments: [scan.sourceRootID, source.relativePath, source.displayName, scan.id])
+        }
+    }
+
+    func libraryDirectories(in sourceRootID: Int64) async throws -> [MediaLibraryDirectory] {
+        try await database.read { db in
+            try Self.fetchLibraryDirectories(in: db, sourceRootID: sourceRootID)
+        }
+    }
+
+    func indexMediaFile(at url: URL, in scan: MediaLibraryScanSession) async throws -> Int64 {
+        let identity = try Self.identity(for: url)
+        return try await database.write { db in
+            let mediaFileID = try Self.resolve(identity, in: db)
+            if try Self.isHistoryExcluded(volumeID: identity.volumeID,
+                                          relativePath: identity.relativePath, in: db) {
+                try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
+            } else {
+                try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
+            }
+            let now = Date.now.timeIntervalSince1970
+            try db.execute(
+                sql: """
+                INSERT INTO media_source_files
+                    (source_root_id, media_file_id, last_seen_scan_id, is_present, last_seen_at, added_at)
+                VALUES (?, ?, ?, 1, ?, ?)
+                ON CONFLICT(source_root_id, media_file_id) DO UPDATE SET
+                    last_seen_scan_id = excluded.last_seen_scan_id,
+                    is_present = 1,
+                    last_seen_at = excluded.last_seen_at
+                """,
+                arguments: [scan.sourceRootID, mediaFileID, scan.id, now, now]
+            )
+            return mediaFileID
+        }
+    }
+
+    func finishScan(
+        _ scan: MediaLibraryScanSession,
+        reconcileDeletions: Bool,
+        discoveredCount: Int,
+        indexedCount: Int,
+        skippedCount: Int,
+        cancelled: Bool = false
+    ) async throws {
+        try await database.write { db in
+            let status = cancelled ? "cancelled" : reconcileDeletions ? "completed" : "partial"
+            try db.execute(
+                sql: """
+                UPDATE media_scan_runs
+                SET completed_at = ?, discovered_count = ?, indexed_count = ?, skipped_count = ?, status = ?
+                WHERE id = ? AND source_root_id = ? AND status = 'running'
+                """,
+                arguments: [Date.now.timeIntervalSince1970, discoveredCount, indexedCount,
+                            skippedCount, status, scan.id, scan.sourceRootID]
+            )
+            guard db.changesCount == 1 else { throw PlaybackHistoryError.unknownScan(scan.id) }
+            guard reconcileDeletions, !cancelled else { return }
+            try db.execute(
+                sql: """
+                UPDATE media_source_files
+                SET is_present = 0
+                WHERE source_root_id = ? AND last_seen_scan_id != ?
+                """,
+                arguments: [scan.sourceRootID, scan.id]
+            )
+            try db.execute(
+                sql: "UPDATE media_source_roots SET last_successful_scan_at = ? WHERE id = ?",
+                arguments: [Date.now.timeIntervalSince1970, scan.sourceRootID]
+            )
+            try db.execute(sql: """
+                UPDATE media_source_directories SET is_present = 0
+                WHERE source_root_id = ? AND last_seen_scan_id != ?
+                """, arguments: [scan.sourceRootID, scan.id])
+        }
+    }
+
+    func sourceRoots(mountedVolumeIDs: Set<String>) async throws -> [MediaSourceRoot] {
+        try await database.read { db in
+            try Self.fetchSourceRoots(in: db, mountedVolumeIDs: mountedVolumeIDs)
+        }
+    }
+
+    func librarySnapshot(mountedVolumeIDs: Set<String>) async throws -> MediaLibrarySnapshot {
+        try await database.read { db in
+            let roots = try Self.fetchSourceRoots(in: db, mountedVolumeIDs: mountedVolumeIDs)
+
+            var itemsByRoot = Dictionary(uniqueKeysWithValues: roots.map { ($0.id, [MediaLibraryItem]()) })
+            for item in try Self.fetchLibraryItems(in: db) {
+                itemsByRoot[item.sourceRootID, default: []].append(item)
+            }
+
+            var directoriesByRoot = Dictionary(uniqueKeysWithValues: roots.map { ($0.id, [MediaLibraryDirectory]()) })
+            for directory in try Self.fetchLibraryDirectories(in: db) {
+                directoriesByRoot[directory.sourceRootID, default: []].append(directory)
+            }
+
+            return MediaLibrarySnapshot(roots: roots, itemsByRoot: itemsByRoot,
+                                        directoriesByRoot: directoriesByRoot)
+        }
+    }
+
+    func libraryItems(in sourceRootID: Int64) async throws -> [MediaLibraryItem] {
+        try await database.read { db in
+            try Self.fetchLibraryItems(in: db, sourceRootID: sourceRootID)
+        }
+    }
+
+    private static func fetchSourceRoots(
+        in db: Database,
+        mountedVolumeIDs: Set<String>
+    ) throws -> [MediaSourceRoot] {
+        try Row.fetchAll(db, sql: """
+            SELECT media_source_roots.id, volume_id, media_sources.display_name AS volume_name,
+                   relative_path, media_source_roots.display_name AS root_name,
+                   including_subfolders, last_successful_scan_at
+            FROM media_source_roots
+            JOIN media_sources USING (volume_id)
+            ORDER BY media_sources.display_name COLLATE NOCASE, relative_path COLLATE NOCASE
+            """).map { row in
+                MediaSourceRoot(
+                    id: row["id"],
+                    volumeID: row["volume_id"],
+                    volumeName: row["volume_name"],
+                    relativePath: row["relative_path"],
+                    displayName: row["root_name"],
+                    includingSubfolders: row["including_subfolders"],
+                    lastSuccessfulScanAt: (row["last_successful_scan_at"] as Double?)
+                        .map(Date.init(timeIntervalSince1970:)),
+                    isOnline: mountedVolumeIDs.contains(row["volume_id"])
+                )
+            }
+    }
+
+    private static func fetchLibraryItems(
+        in db: Database,
+        sourceRootID: Int64? = nil
+    ) throws -> [MediaLibraryItem] {
+        let rows: [Row]
+        if let sourceRootID {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
+                       media_files.relative_path, media_files.byte_count, media_files.content_revision,
+                       media_source_files.is_present, media_file_preferences.is_favorite,
+                       media_file_preferences.is_watched, media_file_preferences.manual_category,
+                       playback_history.position, playback_history.updated_at,
+                       media_source_files.added_at
+                FROM media_source_files
+                JOIN media_files ON media_files.id = media_source_files.media_file_id
+                LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
+                LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                WHERE media_source_files.source_root_id = ?
+                ORDER BY media_files.relative_path COLLATE NOCASE
+                """, arguments: [sourceRootID])
+        } else {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
+                       media_files.relative_path, media_files.byte_count, media_files.content_revision,
+                       media_source_files.is_present, media_file_preferences.is_favorite,
+                       media_file_preferences.is_watched, media_file_preferences.manual_category,
+                       playback_history.position, playback_history.updated_at,
+                       media_source_files.added_at
+                FROM media_source_files
+                JOIN media_files ON media_files.id = media_source_files.media_file_id
+                LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
+                LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                ORDER BY media_source_files.source_root_id, media_files.relative_path COLLATE NOCASE
+                """)
+        }
+        return rows.map(Self.makeLibraryItem)
+    }
+
+    private static func fetchLibraryDirectories(
+        in db: Database,
+        sourceRootID: Int64? = nil
+    ) throws -> [MediaLibraryDirectory] {
+        let rows: [Row]
+        if let sourceRootID {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT source_root_id, relative_path, display_name
+                FROM media_source_directories
+                WHERE source_root_id = ? AND is_present = 1
+                ORDER BY relative_path COLLATE NOCASE
+                """, arguments: [sourceRootID])
+        } else {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT source_root_id, relative_path, display_name
+                FROM media_source_directories
+                WHERE is_present = 1
+                ORDER BY source_root_id, relative_path COLLATE NOCASE
+                """)
+        }
+        return rows.map { row in
+            MediaLibraryDirectory(
+                sourceRootID: row["source_root_id"],
+                relativePath: row["relative_path"],
+                displayName: row["display_name"]
+            )
+        }
+    }
+
+    private static func makeLibraryItem(from row: Row) -> MediaLibraryItem {
+        let relativePath: String = row["relative_path"]
+        return MediaLibraryItem(
+            id: row["id"],
+            sourceRootID: row["source_root_id"],
+            volumeID: row["volume_id"],
+            relativePath: relativePath,
+            displayName: URL(filePath: relativePath).lastPathComponent,
+            byteCount: row["byte_count"],
+            contentRevision: row["content_revision"],
+            isPresent: row["is_present"],
+            isFavorite: row["is_favorite"] ?? false,
+            isWatched: row["is_watched"] ?? false,
+            manualCategory: (row["manual_category"] as String?).flatMap(MediaManualCategory.init(rawValue:)),
+            playbackPosition: row["position"] ?? 0,
+            lastPlayedAt: (row["updated_at"] as Double?).map(Date.init(timeIntervalSince1970:)),
+            addedAt: Date(timeIntervalSince1970: row["added_at"])
+        )
+    }
+
+    func setFavorite(_ isFavorite: Bool, for mediaFileID: Int64) async throws {
+        try await setPreference("is_favorite", value: isFavorite, for: mediaFileID)
+    }
+
+    func setWatched(_ isWatched: Bool, for mediaFileID: Int64) async throws {
+        try await setPreference("is_watched", value: isWatched, for: mediaFileID)
+    }
+
+    @discardableResult
+    func toggleFavorite(for mediaFileID: Int64) async throws -> Bool {
+        try await togglePreference("is_favorite", for: mediaFileID)
+    }
+
+    @discardableResult
+    func toggleWatched(for mediaFileID: Int64) async throws -> Bool {
+        try await togglePreference("is_watched", for: mediaFileID)
+    }
+
+    func setManualCategory(_ category: MediaManualCategory?, for mediaFileID: Int64) async throws {
+        try await database.write { db in
+            guard try Int64.fetchOne(db, sql: "SELECT id FROM media_files WHERE id = ?", arguments: [mediaFileID]) != nil else {
+                throw PlaybackHistoryError.missingMediaFile(mediaFileID)
+            }
+            try db.execute(
+                sql: """
+                INSERT INTO media_file_preferences (media_file_id, manual_category) VALUES (?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET manual_category = excluded.manual_category
+                """,
+                arguments: [mediaFileID, category?.rawValue]
+            )
+        }
+    }
+
+    private func setPreference(_ column: String, value: Bool, for mediaFileID: Int64) async throws {
+        guard column == "is_favorite" || column == "is_watched" else {
+            throw PlaybackHistoryError.invalidLibraryPreference
+        }
+        try await database.write { db in
+            guard try Int64.fetchOne(db, sql: "SELECT id FROM media_files WHERE id = ?", arguments: [mediaFileID]) != nil else {
+                throw PlaybackHistoryError.missingMediaFile(mediaFileID)
+            }
+            try db.execute(
+                sql: """
+                INSERT INTO media_file_preferences (media_file_id, \(column)) VALUES (?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET \(column) = excluded.\(column)
+                """,
+                arguments: [mediaFileID, value]
+            )
+        }
+    }
+
+    private func togglePreference(_ column: String, for mediaFileID: Int64) async throws -> Bool {
+        guard column == "is_favorite" || column == "is_watched" else {
+            throw PlaybackHistoryError.invalidLibraryPreference
+        }
+        return try await database.write { db in
+            guard try Int64.fetchOne(db, sql: "SELECT id FROM media_files WHERE id = ?",
+                                     arguments: [mediaFileID]) != nil else {
+                throw PlaybackHistoryError.missingMediaFile(mediaFileID)
+            }
+            let currentValue = try Bool.fetchOne(
+                db,
+                sql: "SELECT \(column) FROM media_file_preferences WHERE media_file_id = ?",
+                arguments: [mediaFileID]
+            ) ?? false
+            let nextValue = !currentValue
+            try db.execute(
+                sql: """
+                INSERT INTO media_file_preferences (media_file_id, \(column)) VALUES (?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET \(column) = excluded.\(column)
+                """,
+                arguments: [mediaFileID, nextValue]
+            )
+            return nextValue
+        }
+    }
+
+    func save(
+        for url: URL,
+        position: Double,
+        audioTrackID: Int? = nil,
+        subtitleTrackID: Int? = nil,
+        volume: Double,
+        updatedAt: Date = .now
+    ) async throws {
+        guard position.isFinite, position >= 0 else {
+            throw PlaybackHistoryError.invalidPosition
+        }
+        guard volume.isFinite, (0...100).contains(volume) else {
+            throw PlaybackHistoryError.invalidVolume
+        }
+        let identity = try Self.identity(for: url)
+        try await database.write { db in
+            let mediaFileID = try Self.resolve(identity, in: db)
+            if try Self.isHistoryExcluded(volumeID: identity.volumeID,
+                                          relativePath: identity.relativePath, in: db) {
+                try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
+                return
+            }
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
+            try db.execute(
+                sql: """
+                INSERT INTO playback_history
+                    (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET
+                    position = excluded.position,
+                    audio_track_id = excluded.audio_track_id,
+                    subtitle_track_id = excluded.subtitle_track_id,
+                    volume = excluded.volume,
+                    updated_at = excluded.updated_at
+                """,
+                arguments: [
+                    mediaFileID,
+                    position,
+                    audioTrackID,
+                    subtitleTrackID,
+                    volume,
+                    updatedAt.timeIntervalSince1970
+                ]
+            )
+        }
+    }
+
+    func clearAll() async throws {
+        try await database.write { db in
+            try db.execute(sql: "DELETE FROM playback_history")
+        }
+    }
+
+    func clearLibraryRecords() async throws {
+        try await database.write { db in
+            try db.execute(sql: "DELETE FROM media_sources")
+            try db.execute(sql: "DELETE FROM playback_history_legacy")
+        }
+    }
+
+    func exportArchive(settings: MediaLibraryArchive.Settings) async throws -> Data {
+        try await database.read { db in
+            let roots = try Row.fetchAll(db, sql: """
+                SELECT volume_id, relative_path, display_name, including_subfolders
+                FROM media_source_roots ORDER BY volume_id, relative_path
+                """)
+            let rootsByVolume = Dictionary(grouping: roots) { $0["volume_id"] as String }
+            let sources = try Row.fetchAll(db, sql: """
+                SELECT volume_id, display_name FROM media_sources ORDER BY volume_id
+                """).map { row in
+                    let volumeID: String = row["volume_id"]
+                    let sourceRoots = (rootsByVolume[volumeID] ?? []).map { root in
+                        MediaLibraryArchive.Root(relativePath: root["relative_path"],
+                            displayName: root["display_name"], includingSubfolders: root["including_subfolders"])
+                    }
+                    return MediaLibraryArchive.Source(volumeID: volumeID,
+                        displayName: row["display_name"], roots: sourceRoots)
+                }
+            let memberships = try Row.fetchAll(db, sql: """
+                SELECT media_source_files.media_file_id, media_source_roots.relative_path,
+                       media_source_files.is_present
+                FROM media_source_files JOIN media_source_roots
+                  ON media_source_roots.id = media_source_files.source_root_id
+                ORDER BY media_source_roots.volume_id, media_source_roots.relative_path
+                """)
+            let membershipsByFile = Dictionary(grouping: memberships) { $0["media_file_id"] as Int64 }
+            let fileRows = try Row.fetchAll(db, sql: """
+                SELECT media_files.id, media_files.volume_id, media_files.resource_id,
+                       media_files.content_revision, media_files.content_fingerprint,
+                       media_files.relative_path,
+                       media_files.byte_count, media_files.modified_at,
+                       media_file_preferences.is_favorite, media_file_preferences.is_watched,
+                       media_file_preferences.manual_category, playback_history.position,
+                       playback_history.audio_track_id, playback_history.subtitle_track_id,
+                       playback_history.volume AS saved_volume, playback_history.updated_at
+                FROM media_files
+                LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
+                LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                ORDER BY media_files.volume_id, media_files.relative_path COLLATE NOCASE
+                """)
+            let archiveSchemaVersion = fileRows.allSatisfy { ($0["content_fingerprint"] as String?) != nil } ? 2 : 1
+            let files = fileRows.map { row in
+                let fileID: Int64 = row["id"]
+                let volumeID: String = row["volume_id"]
+                let resourceID: String = row["resource_id"]
+                let contentFingerprint: String? = row["content_fingerprint"]
+                let position = row["position"] as Double?
+                let history: MediaLibraryArchive.History?
+                if let position {
+                    history = MediaLibraryArchive.History(position: position,
+                        audioTrackID: row["audio_track_id"], subtitleTrackID: row["subtitle_track_id"],
+                        volume: row["saved_volume"],
+                        updatedAt: Date(timeIntervalSince1970: row["updated_at"]))
+                } else {
+                    history = nil
+                }
+                return MediaLibraryArchive.File(
+                    logicalID: archiveSchemaVersion == 2
+                        ? "\(volumeID):\(resourceID):\(contentFingerprint ?? "")"
+                        : "\(volumeID):\(resourceID)",
+                    volumeID: volumeID, resourceID: resourceID,
+                    contentRevision: row["content_revision"],
+                    contentFingerprint: archiveSchemaVersion == 2 ? contentFingerprint : nil,
+                    relativePath: row["relative_path"], byteCount: row["byte_count"],
+                    modifiedAt: Date(timeIntervalSince1970: row["modified_at"]),
+                    memberships: (membershipsByFile[fileID] ?? []).map {
+                        MediaLibraryArchive.Membership(rootPath: $0["relative_path"], isPresent: $0["is_present"])
+                    },
+                    isFavorite: row["is_favorite"] ?? false, isWatched: row["is_watched"] ?? false,
+                    manualCategory: (row["manual_category"] as String?).flatMap(MediaManualCategory.init(rawValue:)),
+                    history: history
+                )
+            }
+            let privateFolders = try Row.fetchAll(db, sql: """
+                SELECT volume_id, relative_path, display_name FROM private_media_roots
+                ORDER BY volume_id, relative_path
+                """).map {
+                    MediaLibraryArchive.PrivateFolder(volumeID: $0["volume_id"],
+                        relativePath: $0["relative_path"], displayName: $0["display_name"])
+                }
+            let archive = MediaLibraryArchive(schemaVersion: archiveSchemaVersion, exportedAt: .now, sources: sources,
+                files: files, privateFolders: privateFolders, settings: settings)
+            return try MediaLibraryArchive.encodedData(for: archive)
+        }
+    }
+
+    func previewArchiveImport(_ data: Data) async throws -> MediaLibraryImportPreview {
+        let archive = try Self.decodeArchive(data)
+        return try await database.read { db in
+            let matches = try Self.matchArchiveFiles(archive, in: db)
+            var replacedCount = 0
+            for match in matches {
+                let hasExistingData = try Int.fetchOne(db, sql: """
+                    SELECT 1 FROM media_file_preferences
+                    WHERE media_file_id = ? AND
+                      (is_favorite = 1 OR is_watched = 1 OR manual_category IS NOT NULL)
+                    UNION ALL
+                    SELECT 1 FROM playback_history WHERE media_file_id = ?
+                    LIMIT 1
+                    """, arguments: [match.mediaFileID, match.mediaFileID]) != nil
+                if hasExistingData { replacedCount += 1 }
+            }
+            return MediaLibraryImportPreview(schemaVersion: archive.schemaVersion,
+                fileCount: archive.files.count, matchedFileCount: matches.count,
+                unmatchedFileCount: archive.files.count - matches.count,
+                replacedRecordCount: replacedCount, settings: archive.settings)
+        }
+    }
+
+    func importArchive(_ data: Data) async throws -> MediaLibraryImportResult {
+        let archive = try Self.decodeArchive(data)
+        return try await database.write { db in
+            let matches = try Self.matchArchiveFiles(archive, in: db)
+            let now = Date.now.timeIntervalSince1970
+            for source in archive.sources {
+                try db.execute(sql: """
+                    INSERT INTO media_sources (volume_id, display_name, updated_at)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(volume_id) DO UPDATE SET display_name = excluded.display_name,
+                        updated_at = excluded.updated_at
+                    """, arguments: [source.volumeID, source.displayName, now])
+                for root in source.roots {
+                    try db.execute(sql: """
+                        INSERT INTO media_source_roots
+                            (volume_id, relative_path, display_name, including_subfolders)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(volume_id, relative_path) DO UPDATE SET
+                            display_name = excluded.display_name,
+                            including_subfolders = excluded.including_subfolders
+                        """, arguments: [source.volumeID, root.relativePath,
+                                          root.displayName, root.includingSubfolders])
+                }
+            }
+            for folder in archive.privateFolders {
+                try db.execute(sql: """
+                    INSERT INTO private_media_roots (volume_id, relative_path, display_name)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(volume_id, relative_path) DO UPDATE SET display_name = excluded.display_name
+                    """, arguments: [folder.volumeID, folder.relativePath, folder.displayName])
+            }
+            var importScanIDs: [Int64: String] = [:]
+            for match in matches {
+                let file = match.file
+                try db.execute(sql: """
+                    INSERT INTO media_file_preferences
+                        (media_file_id, is_favorite, is_watched, manual_category)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(media_file_id) DO UPDATE SET
+                        is_favorite = excluded.is_favorite,
+                        is_watched = excluded.is_watched,
+                        manual_category = excluded.manual_category
+                    """, arguments: [match.mediaFileID, file.isFavorite, file.isWatched,
+                                      file.manualCategory?.rawValue])
+                let excludesHistory = try Self.isHistoryExcluded(
+                    volumeID: file.volumeID, relativePath: match.relativePath, in: db
+                )
+                if let history = file.history, !excludesHistory {
+                    try db.execute(sql: """
+                        INSERT INTO playback_history
+                            (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(media_file_id) DO UPDATE SET
+                            position = excluded.position,
+                            audio_track_id = excluded.audio_track_id,
+                            subtitle_track_id = excluded.subtitle_track_id,
+                            volume = excluded.volume,
+                            updated_at = excluded.updated_at
+                        """, arguments: [match.mediaFileID, history.position, history.audioTrackID,
+                                          history.subtitleTrackID, history.volume,
+                                          history.updatedAt.timeIntervalSince1970])
+                } else {
+                    try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?",
+                                   arguments: [match.mediaFileID])
+                }
+                for membership in file.memberships {
+                    guard let sourceRootID = try Int64.fetchOne(db, sql: """
+                        SELECT id FROM media_source_roots WHERE volume_id = ? AND relative_path = ?
+                        """, arguments: [file.volumeID, membership.rootPath]) else { continue }
+                    let scanID: String
+                    if let existing = importScanIDs[sourceRootID] {
+                        scanID = existing
+                    } else {
+                        scanID = UUID().uuidString
+                        try db.execute(sql: """
+                            INSERT INTO media_scan_runs
+                                (id, source_root_id, started_at, completed_at, discovered_count,
+                                 indexed_count, skipped_count, status)
+                            VALUES (?, ?, ?, ?, 0, 0, 0, 'completed')
+                            """, arguments: [scanID, sourceRootID, now, now])
+                        importScanIDs[sourceRootID] = scanID
+                    }
+                    try db.execute(sql: """
+                        INSERT INTO media_source_files
+                            (source_root_id, media_file_id, last_seen_scan_id, is_present,
+                             last_seen_at, added_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(source_root_id, media_file_id) DO UPDATE SET
+                            last_seen_scan_id = excluded.last_seen_scan_id,
+                            is_present = excluded.is_present,
+                            last_seen_at = excluded.last_seen_at
+                        """, arguments: [sourceRootID, match.mediaFileID, scanID,
+                                          membership.isPresent, now, now])
+                }
+            }
+            return MediaLibraryImportResult(importedFileCount: matches.count,
+                unmatchedFileCount: archive.files.count - matches.count, settings: archive.settings)
+        }
+    }
+
+    private struct ArchiveMatch {
+        let file: MediaLibraryArchive.File
+        let mediaFileID: Int64
+        let relativePath: String
+    }
+
+    private static func decodeArchive(_ data: Data) throws -> MediaLibraryArchive {
+        guard data.count <= MediaLibraryArchive.maximumSize else { throw MediaLibraryArchiveError.tooLarge }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let archive: MediaLibraryArchive
+        do {
+            archive = try decoder.decode(MediaLibraryArchive.self, from: data)
+        } catch {
+            throw MediaLibraryArchiveError.invalidContent(error.localizedDescription)
+        }
+        guard (1...2).contains(archive.schemaVersion) else {
+            throw MediaLibraryArchiveError.unsupportedSchema(archive.schemaVersion)
+        }
+        let validSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
+        guard validSpeeds.contains(archive.settings.defaultSpeed),
+              archive.settings.defaultSubtitleDelay.isFinite,
+              (-30...30).contains(archive.settings.defaultSubtitleDelay) else {
+            throw MediaLibraryArchiveError.invalidContent("The playback settings are outside supported limits.")
+        }
+        for source in archive.sources {
+            guard !source.volumeID.isEmpty else {
+                throw MediaLibraryArchiveError.invalidContent("A media source has no volume identity.")
+            }
+            var rootPaths = Set<String>()
+            for root in source.roots {
+                guard Self.isValidRelativePath(root.relativePath, allowingEmpty: true),
+                      rootPaths.insert(root.relativePath).inserted else {
+                    throw MediaLibraryArchiveError.invalidContent("A media source path is invalid or duplicated.")
+                }
+            }
+        }
+        for folder in archive.privateFolders where
+            folder.volumeID.isEmpty || !Self.isValidRelativePath(folder.relativePath, allowingEmpty: true) {
+            throw MediaLibraryArchiveError.invalidContent("A private folder path is invalid.")
+        }
+        var logicalIDs = Set<String>()
+        for file in archive.files {
+            let expectedLogicalID: String
+            if archive.schemaVersion == 1 {
+                expectedLogicalID = "\(file.volumeID):\(file.resourceID)"
+            } else {
+                expectedLogicalID = "\(file.volumeID):\(file.resourceID):\(file.contentFingerprint ?? "")"
+            }
+            guard !file.volumeID.isEmpty, !file.resourceID.isEmpty,
+                  file.logicalID == expectedLogicalID,
+                  Self.isValidRelativePath(file.relativePath, allowingEmpty: false),
+                  file.byteCount >= 0,
+                  logicalIDs.insert(file.logicalID).inserted else {
+                throw MediaLibraryArchiveError.invalidContent("A file identity is invalid or duplicated.")
+            }
+            if archive.schemaVersion == 2,
+               !(file.contentFingerprint.map(Self.isValidContentFingerprint) ?? false) {
+                throw MediaLibraryArchiveError.invalidContent("A version 2 file has no valid content fingerprint.")
+            }
+            for membership in file.memberships where
+                !Self.isValidRelativePath(membership.rootPath, allowingEmpty: true) {
+                throw MediaLibraryArchiveError.invalidContent("A media file membership path is invalid.")
+            }
+            if let history = file.history {
+                guard history.position.isFinite, history.position >= 0,
+                      history.volume.isFinite, (0...100).contains(history.volume) else {
+                    throw MediaLibraryArchiveError.invalidContent("A playback checkpoint is outside supported limits.")
+                }
+            }
+        }
+        return archive
+    }
+
+    private static func isValidRelativePath(_ path: String, allowingEmpty: Bool) -> Bool {
+        if path.isEmpty { return allowingEmpty }
+        guard !path.hasPrefix("/"), !path.hasSuffix("/"), !path.contains("\0") else { return false }
+        return path.split(separator: "/", omittingEmptySubsequences: false).allSatisfy {
+            !$0.isEmpty && $0 != "." && $0 != ".."
+        }
+    }
+
+    private static func isValidContentFingerprint(_ value: String) -> Bool {
+        let bytes = value.utf8
+        guard bytes.count == 64 else { return false }
+        return bytes.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    }
+
+    private static func matchArchiveFiles(_ archive: MediaLibraryArchive, in db: Database) throws -> [ArchiveMatch] {
+        var matches: [ArchiveMatch] = []
+        var usedFileIDs = Set<Int64>()
+        for file in archive.files {
+            let exact = try Row.fetchOne(db, sql: """
+                SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
+                WHERE volume_id = ? AND resource_id = ?
+                """, arguments: [file.volumeID, file.resourceID])
+            let candidate: Row?
+            if let exact,
+               Self.archiveFile(file, matches: exact, schemaVersion: archive.schemaVersion) {
+                candidate = exact
+            } else {
+                if archive.schemaVersion == 2, let fingerprint = file.contentFingerprint {
+                    candidate = try Row.fetchOne(db, sql: """
+                        SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
+                        WHERE volume_id = ? AND relative_path = ? AND byte_count = ?
+                          AND content_revision = ? AND content_fingerprint = ?
+                        """, arguments: [file.volumeID, file.relativePath, file.byteCount,
+                                         file.contentRevision, fingerprint])
+                } else {
+                    candidate = try Row.fetchOne(db, sql: """
+                        SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
+                        WHERE volume_id = ? AND relative_path = ? AND byte_count = ? AND content_revision = ?
+                        """, arguments: [file.volumeID, file.relativePath,
+                                         file.byteCount, file.contentRevision])
+                }
+            }
+            guard let candidate else { continue }
+            let mediaFileID: Int64 = candidate["id"]
+            let relativePath: String = candidate["relative_path"]
+            guard usedFileIDs.insert(mediaFileID).inserted else {
+                throw MediaLibraryArchiveError.invalidContent("Multiple archive entries resolve to the same media file.")
+            }
+            matches.append(ArchiveMatch(file: file, mediaFileID: mediaFileID,
+                                        relativePath: relativePath))
+        }
+        return matches
+    }
+
+    private static func archiveFile(_ file: MediaLibraryArchive.File, matches row: Row,
+                                    schemaVersion: Int) -> Bool {
+        guard (row["content_revision"] as String) == file.contentRevision else { return false }
+        guard schemaVersion == 2 else { return true }
+        return (row["content_fingerprint"] as String?) == file.contentFingerprint
+    }
+
+    func setHistoryExcludedFolder(_ folder: URL, excluded: Bool) async throws {
+        let hasScopedAccess = folder.startAccessingSecurityScopedResource()
+        defer {
+            if hasScopedAccess { folder.stopAccessingSecurityScopedResource() }
+        }
+        let source = try Self.sourceIdentity(for: folder)
+        try await database.write { db in
+            if excluded {
+                try db.execute(
+                    sql: """
+                    INSERT INTO private_media_roots (volume_id, relative_path, display_name)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(volume_id, relative_path) DO UPDATE SET display_name = excluded.display_name
+                    """,
+                    arguments: [source.volumeID, source.relativePath, source.displayName]
+                )
+                try db.execute(
+                    sql: """
+                    DELETE FROM playback_history
+                    WHERE media_file_id IN (
+                        SELECT id FROM media_files
+                        WHERE volume_id = ? AND (? = '' OR relative_path = ? OR
+                            substr(relative_path, 1, length(?) + 1) = ? || '/')
+                    )
+                    """,
+                    arguments: [source.volumeID, source.relativePath, source.relativePath,
+                                source.relativePath, source.relativePath]
+                )
+                let folderPath = folder.standardizedFileURL.resolvingSymlinksInPath().path
+                try db.execute(sql: """
+                    DELETE FROM playback_history_legacy
+                    WHERE file_path = ? OR substr(file_path, 1, length(?) + 1) = ? || '/'
+                    """, arguments: [folderPath, folderPath, folderPath])
+            } else {
+                try db.execute(sql: "DELETE FROM private_media_roots WHERE volume_id = ? AND relative_path = ?",
+                               arguments: [source.volumeID, source.relativePath])
+            }
+        }
+    }
+
+    func historyExcludedFolders() async throws -> [HistoryExcludedFolder] {
+        try await database.read { db in
+            try Row.fetchAll(db, sql: """
+                SELECT private_media_roots.volume_id, media_sources.display_name AS volume_name,
+                       private_media_roots.relative_path, private_media_roots.display_name
+                FROM private_media_roots
+                LEFT JOIN media_sources USING (volume_id)
+                ORDER BY volume_name COLLATE NOCASE, relative_path COLLATE NOCASE
+                """).map { row in
+                    HistoryExcludedFolder(volumeID: row["volume_id"],
+                                          volumeName: row["volume_name"] ?? String(localized: "library.unknownVolume"),
+                                          relativePath: row["relative_path"],
+                                          displayName: row["display_name"])
+                }
+        }
+    }
+
+    func removeHistoryExcludedFolder(_ folder: HistoryExcludedFolder) async throws {
+        try await database.write { db in
+            try db.execute(sql: "DELETE FROM private_media_roots WHERE volume_id = ? AND relative_path = ?",
+                           arguments: [folder.volumeID, folder.relativePath])
+        }
+    }
+
+    private static func isHistoryExcluded(volumeID: String, relativePath: String, in db: Database) throws -> Bool {
+        try Int.fetchOne(db, sql: """
+            SELECT 1 FROM private_media_roots
+            WHERE volume_id = ? AND (relative_path = '' OR relative_path = ? OR
+                substr(?, 1, length(relative_path) + 1) = relative_path || '/')
+            LIMIT 1
+            """, arguments: [volumeID, relativePath, relativePath]) != nil
+    }
+
+    private static func resolve(_ identity: MediaFileIdentity, in db: Database) throws -> Int64 {
+        try db.execute(
+            sql: """
+            INSERT INTO media_sources (volume_id, display_name, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(volume_id) DO UPDATE SET
+                display_name = excluded.display_name,
+                updated_at = excluded.updated_at
+            """,
+            arguments: [identity.volumeID, identity.volumeName, Date.now.timeIntervalSince1970]
+        )
+
+        if let existing = try Row.fetchOne(
+            db,
+            sql: "SELECT id, content_revision, content_fingerprint FROM media_files WHERE volume_id = ? AND resource_id = ?",
+            arguments: [identity.volumeID, identity.resourceID]
+        ) {
+            let mediaFileID: Int64 = existing["id"]
+            let oldRevision: String = existing["content_revision"]
+            let oldFingerprint: String? = existing["content_fingerprint"]
+            if oldRevision != identity.contentRevision
+                || (oldFingerprint != nil && oldFingerprint != identity.contentFingerprint) {
+                return try Self.replaceChangedFile(existingID: mediaFileID, with: identity, in: db)
+            }
+            try db.execute(
+                sql: """
+                UPDATE media_files
+                SET content_revision = ?, content_fingerprint = ?, relative_path = ?, byte_count = ?, modified_at = ?
+                WHERE id = ?
+                """,
+                arguments: [
+                    identity.contentRevision,
+                    identity.contentFingerprint,
+                    identity.relativePath,
+                    identity.byteCount,
+                    identity.modifiedAt.timeIntervalSince1970,
+                    mediaFileID
+                ]
+            )
+            return mediaFileID
+        }
+
+        try db.execute(
+            sql: """
+            INSERT INTO media_files
+                (volume_id, resource_id, content_revision, content_fingerprint,
+                 relative_path, byte_count, modified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            arguments: [
+                identity.volumeID,
+                identity.resourceID,
+                identity.contentRevision,
+                identity.contentFingerprint,
+                identity.relativePath,
+                identity.byteCount,
+                identity.modifiedAt.timeIntervalSince1970
+            ]
+        )
+        return db.lastInsertedRowID
+    }
+
+    private static func replaceChangedFile(
+        existingID: Int64,
+        with identity: MediaFileIdentity,
+        in db: Database
+    ) throws -> Int64 {
+        struct Membership {
+            let sourceRootID: Int64
+            let lastSeenScanID: String
+            let isPresent: Bool
+            let lastSeenAt: Double
+            let addedAt: Double
+        }
+
+        let memberships = try Row.fetchAll(db, sql: """
+            SELECT source_root_id, last_seen_scan_id, is_present, last_seen_at, added_at
+            FROM media_source_files WHERE media_file_id = ?
+            """, arguments: [existingID]).map { row in
+                Membership(sourceRootID: row["source_root_id"],
+                           lastSeenScanID: row["last_seen_scan_id"], isPresent: row["is_present"],
+                           lastSeenAt: row["last_seen_at"], addedAt: row["added_at"])
+            }
+        try db.execute(sql: "DELETE FROM media_files WHERE id = ?", arguments: [existingID])
+        let newID = try insert(identity, in: db)
+        for membership in memberships {
+            try db.execute(sql: """
+                INSERT INTO media_source_files
+                    (source_root_id, media_file_id, last_seen_scan_id, is_present, last_seen_at, added_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, arguments: [membership.sourceRootID, newID, membership.lastSeenScanID,
+                                 membership.isPresent, membership.lastSeenAt, membership.addedAt])
+        }
+        return newID
+    }
+
+    private static func insert(_ identity: MediaFileIdentity, in db: Database) throws -> Int64 {
+        try db.execute(
+            sql: """
+            INSERT INTO media_files
+                (volume_id, resource_id, content_revision, content_fingerprint,
+                 relative_path, byte_count, modified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            arguments: [identity.volumeID, identity.resourceID, identity.contentRevision,
+                        identity.contentFingerprint, identity.relativePath, identity.byteCount,
+                        identity.modifiedAt.timeIntervalSince1970]
+        )
+        return db.lastInsertedRowID
+    }
+
+    /// Moves an exact-path v0.0 checkpoint on first access; path alone cannot safely match a rename.
+    private static func migrateLegacyHistory(for url: URL, mediaFileID: Int64, in db: Database) throws {
+        let path = url.standardizedFileURL.resolvingSymlinksInPath().path
+        try db.execute(
+            sql: """
+            INSERT OR IGNORE INTO playback_history
+                (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
+            SELECT ?, position, audio_track_id, subtitle_track_id, volume, updated_at
+            FROM playback_history_legacy WHERE file_path = ?
+            """,
+            arguments: [mediaFileID, path]
+        )
+        try db.execute(
+            sql: "DELETE FROM playback_history_legacy WHERE file_path = ?",
+            arguments: [path]
+        )
+    }
+
+    private static func identity(for url: URL) throws -> MediaFileIdentity {
+        let resolvedURL = url.standardizedFileURL.resolvingSymlinksInPath()
+        let keys: Set<URLResourceKey> = [
+            .volumeUUIDStringKey,
+            .volumeURLKey,
+            .volumeNameKey,
+            .isRegularFileKey,
+            .fileSizeKey,
+            .contentModificationDateKey
+        ]
+        let values: URLResourceValues
+        do {
+            values = try resolvedURL.resourceValues(forKeys: keys)
+        } catch {
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: error.localizedDescription)
+        }
+        guard values.isRegularFile == true,
+              let volumeID = values.volumeUUIDString,
+              let volumeURL = values.volume,
+              let byteCount = values.fileSize,
+              let modifiedAt = values.contentModificationDate else {
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: "Required volume or file metadata is unavailable.")
+        }
+
+        var metadata = stat()
+        let statResult = resolvedURL.path.withCString { stat($0, &metadata) }
+        guard statResult == 0 else {
+            throw PlaybackHistoryError.identityUnavailable(
+                url.path,
+                underlying: String(cString: strerror(errno))
+            )
+        }
+
+        let rootPath = volumeURL.standardizedFileURL.path
+        let filePath = resolvedURL.path
+        let relativePath: String
+        if rootPath == "/" {
+            relativePath = String(filePath.dropFirst())
+        } else if filePath.hasPrefix(rootPath + "/") {
+            relativePath = String(filePath.dropFirst(rootPath.count + 1))
+        } else {
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: "The file is outside its reported volume root.")
+        }
+
+        let modified = metadata.st_mtimespec
+        let revision = "\(byteCount):\(modified.tv_sec).\(modified.tv_nsec)"
+        let resourceID = "\(metadata.st_dev):\(metadata.st_ino)"
+        let fingerprint = try Self.sampleFingerprint(for: resolvedURL, expected: metadata, byteCount: Int64(byteCount))
+        return MediaFileIdentity(
+            volumeID: volumeID,
+            resourceID: resourceID,
+            contentRevision: revision,
+            contentFingerprint: fingerprint,
+            relativePath: relativePath,
+            volumeName: values.volumeName ?? volumeURL.lastPathComponent,
+            byteCount: Int64(byteCount),
+            modifiedAt: modifiedAt
+        )
+    }
+
+    private static func sampleFingerprint(for url: URL, expected: stat, byteCount: Int64) throws -> String {
+        let file: FileHandle
+        do {
+            file = try FileHandle(forReadingFrom: url)
+        } catch {
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: error.localizedDescription)
+        }
+        defer { try? file.close() }
+
+        func verifyUnchanged() throws {
+            var current = stat()
+            guard fstat(file.fileDescriptor, &current) == 0,
+                  current.st_dev == expected.st_dev,
+                  current.st_ino == expected.st_ino,
+                  current.st_size == expected.st_size,
+                  current.st_mtimespec.tv_sec == expected.st_mtimespec.tv_sec,
+                  current.st_mtimespec.tv_nsec == expected.st_mtimespec.tv_nsec,
+                  current.st_ctimespec.tv_sec == expected.st_ctimespec.tv_sec,
+                  current.st_ctimespec.tv_nsec == expected.st_ctimespec.tv_nsec else {
+                throw PlaybackHistoryError.identityUnavailable(
+                    url.path,
+                    underlying: "The file changed while its content fingerprint was being sampled."
+                )
+            }
+        }
+
+        try verifyUnchanged()
+        let sampleLength = min(Int64(16 * 1_024), byteCount)
+        let offsets: [Int64]
+        if byteCount <= 5 * 16 * 1_024 {
+            offsets = [0]
+        } else {
+            let lastOffset = byteCount - sampleLength
+            offsets = (0...4).map { lastOffset * Int64($0) / 4 }
+        }
+
+        var hasher = SHA256()
+        hasher.update(data: Data("size:\(byteCount);".utf8))
+        for offset in offsets {
+            try file.seek(toOffset: UInt64(offset))
+            let sample: Data
+            do {
+                sample = try file.read(upToCount: Int(sampleLength)) ?? Data()
+            } catch {
+                throw PlaybackHistoryError.identityUnavailable(url.path, underlying: error.localizedDescription)
+            }
+            guard sample.count == Int(sampleLength) else {
+                throw PlaybackHistoryError.identityUnavailable(
+                    url.path,
+                    underlying: "The file ended before its content fingerprint could be sampled."
+                )
+            }
+            hasher.update(data: Data("offset:\(offset);".utf8))
+            hasher.update(data: sample)
+        }
+        try verifyUnchanged()
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func sourceIdentity(for folder: URL) throws -> (volumeID: String, volumeName: String, relativePath: String, displayName: String) {
+        let resolvedURL = folder.standardizedFileURL.resolvingSymlinksInPath()
+        let values: URLResourceValues
+        do {
+            values = try resolvedURL.resourceValues(forKeys: [.volumeUUIDStringKey, .volumeURLKey, .volumeNameKey, .isDirectoryKey])
+        } catch {
+            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: error.localizedDescription)
+        }
+        guard values.isDirectory == true, let volumeID = values.volumeUUIDString, !volumeID.isEmpty,
+              let volumeURL = values.volume else {
+            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: "Required volume or folder metadata is unavailable.")
+        }
+        let rootPath = volumeURL.standardizedFileURL.path
+        let folderPath = resolvedURL.path
+        let relativePath: String
+        if folderPath == rootPath {
+            relativePath = ""
+        } else if rootPath == "/" {
+            relativePath = String(folderPath.dropFirst())
+        } else if folderPath.hasPrefix(rootPath + "/") {
+            relativePath = String(folderPath.dropFirst(rootPath.count + 1))
+        } else {
+            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: "The folder is outside its reported volume root.")
+        }
+        return (volumeID, values.volumeName ?? volumeURL.lastPathComponent, relativePath, resolvedURL.lastPathComponent)
+    }
+
+    private static func makeMigrator() -> DatabaseMigrator {
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPlaybackHistory") { db in
+            try db.create(table: "playback_history") { table in
+                table.column("file_path", .text).primaryKey().notNull()
+                table.column("position", .double).notNull().defaults(to: 0)
+                    .check(sql: "position >= 0")
+                table.column("audio_track_id", .integer)
+                table.column("subtitle_track_id", .integer)
+                table.column("volume", .double).notNull().defaults(to: 100)
+                    .check(sql: "volume >= 0 AND volume <= 100")
+                table.column("updated_at", .double).notNull()
+            }
+        }
+        migrator.registerMigration("mediaFileIdentity") { db in
+            try db.execute(sql: "ALTER TABLE playback_history RENAME TO playback_history_legacy")
+            try db.create(table: "media_sources") { table in
+                table.column("volume_id", .text).primaryKey().notNull()
+                table.column("display_name", .text).notNull()
+                table.column("updated_at", .double).notNull()
+            }
+            try db.create(table: "media_files") { table in
+                table.autoIncrementedPrimaryKey("id")
+                table.column("volume_id", .text).notNull()
+                    .references("media_sources", column: "volume_id", onDelete: .cascade)
+                table.column("resource_id", .text).notNull()
+                table.column("content_revision", .text).notNull()
+                table.column("relative_path", .text).notNull()
+                table.column("byte_count", .integer).notNull().check(sql: "byte_count >= 0")
+                table.column("modified_at", .double).notNull()
+                table.uniqueKey(["volume_id", "resource_id"])
+            }
+            try db.create(table: "playback_history") { table in
+                table.column("media_file_id", .integer).primaryKey().notNull()
+                    .references("media_files", column: "id", onDelete: .cascade)
+                table.column("position", .double).notNull().defaults(to: 0)
+                    .check(sql: "position >= 0")
+                table.column("audio_track_id", .integer)
+                table.column("subtitle_track_id", .integer)
+                table.column("volume", .double).notNull().defaults(to: 100)
+                    .check(sql: "volume >= 0 AND volume <= 100")
+                table.column("updated_at", .double).notNull()
+            }
+            try db.create(index: "media_files_by_relative_path", on: "media_files", columns: ["volume_id", "relative_path"])
+        }
+        migrator.registerMigration("incrementalMediaLibrary") { db in
+            try db.create(table: "media_source_roots") { table in
+                table.autoIncrementedPrimaryKey("id")
+                table.column("volume_id", .text).notNull()
+                    .references("media_sources", column: "volume_id", onDelete: .cascade)
+                table.column("relative_path", .text).notNull()
+                table.column("display_name", .text).notNull()
+                table.column("including_subfolders", .boolean).notNull()
+                table.column("last_successful_scan_at", .double)
+                table.uniqueKey(["volume_id", "relative_path"])
+            }
+            try db.create(table: "media_scan_runs") { table in
+                table.column("id", .text).primaryKey().notNull()
+                table.column("source_root_id", .integer).notNull()
+                    .references("media_source_roots", column: "id", onDelete: .cascade)
+                table.column("started_at", .double).notNull()
+                table.column("completed_at", .double)
+                table.column("discovered_count", .integer).notNull().defaults(to: 0)
+                table.column("indexed_count", .integer).notNull().defaults(to: 0)
+                table.column("skipped_count", .integer).notNull().defaults(to: 0)
+                table.column("status", .text).notNull()
+                    .check(sql: "status IN ('running', 'completed', 'partial', 'cancelled')")
+            }
+            try db.create(table: "media_source_files") { table in
+                table.column("source_root_id", .integer).notNull()
+                    .references("media_source_roots", column: "id", onDelete: .cascade)
+                table.column("media_file_id", .integer).notNull()
+                    .references("media_files", column: "id", onDelete: .cascade)
+                table.column("last_seen_scan_id", .text).notNull()
+                    .references("media_scan_runs", column: "id", onDelete: .cascade)
+                table.column("is_present", .boolean).notNull()
+                table.column("last_seen_at", .double).notNull()
+                table.primaryKey(["source_root_id", "media_file_id"])
+            }
+            try db.create(index: "media_source_files_by_scan", on: "media_source_files", columns: ["source_root_id", "last_seen_scan_id"])
+        }
+        migrator.registerMigration("mediaLibraryPreferences") { db in
+            try db.alter(table: "media_source_files") { table in
+                table.add(column: "added_at", .double).notNull().defaults(to: 0)
+            }
+            try db.execute(sql: "UPDATE media_source_files SET added_at = last_seen_at WHERE added_at = 0")
+            try db.create(table: "media_file_preferences") { table in
+                table.column("media_file_id", .integer).primaryKey().notNull()
+                    .references("media_files", column: "id", onDelete: .cascade)
+                table.column("is_favorite", .boolean).notNull().defaults(to: false)
+                table.column("is_watched", .boolean).notNull().defaults(to: false)
+            }
+            try db.create(index: "playback_history_by_updated_at", on: "playback_history", columns: ["updated_at"])
+        }
+        migrator.registerMigration("manualMediaCategory") { db in
+            try db.alter(table: "media_file_preferences") { table in
+                table.add(column: "manual_category", .text)
+                    .check(sql: "manual_category IS NULL OR manual_category IN ('movie', 'series', 'personal')")
+            }
+        }
+        migrator.registerMigration("privatePlaybackFolders") { db in
+            try db.create(table: "private_media_roots") { table in
+                table.column("volume_id", .text).notNull()
+                table.column("relative_path", .text).notNull()
+                table.column("display_name", .text).notNull()
+                table.primaryKey(["volume_id", "relative_path"])
+            }
+            try db.create(index: "private_media_roots_by_volume", on: "private_media_roots",
+                          columns: ["volume_id", "relative_path"])
+        }
+        migrator.registerMigration("mediaSourceDirectories") { db in
+            try db.create(table: "media_source_directories") { table in
+                table.column("source_root_id", .integer).notNull()
+                    .references("media_source_roots", column: "id", onDelete: .cascade)
+                table.column("relative_path", .text).notNull()
+                table.column("display_name", .text).notNull()
+                table.column("last_seen_scan_id", .text).notNull()
+                    .references("media_scan_runs", column: "id", onDelete: .cascade)
+                table.column("is_present", .boolean).notNull()
+                table.primaryKey(["source_root_id", "relative_path"])
+            }
+            try db.create(index: "media_source_directories_by_scan", on: "media_source_directories",
+                          columns: ["source_root_id", "last_seen_scan_id"])
+        }
+        migrator.registerMigration("mediaContentFingerprint") { db in
+            try db.alter(table: "media_files") { table in
+                table.add(column: "content_fingerprint", .text)
+            }
+        }
+        return migrator
+    }
+}

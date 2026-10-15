@@ -10,6 +10,11 @@ protocol PlaybackEngine: AnyObject {
     func setPaused(_ request: PlaybackPauseRequest)
     func seek(_ request: PlaybackSeekRequest)
     func setVolume(_ volume: Double)
+    func setSpeed(_ speed: Double)
+    func setAudioTrack(id: Int, requestID: UInt64)
+    func setSubtitleTrack(id: Int, requestID: UInt64)
+    func addExternalSubtitle(_ url: URL, requestID: UInt64)
+    func setSubtitleDelay(_ seconds: Double, requestID: UInt64)
     func stop()
     func shutdown() async
 }

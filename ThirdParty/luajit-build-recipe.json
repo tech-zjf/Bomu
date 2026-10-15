@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "component": "libluajit-5.1.2.dylib",
+  "source": {
+    "url": "https://github.com/LuaJIT/LuaJIT/archive/8e6520a7aecd0517e792b359afbbfd7274791f5f.tar.gz",
+    "version": "8e6520a7aecd0517e792b359afbbfd7274791f5f",
+    "archiveSHA256": "9c4c370559352e0622231d5a1f28e95ff56e2dce6308238e6588b0943aac5e63",
+    "archiveEntry": "LuaJIT-8e6520a7aecd0517e792b359afbbfd7274791f5f/COPYRIGHT"
+  },
+  "sourceLicense": {
+    "localSnapshot": "ThirdParty/luajit-COPYRIGHT.txt",
+    "archiveEntrySHA256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47",
+    "spdx": "MIT"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-luajit.sh",
+      "gitBlobSHA1": "3c27d7622db1c397c2ace1e2df30be8b186a56ce",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-luajit.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "buildOptions": [
+      "Per-architecture in-source build; clang host tools; target architecture flags; install LuaJIT runtime."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+    "canonicalArm64SHA256": "11f8a151efe909941dbd6a11ed9668094b4842520fed66f6a2fdbd9c0bf7285c",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

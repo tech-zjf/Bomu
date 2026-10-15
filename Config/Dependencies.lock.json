@@ -8,6 +8,28 @@
     "url": "https://github.com/iina/iina/releases/download/v1.5.0/IINA.v1.5.0.dmg",
     "sha256": "8fad50479b10e09645053457cec46bd53d054ced2242cfe68f74586735a20dc7"
   },
+  "verifiedRuntimeArtifact": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "releaseTag": "iina-1.5.0-release",
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "url": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "overriddenLibraries": [
+      "libSvtAv1Enc.4.dylib",
+      "libjpeg.62.dylib",
+      "libmpv.2.dylib",
+      "libvorbis.0.dylib",
+      "libvorbisenc.2.dylib"
+    ],
+    "replacedDMGHashes": {
+      "libSvtAv1Enc.4.dylib": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "libjpeg.62.dylib": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "libmpv.2.dylib": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "libvorbis.0.dylib": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "libvorbisenc.2.dylib": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c"
+    }
+  },
   "ffmpegOverlay": {
     "version": "9.0.1",
     "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
@@ -63,7 +85,7 @@
   },
   "libraries": {
     "libSvtAv1Enc.4.dylib": {
-      "sha256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "sha256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
       "dependencies": []
     },
     "libarchive.13.dylib": {
@@ -232,7 +254,7 @@
       ]
     },
     "libjpeg.62.dylib": {
-      "sha256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "sha256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
       "dependencies": []
     },
     "libjxl.0.11.dylib": {
@@ -265,7 +287,7 @@
       "dependencies": []
     },
     "libmpv.2.dylib": {
-      "sha256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "sha256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
       "dependencies": [
         "libarchive.13.dylib",
         "libass.9.dylib",
@@ -343,13 +365,13 @@
       "dependencies": []
     },
     "libvorbis.0.dylib": {
-      "sha256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "sha256": "df605ca333ae455bf52a91e2806aea5d1890f18728aa531572381b6999eeaf42",
       "dependencies": [
         "libogg.0.dylib"
       ]
     },
     "libvorbisenc.2.dylib": {
-      "sha256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "sha256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0",
       "dependencies": [
         "libogg.0.dylib",
         "libvorbis.0.dylib"
@@ -381,5 +403,13 @@
     "ThirdParty/libmpv/include/mpv/client.h": "3c073236a09cb456c6e80587d5523c8771c32fb22ca014e0f99cc3d43905b75c",
     "ThirdParty/libmpv/include/mpv/render.h": "192691941602052f00df0587f126246c48785a1cf21de68d22a92ea1908d1c55",
     "ThirdParty/libmpv/include/mpv/render_gl.h": "48662c0ed9872a14dd9e1684105c97f69f94a0414709c254c5d372adc41d2e69"
+  },
+  "swiftPackages": {
+    "GRDB.swift": {
+      "url": "https://github.com/groue/GRDB.swift",
+      "version": "7.11.1",
+      "revision": "b83108d10f42680d78f23fe4d4d80fc88dab3212",
+      "license": "MIT"
+    }
   }
 }

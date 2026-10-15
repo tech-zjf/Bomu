@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "component": "librubberband.3.dylib",
+  "source": {
+    "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0.tar.bz2",
+    "version": "4.0.0",
+    "archiveSHA256": "af050313ee63bc18b35b2e064e5dce05b276aaf6d1aa2b8a82ced1fe2f8028e9",
+    "archiveEntry": "rubberband-4.0.0/COPYING"
+  },
+  "sourceLicense": {
+    "localSnapshot": "ThirdParty/rubberband-COPYING.txt",
+    "archiveEntrySHA256": "cedd4c1885d75991bf1077cc6e33359103cf04fbc996f20d30ab043d5fc5fcc5",
+    "spdx": "GPL-2.0-only"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-rubberband.sh",
+      "gitBlobSHA1": "210631b971baf5767edf4b146adb057d9edc9171",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-rubberband.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "buildOptions": [
+      "-Dfft=vdsp",
+      "-Dresampler=builtin",
+      "-Dcmdline=disabled"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+    "canonicalArm64SHA256": "9b200d4d748c3b13e463dd0e99c2ce228fc0482e3ab8c04f140c962df71d06d2",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

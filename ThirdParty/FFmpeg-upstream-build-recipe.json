@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    "libavcodec.63.dylib",
+    "libavdevice.63.dylib",
+    "libavfilter.12.dylib",
+    "libavutil.61.dylib",
+    "libswresample.7.dylib",
+    "libswscale.10.dylib"
+  ],
+  "source": {
+    "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "version": "9.0.1",
+    "archiveSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFile": {
+      "path": "versions.env",
+      "gitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-versions.env"
+    },
+    "buildScript": {
+      "path": "buildscripts/build-ffmpeg.sh",
+      "gitBlobSHA1": "be047d862d70cb43607cdc85d42c62d9a07e7e61",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-ffmpeg.sh"
+    },
+    "sharedBuildScript": {
+      "path": "buildscripts/common.sh",
+      "gitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/common.sh"
+    },
+    "workflow": {
+      "path": ".github/workflows/build.yml",
+      "gitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build.yml",
+      "successfulRunID": 35411161790,
+      "runCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+      "arm64Job": "success"
+    },
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "method": "Canonical arm64 Mach-O content comparison with code-signature data removed; see per-component hashes in iina-1.5.0-deps-comparison-2026-10-14.json.",
+    "components": {
+      "libavcodec.63.dylib": {
+        "workspaceBinarySHA256": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+        "canonicalArm64SHA256": "853009d9813a11f664fd32537ac823ac88d03c36b08213153859683c6c3d1e4f",
+        "matchesReleaseArtifact": true
+      },
+      "libavdevice.63.dylib": {
+        "workspaceBinarySHA256": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+        "canonicalArm64SHA256": "0b87133fc45003d32a0700615adaa681743feb4328cae732b3238b068f07a365",
+        "matchesReleaseArtifact": true
+      },
+      "libavfilter.12.dylib": {
+        "workspaceBinarySHA256": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+        "canonicalArm64SHA256": "399d2b2d08d95c852bdda3d3837bdc8569917b5ba350b3464bd14bb2254d77e0",
+        "matchesReleaseArtifact": true
+      },
+      "libavutil.61.dylib": {
+        "workspaceBinarySHA256": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+        "canonicalArm64SHA256": "c376d92c842a6f315d93f9acc28b3785e0fc8d204f896a15c664ed73a18c6d74",
+        "matchesReleaseArtifact": true
+      },
+      "libswresample.7.dylib": {
+        "workspaceBinarySHA256": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+        "canonicalArm64SHA256": "583a54a1670e9e951ab2ee5daaba1b7c37913ec1ae716c9e6166b4108bbf9ea3",
+        "matchesReleaseArtifact": true
+      },
+      "libswscale.10.dylib": {
+        "workspaceBinarySHA256": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+        "canonicalArm64SHA256": "8494319cfdc94ce2f4cf953a34c5e1b2d59a129a89f62f524c2473a53a1889a8",
+        "matchesReleaseArtifact": true
+      }
+    }
+  }
+}

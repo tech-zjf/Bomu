@@ -1,5 +1,6 @@
 @testable import Bomu
 import AppKit
+import ImageIO
 import XCTest
 
 /// Runs the real bundled libmpv and the same OpenGL surface as the application.
@@ -7,13 +8,7 @@ import XCTest
 @MainActor
 final class MPVIntegrationTests: XCTestCase {
     func testRealPlaybackPauseSeekReplaceAndRelease() async throws {
-        XCTAssertTrue(NSApplication.shared.isRunning, "Rendering tests require the Bomu application host")
-        try await waitUntil { NSApplication.shared.windows.contains { $0.canBecomeMain && $0.isVisible } }
-        let hostWindows = NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }
-        guard hostWindows.count == 1, let window = hostWindows.first else {
-            throw NSError(domain: "Bomu.IntegrationWindow", code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Expected exactly one visible application host window"])
-        }
+        let window = try await applicationHostWindow()
         let originalContent = try XCTUnwrap(window.contentView)
         let originalFrame = window.frame
         let screenKey = NSDeviceDescriptionKey("NSScreenNumber")
@@ -35,6 +30,7 @@ final class MPVIntegrationTests: XCTestCase {
             XCTAssertEqual(configuration.videoTimingOffset, 0)
             XCTAssertEqual(configuration.coreCreationCount, 1)
             XCTAssertEqual(configuration.renderContextCreationCount, 1)
+            XCTAssertEqual(configuration.graphicsContextAlive, true)
             engine.setVolume(0)
             let first = PlaybackRequest(id: 1, url: try fixture("h264-sdr"))
             state.open(first)
@@ -42,6 +38,13 @@ final class MPVIntegrationTests: XCTestCase {
             try await waitUntil { (state.snapshot?.position ?? 0) > 0.3 }
             XCTAssertEqual(state.phase, .ready)
             XCTAssertEqual(try XCTUnwrap(state.snapshot?.duration), 15, accuracy: 0.1)
+            let audioTrack = try XCTUnwrap(state.snapshot?.tracks.first { $0.kind == .audio })
+            XCTAssertTrue(audioTrack.isSelected)
+            engine.setAudioTrack(id: audioTrack.id, requestID: first.id)
+            engine.setSpeed(1.5)
+            try await waitUntil { abs((state.snapshot?.speed ?? 1) - 1.5) < 0.01 }
+            engine.setSpeed(1)
+            try await waitUntil { abs((state.snapshot?.speed ?? 0) - 1) < 0.01 }
             engine.setPaused(PlaybackPauseRequest(requestID: first.id, commandID: 1, isPaused: true))
             try await waitUntil { state.snapshot?.isPaused == true && state.snapshot?.pauseCommandID == 1 }
             engine.seek(PlaybackSeekRequest(requestID: first.id, target: .absolute(5)))
@@ -71,6 +74,13 @@ final class MPVIntegrationTests: XCTestCase {
             state.open(invalid)
             engine.open(invalid)
             try await waitUntil { if case .failed = state.phase { return true }; return false }
+            guard case .failed(let playbackFailure) = state.phase else {
+                return XCTFail("Corrupt media should produce a playback failure")
+            }
+            XCTAssertEqual(playbackFailure.kind, .unsupportedOrDamaged,
+                           "A decoder/demux rejection should be presented as unsupported or damaged media")
+            XCTAssertFalse(playbackFailure.detail?.isEmpty ?? true)
+            XCTAssertLessThanOrEqual(playbackFailure.detail?.count ?? 0, 300)
             let recovered = PlaybackRequest(id: 4, url: try fixture("h264-sdr"))
             state.open(recovered)
             engine.open(recovered)
@@ -84,6 +94,7 @@ final class MPVIntegrationTests: XCTestCase {
             let closed = await engine.diagnostics()
             XCTAssertFalse(closed.coreAlive)
             XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
             XCTAssertEqual(closed.coreCreationCount, 1, "Replacing media and resizing must reuse the native core")
             XCTAssertEqual(closed.renderContextCreationCount, 1, "The surface owns one render context until shutdown")
             print("Native render test reused host window \(windowNumber), display \(originalScreen)")
@@ -106,10 +117,190 @@ final class MPVIntegrationTests: XCTestCase {
                 let closed = await engine.diagnostics()
                 XCTAssertFalse(closed.coreAlive)
                 XCTAssertFalse(closed.renderContextAlive)
+                XCTAssertEqual(closed.graphicsContextAlive, false)
             } catch {
                 await engine.shutdown()
                 throw error
             }
+        }
+    }
+
+    func testThumbnailCacheExtractsAFrameFromLocalVideo() async throws {
+        let source = try fixture("h264-sdr")
+        let original = try Data(contentsOf: source)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = MediaThumbnailCache(directory: directory, timeout: .seconds(10))
+
+        let thumbnail = try await cache.thumbnail(mediaFileID: 1, contentRevision: "fixture-v1",
+                                                  sourceURL: source)
+        let imageSource = try XCTUnwrap(CGImageSourceCreateWithURL(thumbnail as CFURL, nil))
+        let image = try XCTUnwrap(CGImageSourceCreateImageAtIndex(imageSource, 0, nil))
+
+        XCTAssertGreaterThan(image.width, 0)
+        XCTAssertGreaterThan(image.height, 0)
+        XCTAssertEqual(try Data(contentsOf: source), original, "Thumbnail extraction must preserve source media")
+    }
+
+    func testRealAudioTrackSelectionUsesCurrentTrackIDs() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(try fixture("mixed-audio-tracks"))
+            try await waitUntil {
+                player.canControlPlayback && player.state.snapshot?.tracks.filter { $0.kind == .audio }.count == 2
+            }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+
+            let audioTracks = try XCTUnwrap(player.state.snapshot?.tracks.filter { $0.kind == .audio })
+            let initialTrack = try XCTUnwrap(audioTracks.first(where: \.isSelected))
+            let alternateTrack = try XCTUnwrap(audioTracks.first { $0.id != initialTrack.id })
+            player.selectAudioTrack(alternateTrack.id)
+            try await waitUntil {
+                player.state.snapshot?.audioTrackID == alternateTrack.id
+                    && player.state.snapshot?.tracks.first { $0.id == alternateTrack.id }?.isSelected == true
+            }
+
+            player.selectAudioTrack(initialTrack.id)
+            try await waitUntil {
+                player.state.snapshot?.audioTrackID == initialTrack.id
+                    && player.state.snapshot?.tracks.first { $0.id == initialTrack.id }?.isSelected == true
+            }
+
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+    func testSavedAudioTrackAndPositionRestoreInNewNativeSession() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer {
+            window.contentView = originalContent
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let media = directory.appending(path: "恢复测试.mp4")
+        try FileManager.default.copyItem(at: fixture("mixed-audio-tracks"), to: media)
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+
+        let firstEngine = MPVPlaybackEngine()
+        let firstPlayer = PlayerModel(engine: firstEngine, historyStore: store)
+        window.contentView = firstEngine.videoView
+        do {
+            firstPlayer.prepare()
+            try await waitUntil { firstPlayer.isPrepared || firstPlayer.startupError != nil }
+            XCTAssertNil(firstPlayer.startupError)
+            firstPlayer.setVolume(0)
+            firstPlayer.open(media)
+            try await waitUntil {
+                firstPlayer.canControlPlayback
+                    && firstPlayer.state.snapshot?.tracks.filter { $0.kind == .audio }.count == 2
+            }
+            firstPlayer.togglePause()
+            try await waitUntil { firstPlayer.state.snapshot?.isPaused == true }
+
+            let initialTrack = try XCTUnwrap(firstPlayer.state.snapshot?.tracks.first {
+                $0.kind == .audio && $0.isSelected
+            })
+            let restoredTrack = try XCTUnwrap(firstPlayer.state.snapshot?.tracks.first {
+                $0.kind == .audio && $0.id != initialTrack.id
+            })
+            firstPlayer.selectAudioTrack(restoredTrack.id)
+            try await waitUntil {
+                firstPlayer.state.snapshot?.audioTrackID == restoredTrack.id
+                    && firstPlayer.state.snapshot?.tracks.first { $0.id == restoredTrack.id }?.isSelected == true
+            }
+            firstPlayer.seek(to: 1.2)
+            try await waitUntil { self.hasSettledPosition(firstPlayer, seconds: 1.2) }
+            XCTAssertTrue(firstPlayer.state.snapshot?.isPaused == true)
+            await firstPlayer.shutdown()
+
+            let saved = try await store.history(for: media)
+            XCTAssertEqual(saved?.audioTrackID, restoredTrack.id)
+            XCTAssertEqual(saved?.position ?? -1, 1.2, accuracy: 0.2)
+            let firstClosed = await firstEngine.diagnostics()
+            XCTAssertFalse(firstClosed.coreAlive)
+            XCTAssertFalse(firstClosed.renderContextAlive)
+            XCTAssertEqual(firstClosed.graphicsContextAlive, false)
+
+            let secondEngine = MPVPlaybackEngine()
+            let secondPlayer = PlayerModel(engine: secondEngine, historyStore: store)
+            window.contentView = secondEngine.videoView
+            do {
+                secondPlayer.prepare()
+                try await waitUntil { secondPlayer.isPrepared || secondPlayer.startupError != nil }
+                XCTAssertNil(secondPlayer.startupError)
+                secondPlayer.setVolume(0)
+                secondPlayer.open(media)
+                try await waitUntil {
+                    secondPlayer.state.snapshot?.audioTrackID == restoredTrack.id
+                        && secondPlayer.state.snapshot?.tracks.first { $0.id == restoredTrack.id }?.isSelected == true
+                        && self.hasSettledPosition(secondPlayer, seconds: 1.2)
+                }
+                await secondPlayer.shutdown()
+                let secondClosed = await secondEngine.diagnostics()
+                XCTAssertFalse(secondClosed.coreAlive)
+                XCTAssertFalse(secondClosed.renderContextAlive)
+                XCTAssertEqual(secondClosed.graphicsContextAlive, false)
+            } catch {
+                await secondPlayer.shutdown()
+                throw error
+            }
+        } catch {
+            await firstPlayer.shutdown()
+            throw error
+        }
+    }
+
+    func testMPEG2ProgramStreamPausedAbsoluteSeekSettlesAtRequestedPosition() async throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(
+            forResource: "50-mpeg2-pal-program-stream", withExtension: "mpg", subdirectory: "Fixtures"
+        ))
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        var positionBeforeSeek: Double?
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(url)
+            try await waitUntil { player.canSeek && (player.state.snapshot?.position ?? 0) > 0.5 }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            positionBeforeSeek = player.state.snapshot?.position
+            player.seek(to: 3)
+            try await waitUntil { self.hasSettledPosition(player, seconds: 3) }
+            XCTAssertTrue(player.state.snapshot?.isPaused == true)
+            XCTAssertEqual(player.state.snapshot?.position ?? -1, 3, accuracy: 0.2)
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            let snapshot = player.state.snapshot
+            let failure = "beforeSeek=\(positionBeforeSeek?.description ?? "nil"), position=\(snapshot?.position.description ?? "nil"), seeking=\(snapshot?.isSeeking.description ?? "nil"), paused=\(snapshot?.isPaused.description ?? "nil"). Error: \(error)"
+            await player.shutdown()
+            XCTFail("Paused MPEG-2 seek failed. Snapshot: \(failure)")
         }
     }
 
@@ -133,6 +324,10 @@ final class MPVIntegrationTests: XCTestCase {
             state.open(replacement)
             engine.open(replacement)
             try await waitUntil { if case .failed = state.phase { return true }; return false }
+            guard case .failed(let missingFailure) = state.phase else {
+                return XCTFail("Missing media should produce a playback failure")
+            }
+            XCTAssertNil(missingFailure.detail, "Unavailable media must not expose native path text")
             try await waitUntil {
                 let diagnostics = await engine.diagnostics()
                 return diagnostics.idle == true && diagnostics.videoOutputConfigured == false
@@ -147,18 +342,41 @@ final class MPVIntegrationTests: XCTestCase {
             XCTAssertEqual(quiet.snapshotCount, stopped.snapshotCount)
             XCTAssertEqual(quiet.videoFrameCount, stopped.videoFrameCount)
 
-            let recovered = PlaybackRequest(id: 3, url: media)
+            let unreadable = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString).appendingPathExtension("mp4")
+            try FileManager.default.copyItem(at: media, to: unreadable)
+            try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: unreadable.path)
+            defer {
+                try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: unreadable.path)
+                try? FileManager.default.removeItem(at: unreadable)
+            }
+            let deniedRequest = PlaybackRequest(id: 3, url: unreadable)
+            state.open(deniedRequest)
+            engine.open(deniedRequest)
+            try await waitUntil { if case .failed = state.phase { return true }; return false }
+            guard case .failed(let permissionFailure) = state.phase else {
+                return XCTFail("Unreadable media should produce a permission failure")
+            }
+            XCTAssertEqual(permissionFailure.kind, .permissionDenied)
+            XCTAssertNil(permissionFailure.detail, "Permission failures must not expose media paths")
+            try await waitUntil {
+                let diagnostics = await engine.diagnostics()
+                return diagnostics.idle == true && diagnostics.videoOutputConfigured == false
+            }
+
+            let recovered = PlaybackRequest(id: 4, url: media)
             state.open(recovered)
             engine.open(recovered)
-            try await waitUntil { state.snapshot?.requestID == 3 && (state.snapshot?.position ?? 0) > 0.2 }
+            try await waitUntil { state.snapshot?.requestID == 4 && (state.snapshot?.position ?? 0) > 0.2 }
             let active = await engine.diagnostics()
             XCTAssertEqual(active.coreCreationCount, 1)
             XCTAssertEqual(active.renderContextCreationCount, 1)
-            XCTAssertEqual(active.openCount, 2, "The unreachable request never reaches loadfile")
+            XCTAssertEqual(active.openCount, 2, "Unavailable and unreadable requests never reach loadfile")
             await engine.shutdown()
             let closed = await engine.diagnostics()
             XCTAssertFalse(closed.coreAlive)
             XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
         } catch {
             await engine.shutdown()
             throw error
@@ -228,8 +446,55 @@ final class MPVIntegrationTests: XCTestCase {
             let closed = await engine.diagnostics()
             XCTAssertFalse(closed.coreAlive)
             XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
         } catch {
             await player.shutdown()
+            throw error
+        }
+    }
+
+    func testSavedPlaybackStateRestoresPositionInNewNativeSession() async throws {
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let media = try fixture("h264-sdr")
+        let firstEngine = MPVPlaybackEngine()
+        let firstPlayer = PlayerModel(engine: firstEngine, historyStore: store)
+        do {
+            firstPlayer.prepare()
+            try await waitUntil { firstPlayer.isPrepared || firstPlayer.startupError != nil }
+            XCTAssertNil(firstPlayer.startupError)
+            firstPlayer.setVolume(0)
+            firstPlayer.open(media)
+            try await waitUntil { firstPlayer.canSeek }
+            firstPlayer.seek(to: 6)
+            try await waitUntil { self.hasSettledPosition(firstPlayer, seconds: 6) }
+            firstPlayer.togglePause()
+            try await waitUntil { firstPlayer.state.snapshot?.isPaused == true }
+            await firstPlayer.shutdown()
+
+            let saved = try await store.history(for: media)
+            XCTAssertEqual(saved?.position ?? -1, 6, accuracy: 0.3)
+
+            let secondEngine = MPVPlaybackEngine()
+            let secondPlayer = PlayerModel(engine: secondEngine, historyStore: store)
+            do {
+                secondPlayer.prepare()
+                try await waitUntil { secondPlayer.isPrepared || secondPlayer.startupError != nil }
+                XCTAssertNil(secondPlayer.startupError)
+                secondPlayer.setVolume(0)
+                secondPlayer.open(media)
+                try await waitUntil { self.hasSettledPosition(secondPlayer, seconds: 6) }
+                XCTAssertTrue(secondPlayer.canSeek)
+                await secondPlayer.shutdown()
+                let closed = await secondEngine.diagnostics()
+                XCTAssertFalse(closed.coreAlive)
+                XCTAssertFalse(closed.renderContextAlive)
+                XCTAssertEqual(closed.graphicsContextAlive, false)
+            } catch {
+                await secondPlayer.shutdown()
+                throw error
+            }
+        } catch {
+            await firstPlayer.shutdown()
             throw error
         }
     }
@@ -237,6 +502,17 @@ final class MPVIntegrationTests: XCTestCase {
     private func hasSettledPosition(_ player: PlayerModel, seconds: Double) -> Bool {
         guard let snapshot = player.state.snapshot else { return false }
         return !snapshot.isSeeking && abs(snapshot.position - seconds) < 0.15
+    }
+
+    private func applicationHostWindow() async throws -> NSWindow {
+        XCTAssertTrue(NSApplication.shared.isRunning, "Rendering tests require the Bomu application host")
+        try await waitUntil { NSApplication.shared.windows.contains { $0.canBecomeMain && $0.isVisible } }
+        let hostWindows = NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }
+        guard hostWindows.count == 1, let window = hostWindows.first else {
+            throw NSError(domain: "Bomu.IntegrationWindow", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Expected exactly one visible application host window"])
+        }
+        return window
     }
 
     private func fixture(_ name: String) throws -> URL {

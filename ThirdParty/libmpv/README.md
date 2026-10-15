@@ -32,3 +32,5 @@ python3 scripts/dependencies.py bootstrap
 已保留 mpv [`Copyright`](Copyright) 和 IINA [`IINA-LICENSE`](IINA-LICENSE) 原文。此次没有复制 IINA 应用代码。当前 FFmpeg 构建配置包含 `--enable-gpl`，这套二进制不能被当作未核验的宽松许可组件。
 
 Release 构建暂时由依赖脚本阻止。对外分发前，需要完成全部传递依赖的许可清单、对应源码与构建材料、应用许可兼容性确认，以及 Developer ID 签名、公证和干净机器安装验证。当前两个许可文件并不代替这项工作。
+
+逐项事实、缺失证据及公开来源见[运行库来源与公开发行许可门](../../docs/engineering/distribution/license-provenance.md)。

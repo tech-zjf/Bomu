@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "component": "libzstd.1.dylib",
+  "source": {
+    "url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz",
+    "version": "1.5.7",
+    "archiveSHA256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3",
+    "tag": "v1.5.7"
+  },
+  "sourceLicense": {
+    "file": "LICENSE",
+    "repository": "https://github.com/facebook/zstd",
+    "tag": "v1.5.7",
+    "gitBlobSHA1": "75800288cc243f164b9d130f125e2ffae28f8e39",
+    "localSnapshot": "ThirdParty/zstd-LICENSE.txt",
+    "spdx": "BSD-3-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-zstd.sh",
+      "gitBlobSHA1": "cd70b9031a76b546f3ed1567ff5a7a1048435b57",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-zstd.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad",
+    "canonicalArm64SHA256": "857791d42bdfec14fc722b40b40435df617291223cc94fcc89ab1eadee2e0ff2",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

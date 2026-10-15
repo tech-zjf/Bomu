@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "component": "libjpeg.62.dylib",
+  "source": {
+    "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz",
+    "version": "3.1.4.1",
+    "archiveSHA256": "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da"
+  },
+  "sourceLicense": {
+    "expression": "LicenseRef-IJG",
+    "copyright": "Independent JPEG Group; D. R. Commander; libjpeg-turbo contributors",
+    "noticeFile": "ThirdParty/libjpeg-turbo-NOTICE.txt",
+    "noticeSHA256": "2478ede1a32be53e0b9e577be7b12c0b3f6b817490372bfd248733094aaa7610"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "buildScript": {
+      "path": "buildscripts/build-jpeg-turbo.sh",
+      "gitBlobSHA1": "3cded44d22e3010ec1cf9c0412f6821fe61241d0",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-jpeg-turbo.sh"
+    },
+    "sharedBuildScript": {
+      "path": "buildscripts/common.sh",
+      "gitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-common.sh"
+    },
+    "patchesApplied": [],
+    "deploymentTarget": "11.0 (upstream deps-buildscripts common.sh)",
+    "architecture": "arm64 slice from the universal dependency build",
+    "buildOptions": [
+      "-DENABLE_SHARED=ON",
+      "-DENABLE_STATIC=OFF",
+      "-DWITH_TURBOJPEG=OFF",
+      "-DCMAKE_INSTALL_DEFAULT_LIBDIR=lib"
+    ],
+    "dependencies": [],
+    "mesonOrCMakeCommonOptions": [
+      "release",
+      "shared-library",
+      "arm64",
+      "macOS deployment target 11.0"
+    ]
+  },
+  "binaryComparison": {
+    "workspaceBinarySHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
+    "fixedReleaseArtifactCanonicalArm64SHA256": "a84c46e6c1f22571b3bc15f6643ee4f7a009a53e4fd02bcbdc9102d09fed2827",
+    "canonicalContentMatch": true,
+    "versionedIINAEndpointArm64Match": false,
+    "comparisonReport": "docs/engineering/distribution/iina-runtime-artifact-adoption-2026-10-15.json",
+    "verificationStatus": "verified",
+    "reason": "The locked runtime file is copied byte-for-byte from the SHA-256-verified IINA deps-buildscripts Release ZIP. The release tag resolves to the recorded source commit, and the successful workflow run produced the release asset.",
+    "workspaceCanonicalArm64SHA256": "a84c46e6c1f22571b3bc15f6643ee4f7a009a53e4fd02bcbdc9102d09fed2827",
+    "fixedReleaseArtifactSHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
+    "previousDMGWorkspaceBinarySHA256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad"
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true,
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "fileSHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659"
+  }
+}

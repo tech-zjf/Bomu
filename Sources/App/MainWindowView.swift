@@ -1,0 +1,221 @@
+import AppKit
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct MainWindowView: View {
+    let player: PlayerModel
+    let library: MediaLibraryModel
+    let videoView: NSView
+    let nowPlaying: NowPlayingController
+
+    @State private var isPlayerVisible = false
+    @State private var isDropTargeted = false
+    @State private var isReturningToLibrary = false
+    @State private var libraryNeedsRefresh = false
+    @State private var dropResolutionTask: Task<Void, Never>?
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            MediaLibraryView(
+                model: library,
+                player: player,
+                isVisible: !isPlayerVisible,
+                onPlay: open,
+                onContinue: continuePlayback,
+                onPlayFromBeginning: playFromBeginning,
+                onShowPlayer: { isPlayerVisible = true },
+                showSettings: showSettings
+            )
+            .opacity(isPlayerVisible ? 0 : 1)
+            .allowsHitTesting(!isPlayerVisible)
+            .accessibilityHidden(isPlayerVisible)
+
+            PlayerScreen(
+                player: player,
+                videoView: videoView,
+                nowPlaying: nowPlaying,
+                onReturnToLibrary: returnToLibrary
+            )
+                .opacity(isPlayerVisible ? 1 : 0)
+                .allowsHitTesting(isPlayerVisible)
+                .accessibilityHidden(!isPlayerVisible)
+        }
+        .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isDropTargeted) { providers in
+            receiveDrop(providers)
+            return !providers.isEmpty
+        }
+        .overlay {
+            if isDropTargeted {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.dropTargetOverlay)
+                    .stroke(isPlayerVisible ? .white : AppTheme.textPrimary,
+                            style: StrokeStyle(lineWidth: 3, dash: [10, 7]))
+                    .padding(12)
+                    .overlay {
+                        Text("open.dropHere")
+                            .font(.headline)
+                            .foregroundStyle(isPlayerVisible ? .white : AppTheme.textPrimary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(
+                                isPlayerVisible ? Color.black.opacity(0.72) : Color.white.opacity(0.94),
+                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface)
+                            )
+                    }
+                    .allowsHitTesting(false)
+            }
+        }
+        .preferredColorScheme(.light)
+        .onChange(of: player.state.request?.id) { _, requestID in
+            if requestID != nil {
+                libraryNeedsRefresh = true
+                isPlayerVisible = true
+            }
+        }
+        .onChange(of: player.state.phase) { _, phase in
+            if phase == .idle, isPlayerVisible { returnToLibrary() }
+        }
+        .onChange(of: player.startupError) { _, error in
+            if error != nil { isPlayerVisible = true }
+        }
+        .onChange(of: isPlayerVisible) { _, visible in
+            if visible { nowPlaying.update() }
+        }
+        .onAppear {
+            if player.startupError != nil { isPlayerVisible = true }
+        }
+        .onDisappear {
+            dropResolutionTask?.cancel()
+            dropResolutionTask = nil
+        }
+        .onOpenURL { url in open(url) }
+        .alert(player.inputError == nil ? "persistence.errorTitle" : "media.importFailedTitle",
+               isPresented: Binding(
+                get: { player.persistenceError != nil || player.inputError != nil },
+                set: {
+                    if !$0 {
+                        player.dismissPersistenceError()
+                        player.dismissInputError()
+                    }
+                }
+               )) {
+            Button("common.ok") {
+                player.dismissPersistenceError()
+                player.dismissInputError()
+            }
+        } message: {
+            Text(player.inputError ?? player.persistenceError ?? "")
+        }
+    }
+
+    private func open(_ item: MediaLibraryItem) {
+        guard let url = library.fileURL(for: item) else { return }
+        player.open(url)
+        isPlayerVisible = true
+    }
+
+    private func continuePlayback(_ item: MediaLibraryItem) {
+        guard let url = library.fileURL(for: item) else { return }
+        player.continuePlayback(url)
+        isPlayerVisible = true
+    }
+
+    private func playFromBeginning(_ item: MediaLibraryItem) {
+        guard let url = library.fileURL(for: item) else { return }
+        player.playFromBeginning(url)
+        isPlayerVisible = true
+    }
+
+    private func returnToLibrary() {
+        guard !isReturningToLibrary else { return }
+        isReturningToLibrary = true
+        let requestID = player.state.request?.id
+        Task { @MainActor in
+            var didRefresh = !libraryNeedsRefresh
+            if libraryNeedsRefresh { didRefresh = await library.refresh() }
+            guard player.state.request?.id == requestID else {
+                isReturningToLibrary = false
+                return
+            }
+            if didRefresh { libraryNeedsRefresh = false }
+            nowPlaying.update()
+            isPlayerVisible = false
+            isReturningToLibrary = false
+        }
+    }
+
+    private func open(_ url: URL) {
+        player.open(url)
+        isPlayerVisible = true
+    }
+
+    private func showSettings() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    }
+
+    private func receiveDrop(_ providers: [NSItemProvider]) {
+        guard let intent = player.beginInputResolution() else { return }
+        dropResolutionTask?.cancel()
+        dropResolutionTask = Task { @MainActor in
+            var urls: [URL] = []
+            for provider in providers {
+                guard !Task.isCancelled else { return }
+                if let url = await Self.fileURL(from: provider) { urls.append(url) }
+            }
+            guard !Task.isCancelled else { return }
+            player.open(urls, for: intent)
+            dropResolutionTask = nil
+        }
+    }
+
+    private static func fileURL(from provider: NSItemProvider) async -> URL? {
+        await FileURLProviderRequest().load(from: provider)
+    }
+}
+
+/// Coordinates NSItemProvider's callback and Progress with Swift task cancellation.
+@MainActor
+private final class FileURLProviderRequest {
+    private var continuation: CheckedContinuation<URL?, Never>?
+    private var progress: Progress?
+    private var isFinished = false
+
+    func load(from provider: NSItemProvider) async -> URL? {
+        await withTaskCancellationHandler {
+            await withCheckedContinuation { (continuation: CheckedContinuation<URL?, Never>) in
+                guard !isFinished else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                self.continuation = continuation
+                progress = provider.loadObject(ofClass: NSURL.self) { [weak self] item, _ in
+                    let url = (item as? NSURL).map { $0 as URL }
+                    Task { @MainActor [weak self] in
+                        self?.finish(url?.isFileURL == true ? url : nil)
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in self?.cancel() }
+        }
+    }
+
+    private func finish(_ url: URL?) {
+        guard !isFinished else { return }
+        isFinished = true
+        let continuation = self.continuation
+        self.continuation = nil
+        progress = nil
+        continuation?.resume(returning: url)
+    }
+
+    private func cancel() {
+        guard !isFinished else { return }
+        isFinished = true
+        let progress = self.progress
+        self.progress = nil
+        let continuation = self.continuation
+        self.continuation = nil
+        progress?.cancel()
+        continuation?.resume(returning: nil)
+    }
+}

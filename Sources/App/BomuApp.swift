@@ -6,9 +6,8 @@ struct BomuApp: App {
 
     var body: some Scene {
         Window(Brand.displayName, id: "main") {
-            PlayerScreen(player: lifecycle.player, videoView: lifecycle.engine.videoView)
-                .preferredColorScheme(.light)
-                .onOpenURL { lifecycle.player.open($0) }
+            MainWindowView(player: lifecycle.player, library: lifecycle.mediaLibrary,
+                           videoView: lifecycle.engine.videoView, nowPlaying: lifecycle.nowPlaying)
         }
         .defaultSize(width: 1100, height: 720)
         .windowResizability(.contentMinSize)
@@ -16,6 +15,7 @@ struct BomuApp: App {
             CommandGroup(replacing: .newItem) {
                 Button("open.video") { OpenMediaPanel.present(for: lifecycle.player) }
                     .keyboardShortcut("o")
+                    .disabled(!lifecycle.player.canOpenMedia)
             }
             CommandMenu("menu.playback") {
                 Button("player.togglePause") { lifecycle.player.togglePause() }
@@ -29,6 +29,11 @@ struct BomuApp: App {
                     .disabled(!lifecycle.player.canSeek)
                 Button("player.stop") { lifecycle.player.stop() }
             }
+        }
+        Settings {
+            SettingsView(player: lifecycle.player, preferences: lifecycle.preferences,
+                         library: lifecycle.mediaLibrary)
+                .preferredColorScheme(.light)
         }
     }
 }

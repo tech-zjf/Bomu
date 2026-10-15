@@ -5,6 +5,7 @@ import Foundation
 struct PlaybackDiagnostics: Codable, Sendable {
     let coreAlive: Bool
     let renderContextAlive: Bool
+    let graphicsContextAlive: Bool?
     let coreCreationCount: UInt64
     let renderContextCreationCount: UInt64
     let idle: Bool?
@@ -26,10 +27,12 @@ struct PlaybackDiagnostics: Codable, Sendable {
     let videoSyncMode: String?
     let videoTimingOffset: Double?
     let frameTiming: FrameSubmissionTiming?
+    let gpuRenderTiming: GPURenderTiming
 
     init(_ native: BMPlaybackDiagnostics) {
         coreAlive = native.coreAlive
         renderContextAlive = native.renderContextAlive
+        graphicsContextAlive = native.graphicsContextAlive
         coreCreationCount = native.coreCreationCount
         renderContextCreationCount = native.renderContextCreationCount
         idle = native.idle?.boolValue
@@ -50,6 +53,14 @@ struct PlaybackDiagnostics: Codable, Sendable {
         firstVideoFrameUptime = native.firstVideoFrameUptime?.doubleValue
         videoSyncMode = native.videoSyncMode
         videoTimingOffset = native.videoTimingOffset?.doubleValue
+        gpuRenderTiming = GPURenderTiming(
+            availability: GPURenderTimingAvailability(rawValue: native.gpuRenderTimingAvailability) ?? .unknown,
+            mode: GPURenderTimingMode(rawValue: native.gpuRenderTimingMode) ?? .unknown,
+            sampleCount: native.gpuRenderTimingSampleCount,
+            intervalNanoseconds: native.gpuRenderIntervalNanoseconds,
+            pendingQueryCount: native.gpuRenderPendingQueryCount,
+            droppedSampleCount: native.gpuRenderDroppedSampleCount
+        )
         if native.timedFrameCount > 0 {
             frameTiming = FrameSubmissionTiming(sampleCount: native.timedFrameCount,
                 earlyFrameCount: native.earlySubmissionCount,
@@ -69,4 +80,32 @@ struct FrameSubmissionTiming: Codable, Sendable {
     let averageErrorMilliseconds: Double
     let minimumErrorMilliseconds: Double
     let maximumErrorMilliseconds: Double
+}
+
+/// OpenGL render intervals around mpv drawing; excludes hardware decoding and display scanout.
+enum GPURenderTimingAvailability: String, Codable, Sendable {
+    case disabled
+    case extensionUnavailable = "extension-unavailable"
+    case counterUnavailable = "counter-unavailable"
+    case queryAllocationFailed = "query-allocation-failed"
+    case supported
+    case unknown
+}
+
+enum GPURenderTimingMode: String, Codable, Sendable {
+    case disabled
+    case timestamp
+    case elapsed
+    case unknown
+}
+
+struct GPURenderTiming: Codable, Sendable {
+    let availability: GPURenderTimingAvailability
+    let mode: GPURenderTimingMode
+    let sampleCount: UInt64
+    let intervalNanoseconds: UInt64
+    let pendingQueryCount: UInt64
+    let droppedSampleCount: UInt64
+
+    var supported: Bool { availability == .supported }
 }

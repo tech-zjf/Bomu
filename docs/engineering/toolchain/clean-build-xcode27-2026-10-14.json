@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-14",
+  "purpose": "A05 clean Debug build from a newly created DerivedData directory",
+  "toolchain": {
+    "xcode": "27.0",
+    "xcodeBuild": "27A266a",
+    "swift": "6.4",
+    "swiftBuild": "swiftlang-6.4.0.34.1 clang-2100.3.34.1",
+    "macOSSDK": "27.0 (26A425)",
+    "deploymentTarget": "14.0",
+    "architecture": "arm64"
+  },
+  "inputs": {
+    "dependenciesLock": "Config/Dependencies.lock.json",
+    "dependenciesLockSHA256": "dbf56ecfe1865a7b27c37601720b4b5f51353d26e357371dc1a276f14277b2f4",
+    "packageResolved": "Bomu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+    "packageResolvedSHA256": "beddec46654b73c62a71846a5acd4dfd72810ff8531d90cc9a9d4ba9429c8f97",
+    "grdbVersion": "7.11.1",
+    "grdbRevision": "b83108d10f42680d78f23fe4d4d80fc88dab3212"
+  },
+  "build": {
+    "command": "xcodebuild -project /Users/zhengjunfeng/Desktop/temp/Bomu/Bomu.xcodeproj -scheme Bomu -configuration Debug -destination platform=macOS,arch=arm64 -derivedDataPath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/DerivedData-a05-clean-20261014 -clonedSourcePackagesDirPath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/SourcePackages -packageCachePath /Users/zhengjunfeng/Desktop/temp/Bomu/.build/SwiftPMCache CODE_SIGNING_ALLOWED=NO build -quiet",
+    "freshDerivedDataDirectory": ".build/DerivedData-a05-clean-20261014",
+    "result": "passed",
+    "exitCode": 0,
+    "packageResolution": "GRDB 7.11.1 resolved from the pinned checkout; runtime dependency lock check passed before build"
+  },
+  "product": {
+    "path": ".build/DerivedData-a05-clean-20261014/Build/Products/Debug/Bomu.app/Contents/MacOS/Bomu",
+    "sha256": "534b99cbd73a84f0b280ac2fb9a5e20c9eebccb3a75ac026497f4ee6916cfe42"
+  },
+  "scope": "This proves a clean Xcode Debug build from the current pinned inputs. It does not prove release signing/notarization, app-host tests, visual playback, or that the ignored local package cache can be reconstructed on an offline machine."
+}

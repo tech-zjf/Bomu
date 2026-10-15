@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "component": "libfreetype.6.dylib",
+  "source": {
+    "url": "https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz",
+    "version": "2.14.3",
+    "archiveSHA256": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f",
+    "archiveEntry": "freetype-2.14.3/docs/FTL.TXT"
+  },
+  "sourceLicense": {
+    "file": "docs/FTL.TXT",
+    "archiveEntrySHA256": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+    "localSnapshot": "ThirdParty/freetype-FTL.txt",
+    "spdx": "FTL"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-freetype.sh",
+      "gitBlobSHA1": "c756607ad23c278536c3aabdeb838dae76ab591e",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-freetype.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "externalDependencies": [
+      "zlib"
+    ],
+    "configureFlags": [
+      "--enable-shared",
+      "--disable-static",
+      "--without-harfbuzz",
+      "--without-png",
+      "--without-brotli",
+      "--without-bzip2",
+      "--with-zlib"
+    ],
+    "licenseNotes": [
+      "The source offers the FreeType License or GPL; this distribution selects the permissive FreeType License."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+    "canonicalArm64SHA256": "9f8a0baf3191195616f7929927a509bf93ba9e3e2f0e2950503f5e35f51747eb",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

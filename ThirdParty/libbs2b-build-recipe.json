@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "component": "libbs2b.0.dylib",
+  "source": {
+    "url": "https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz",
+    "version": "3.1.0",
+    "archiveSHA256": "6aaafd81aae3898ee40148dd1349aab348db9bfae9767d0e66e0b07ddd4b2528",
+    "archiveEntry": "libbs2b-3.1.0/COPYING"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "archiveSHA256": "6aaafd81aae3898ee40148dd1349aab348db9bfae9767d0e66e0b07ddd4b2528",
+    "localSnapshot": "ThirdParty/libbs2b-COPYING.txt",
+    "snapshotSHA256": "dfd5a8d7dc501447bf0d58b0fc9ef85ab9e713963d7dcf459897adefa4c710ca",
+    "spdx": "MIT"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libbs2b.sh",
+      "gitBlobSHA1": "d05db0fe1b0babb2f6fefa955c2c571bc1f973cc",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libbs2b.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "sourceTransformations": [
+      {
+        "file": "configure.ac",
+        "operation": "remove dist-lzma Automake option before autoreconf"
+      },
+      {
+        "file": "configure.ac",
+        "operation": "remove optional pkg-config sndfile dependency check"
+      },
+      {
+        "file": "src/Makefile.am",
+        "operation": "remove bin_PROGRAMS section; IINA builds the library only"
+      },
+      {
+        "operation": "autoreconf --force --verbose --install"
+      }
+    ],
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+    "canonicalArm64SHA256": "75ab15eb48bd31a2c1271d5ca9d90b799d3f08f1b9126bfa6f5cbc87c99d271c",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

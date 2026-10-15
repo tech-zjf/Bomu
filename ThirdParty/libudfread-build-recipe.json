@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "component": "libudfread.3.dylib",
+  "source": {
+    "url": "https://download.videolan.org/videolan/libudfread/libudfread-1.2.0.tar.xz",
+    "version": "1.2.0",
+    "archiveSHA256": "bb477cbd4cfbfc7787d9d05b71ee5e70430f5cfebf1297497f7e83547958050f",
+    "tag": "1.2.0"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "sourceArchiveSHA256": "bb477cbd4cfbfc7787d9d05b71ee5e70430f5cfebf1297497f7e83547958050f",
+    "localSnapshot": "ThirdParty/libudfread-COPYING.txt",
+    "snapshotSHA256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+    "gitBlobSHA1": "4362b49151d7b34ef83b3067a8f9c9f877d72a0e",
+    "spdx": "LGPL-2.1-or-later"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libudfread.sh",
+      "gitBlobSHA1": "2ebf4da72afdb78ea5c554fb0d129b1d91377524",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libudfread.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "mesonOptions": [
+      "-Denable_examples=false"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+    "canonicalArm64SHA256": "880e646a64b5ab99f6ead05961ff46f3551bc95fa5097cd6244e58c9fac0712d",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

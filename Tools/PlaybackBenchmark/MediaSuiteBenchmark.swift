@@ -28,9 +28,15 @@ struct MediaSuiteManifest: Decodable {
     static func read(from directory: URL) throws -> Self {
         let value = try JSONDecoder().decode(Self.self,
             from: Data(contentsOf: directory.appendingPathComponent("manifest.json")))
-        guard value.schemaVersion == 2, value.suite == "bomu-a04", value.samples.count == 30,
+        let expectedCount: Int
+        switch value.suite {
+        case "bomu-a04": expectedCount = 30
+        case "bomu-b11": expectedCount = 60
+        default: throw BenchmarkError.failed("Unsupported media suite: \(value.suite)")
+        }
+        guard value.schemaVersion == 2, value.samples.count == expectedCount,
               Set(value.samples.map(\.file)).count == value.samples.count else {
-            throw BenchmarkError.failed("Unsupported or incomplete A04 media manifest")
+            throw BenchmarkError.failed("Unsupported or incomplete \(value.suite) media manifest")
         }
         for sample in value.samples {
             guard !sample.file.isEmpty, sample.file != ".", sample.file != "..",
@@ -71,10 +77,14 @@ struct MediaSampleMeasurement: Encodable {
     var passed = false
     var failure: String?
     var observedRejection: String?
+    var videoSurfaceAttachedToWindow: Bool?
     var before: PlaybackDiagnostics?
     var playing: PlaybackDiagnostics?
     var seekTargetSeconds: Double?
     var pausedSeekPositionSeconds: Double?
+    var seekPositionAtFailureSeconds: Double?
+    var seekWasPausedAtFailure: Bool?
+    var seekWasInProgressAtFailure: Bool?
     var resumedPositionSeconds: Double?
     var finalPlayback: PlaybackDiagnostics?
 }
@@ -99,7 +109,9 @@ enum MediaSuiteBenchmark {
                     if case .failed = player.state.phase { return true }
                     return false
                 }
-                if case .failed(let message) = player.state.phase { result.observedRejection = message }
+                if case .failed(let failure) = player.state.phase {
+                    result.observedRejection = "\(failure.title) \(failure.explanation)"
+                }
                 try await waitUntil("native idle after rejected media") {
                     let value = await engine.diagnostics()
                     return value.idle == true && value.videoOutputConfigured == false
@@ -107,7 +119,9 @@ enum MediaSuiteBenchmark {
                 result.playing = await engine.diagnostics()
             case .play:
                 try await waitUntil("media ready") {
-                    if case .failed(let message) = player.state.phase { throw BenchmarkError.failed(message) }
+                    if case .failed(let failure) = player.state.phase {
+                        throw BenchmarkError.failed("\(failure.title) \(failure.explanation)")
+                    }
                     return player.canControlPlayback && (player.state.snapshot?.position ?? 0) > 0.5
                 }
                 let playing = await engine.diagnostics()
@@ -145,17 +159,34 @@ enum MediaSuiteBenchmark {
                 }
             }
             let after = await engine.diagnostics()
-            guard after.coreAlive, after.renderContextAlive, after.coreCreationCount == 1,
+            let videoSurfaceAttached = engine.videoView.window === window
+            result.videoSurfaceAttachedToWindow = videoSurfaceAttached
+            let requiresVideoSurface = sample.expected.outcome == .play
+            let windowIsVisible = window.occlusionState.contains(.visible)
+            let windowIsOnExpectedDisplay: Bool
+            if let currentScreen = window.screen {
+                windowIsOnExpectedDisplay = try DisplayMeasurement.id(of: currentScreen) == result.displayID
+            } else {
+                windowIsOnExpectedDisplay = false
+            }
+            guard after.coreAlive, after.renderContextAlive, after.graphicsContextAlive == true,
+                  after.coreCreationCount == 1,
                   after.renderContextCreationCount == 1, after.openCount == before.openCount + 1,
-                  engine.videoView.window === window, window.occlusionState.contains(.visible),
-                  let currentScreen = window.screen,
-                  try DisplayMeasurement.id(of: currentScreen) == result.displayID else {
-                throw BenchmarkError.failed("Media check lost its visible window or replaced its native session")
+                  (!requiresVideoSurface || videoSurfaceAttached), windowIsVisible,
+                  windowIsOnExpectedDisplay else {
+                throw BenchmarkError.failed("Media check lost its visible window or replaced its native session " +
+                    "(surfaceAttached=\(videoSurfaceAttached), visible=\(windowIsVisible), " +
+                    "expectedDisplay=\(windowIsOnExpectedDisplay))")
             }
             result.passed = true
         } catch {
             if error is CancellationError { throw error }
             result.failure = String(describing: error)
+            if result.seekTargetSeconds != nil, let snapshot = player.state.snapshot {
+                result.seekPositionAtFailureSeconds = snapshot.position
+                result.seekWasPausedAtFailure = snapshot.isPaused
+                result.seekWasInProgressAtFailure = snapshot.isSeeking
+            }
         }
         result.finalPlayback = await engine.diagnostics()
         result.elapsedSeconds = CACurrentMediaTime() - began

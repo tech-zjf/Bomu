@@ -93,6 +93,8 @@ sequenceDiagram
 - `loadfile` 成功只表示接受命令；`FILE_LOADED` 才进入 ready，首个快照之前控制仍禁用。
 - 用户文件保持原位，仅由 libmpv 只读打开。损坏文件恢复走同一 `open` 链路。
 
+引擎初始化错误与文件加载错误是两种失败。前者将 `PlayerModel.StartupState` 固定为 `.failed`，保留初始化错误，拒绝后续打开意图；启动页显示退出重开动作并禁用 ⌘O。后者属于当前 `PlaybackRequest`，通过 `PlaybackState.Phase.failed` 提供重新选择入口。这样用户不会把内核不可用误认为某个文件有问题，也不会点击无效的打开操作。
+
 ## 视频绘制、暂停和定位
 
 视频 callback 独立于 SwiftUI 刷新；控制命令通过控制队列执行，快照确认后再更新界面。
@@ -165,6 +167,8 @@ sequenceDiagram
     Session->>Session: 取消事件 source 和采样 timer
     Session->>Render: shutdownWithCompletion
     Render->>MPV: 解除 render callback；free render context
+    Render->>Render: 释放自有 CGL context 与 pixel format
+    Render->>Render: 主线程分离 CAOpenGLLayer，释放其保留引用
     Render-->>Session: 完成
     Session->>MPV: terminate_destroy(handle)
     Session-->>Model: 完成
@@ -203,7 +207,7 @@ sequenceDiagram
         OS-->>Test: 进程统计
     end
     Test->>Engine: await shutdown()
-    Test->>Engine: 确认 core 和 render context 已释放
+    Test->>Engine: 确认 core、render context 和 CGL context 已释放
     Test-->>Script: JSON 与进程日志；成功或失败
     Script->>Script: 仅对完整结果生成汇总
 ```
@@ -258,7 +262,7 @@ sequenceDiagram
     Test->>Model: stop；等待原生 idle
     Test->>Engine: 5 秒内新帧、绘制和快照应不增长
     Test->>Model: await shutdown
-    Test->>Engine: 验证 core / render context 已释放
+    Test->>Engine: 验证 core / render context / CGL context 已释放
     Test-->>Script: 完成报告；异常则保存失败及释放状态
     Script->>Script: 仅为完成报告生成 summary.md
 ```

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "component": "libvorbisenc.2.dylib",
+  "source": {
+    "url": "https://ftp.osuosl.org/pub/xiph/releases/vorbis/libvorbis-1.3.7.tar.xz",
+    "version": "1.3.7",
+    "archiveSHA256": "b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b",
+    "tag": "v1.3.7"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/xiph/vorbis",
+    "tag": "v1.3.7",
+    "gitBlobSHA1": "fb456a87bdfafe2cab7de982e8ce11204933ec5c",
+    "localSnapshot": "ThirdParty/libvorbis-COPYING.txt",
+    "spdx": "BSD-3-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libvorbis.sh",
+      "gitBlobSHA1": "6e699399c23c4fe80059c9d23da333830f603f89",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libvorbis.sh",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libvorbis.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "configureFlags": [
+      "--enable-shared",
+      "--disable-static"
+    ],
+    "sourceTransformations": [
+      "Remove -force_cpusubtype_ALL from generated Makefiles before building on Darwin; source archive itself is unchanged."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true,
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "fileSHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0"
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0",
+    "matchesVersionedIINAEndpoint": false,
+    "releaseArtifactCanonicalArm64SHA256": "9d041b2d035195249c0f80f6a22d9827fcbef03d81f9f63e97c1b572f0e1d88a",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-runtime-artifact-adoption-2026-10-15.json",
+    "previousDMGWorkspaceBinarySHA256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+    "previousVersionedIINACanonicalArm64SHA256": "e1e83af0836a156689c8644ee0a3fc104e974fc2393387b4d79ddab05d70d38d",
+    "releaseArtifactRawSHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0"
+  },
+  "verificationStatus": {
+    "status": "verified",
+    "reason": "The locked runtime file is copied byte-for-byte from the SHA-256-verified IINA deps-buildscripts Release ZIP. The release tag resolves to the recorded source commit, and the successful workflow run produced the release asset."
+  }
+}

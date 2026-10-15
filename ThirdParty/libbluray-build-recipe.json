@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "component": "libbluray.3.dylib",
+  "source": {
+    "url": "https://download.videolan.org/videolan/libbluray/1.4.1/libbluray-1.4.1.tar.xz",
+    "version": "1.4.1",
+    "archiveSHA256": "76b5dc40097f28dca4ebb009c98ed51321b2927453f75cc72cf74acd09b9f449",
+    "archiveEntry": "libbluray-1.4.1/COPYING"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "archiveSHA256": "76b5dc40097f28dca4ebb009c98ed51321b2927453f75cc72cf74acd09b9f449",
+    "localSnapshot": "ThirdParty/libbluray-COPYING.txt",
+    "snapshotSHA256": "b3aa400aca6d2ba1f0bd03bd98d03d1fe7489a3bbb26969d72016360af8a5c9d",
+    "spdx": "LGPL-2.1-or-later"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libbluray.sh",
+      "gitBlobSHA1": "c511c6c92c85705f37caa81995229a24c36755d3",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libbluray.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "mesonOptions": [
+      "-Dbdj_jar=disabled",
+      "-Denable_tools=false",
+      "-Denable_examples=false",
+      "-Denable_devtools=false",
+      "-Dlibxml2=disabled"
+    ],
+    "externalDependencies": [
+      "libudfread >= 1.2.0"
+    ],
+    "bundledUdfreadBuild": "not used; Meson resolves the separately pinned IINA dependency"
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+    "canonicalArm64SHA256": "ec4d16074cd3536119137f87c9241aceabcbdc103b17ff98c3cbe60594304a1b",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

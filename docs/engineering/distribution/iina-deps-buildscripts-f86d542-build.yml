@@ -1,0 +1,199 @@
+name: Build IINA Dependencies
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'versions.env'
+      - 'build.sh'
+      - 'buildscripts/**'
+      - 'patches/**'
+      - 'extra/**'
+      - 'fix-install-names.sh'
+      - 'lipo.sh'
+      - '.github/workflows/build.yml'
+
+env:
+  HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
+
+permissions:
+  contents: read
+  actions: write  # lets the package job delete the intermediate deps-arm64/deps-x86_64 artifacts
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build on Apple Silicon (arm64)
+  # ---------------------------------------------------------------------------
+  build-arm64:
+    name: Build (arm64)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build tools
+        run: |
+          brew install nasm meson autoconf automake libtool cmake
+
+      - name: Build dependencies
+        run: bash build.sh arm64
+
+      - name: Verify arm64 libraries
+        run: |
+          shopt -s nullglob
+          dylibs=(install/arm64/lib/*.dylib)
+          if [ ${#dylibs[@]} -eq 0 ]; then
+            echo "ERROR: No dylibs found in install/arm64/lib/" && exit 1
+          fi
+          for f in "${dylibs[@]}"; do
+            [ -L "$f" ] && continue
+            echo "--- $(basename "$f") ---"
+            lipo -info "$f"
+            lipo -info "$f" | grep -q "arm64" || { echo "FAIL: missing arm64"; exit 1; }
+            vtool -show-build "$f"
+            vtool -show-build "$f" | grep -q "minos 11.0" || { echo "FAIL: wrong minos in $(basename "$f")"; exit 1; }
+          done
+
+      - name: Stage arm64 artifacts
+        run: |
+          shopt -s nullglob
+          mkdir -p artifacts/lib
+          for f in install/arm64/lib/*.dylib; do
+            [ -L "$f" ] && continue
+            cp "$f" artifacts/lib/
+          done
+
+      - name: Upload arm64 artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: deps-arm64
+          path: artifacts/
+
+  # ---------------------------------------------------------------------------
+  # Build on Intel (x86_64)
+  # ---------------------------------------------------------------------------
+  build-x86_64:
+    name: Build (x86_64)
+    runs-on: macos-26-intel
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build tools
+        run: |
+          brew install nasm meson autoconf automake libtool cmake
+
+      - name: Build dependencies
+        run: bash build.sh x86_64
+
+      - name: Verify x86_64 libraries
+        run: |
+          shopt -s nullglob
+          dylibs=(install/x86_64/lib/*.dylib)
+          if [ ${#dylibs[@]} -eq 0 ]; then
+            echo "ERROR: No dylibs found in install/x86_64/lib/" && exit 1
+          fi
+          for f in "${dylibs[@]}"; do
+            [ -L "$f" ] && continue
+            echo "--- $(basename "$f") ---"
+            lipo -info "$f"
+            lipo -info "$f" | grep -q "x86_64" || { echo "FAIL: missing x86_64"; exit 1; }
+            vtool -show-build "$f"
+            vtool -show-build "$f" | grep -q "minos 11.0" || { echo "FAIL: wrong minos in $(basename "$f")"; exit 1; }
+          done
+
+      - name: Stage x86_64 artifacts
+        run: |
+          shopt -s nullglob
+          mkdir -p artifacts/lib
+          for f in install/x86_64/lib/*.dylib; do
+            [ -L "$f" ] && continue
+            cp "$f" artifacts/lib/
+          done
+
+      - name: Upload x86_64 artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: deps-x86_64
+          path: artifacts/
+
+  # ---------------------------------------------------------------------------
+  # Fix install names, lipo into a universal build, and package all 3 variants
+  # ---------------------------------------------------------------------------
+  package:
+    name: Package (arm64 / x86_64 / fat)
+    needs: [build-arm64, build-x86_64]
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download arm64 artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: deps-arm64
+          path: install/arm64/
+
+      - name: Download x86_64 artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: deps-x86_64
+          path: install/x86_64/
+
+      - name: Fix install names
+        run: bash fix-install-names.sh all
+
+      - name: Create universal binaries
+        run: bash lipo.sh
+
+      - name: Verify per-arch and universal binaries
+        run: |
+          shopt -s nullglob
+          check_dir() {
+            local dir="$1"; shift
+            local want_archs=("$@")
+            local dylibs=("$dir"/*.dylib)
+            if [ ${#dylibs[@]} -eq 0 ]; then
+              echo "ERROR: No dylibs found in ${dir}" && exit 1
+            fi
+            for f in "${dylibs[@]}"; do
+              [ -L "$f" ] && continue
+              echo "--- ${dir}: $(basename "$f") ---"
+              lipo -info "$f"
+              for a in "${want_archs[@]}"; do
+                lipo -info "$f" | grep -q "$a" || { echo "FAIL: missing ${a} in $(basename "$f")"; exit 1; }
+              done
+              vtool -show-build "$f"
+              vtool -show-build "$f" | grep -q "minos 11.0" || { echo "FAIL: wrong minos in $(basename "$f")"; exit 1; }
+            done
+          }
+          check_dir output/arm64 arm64
+          check_dir output/x86_64 x86_64
+          check_dir output/fat arm64 x86_64
+
+      - name: Upload arm64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: iina-deps-arm64
+          path: output/arm64/
+
+      - name: Upload x86_64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: iina-deps-x86_64
+          path: output/x86_64/
+
+      - name: Upload fat (universal) artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: iina-deps-fat
+          path: output/fat/
+
+      - name: Delete intermediate build artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --paginate \
+            --jq '.artifacts[] | select(.name == "deps-arm64" or .name == "deps-x86_64") | .id' |
+          while read -r id; do
+            echo "Deleting intermediate artifact id=${id}"
+            gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/${id}"
+          done

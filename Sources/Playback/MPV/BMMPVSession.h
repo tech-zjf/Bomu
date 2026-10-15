@@ -9,6 +9,22 @@ typedef NS_ENUM(NSInteger, BMPlaybackUpdateKind) {
     BMPlaybackUpdateFailed
 };
 
+typedef NS_ENUM(NSInteger, BMPlaybackFailureKind) {
+    BMPlaybackFailureUnavailable,
+    BMPlaybackFailurePermissionDenied,
+    BMPlaybackFailureUnsupportedOrDamaged,
+    BMPlaybackFailureEngine
+};
+
+@interface BMPlaybackTrack : NSObject
+@property(nonatomic, readonly) int64_t trackID;
+@property(nonatomic, copy, readonly) NSString *trackType;
+@property(nonatomic, copy, readonly, nullable) NSString *language;
+@property(nonatomic, copy, readonly, nullable) NSString *title;
+@property(nonatomic, readonly) BOOL selected;
+@property(nonatomic, readonly) BOOL external;
+@end
+
 /// Immutable data copied from libmpv on its control queue, delivered on the main queue.
 @interface BMPlaybackUpdate : NSObject
 @property(nonatomic, readonly) BMPlaybackUpdateKind kind;
@@ -21,13 +37,20 @@ typedef NS_ENUM(NSInteger, BMPlaybackUpdateKind) {
 @property(nonatomic, readonly) BOOL buffering;
 @property(nonatomic, readonly) BOOL seekable;
 @property(nonatomic, readonly) double volume;
+@property(nonatomic, readonly) double speed;
+@property(nonatomic, readonly, nullable) NSNumber *audioTrackID;
+@property(nonatomic, readonly, nullable) NSNumber *subtitleTrackID;
+@property(nonatomic, copy, readonly) NSArray<BMPlaybackTrack *> *tracks;
+@property(nonatomic, readonly) double subtitleDelay;
 @property(nonatomic, readonly, nullable) NSString *message;
+@property(nonatomic, readonly) BMPlaybackFailureKind failureKind;
 @end
 
 /// On-demand, path-free diagnostics. Unknown native properties remain nil.
 @interface BMPlaybackDiagnostics : NSObject
 @property(nonatomic, readonly) BOOL coreAlive;
 @property(nonatomic, readonly) BOOL renderContextAlive;
+@property(nonatomic, readonly) BOOL graphicsContextAlive;
 @property(nonatomic, readonly) uint64_t coreCreationCount;
 @property(nonatomic, readonly) uint64_t renderContextCreationCount;
 @property(nonatomic, readonly, nullable) NSNumber *idle;
@@ -53,6 +76,13 @@ typedef NS_ENUM(NSInteger, BMPlaybackUpdateKind) {
 @property(nonatomic, readonly) int64_t submissionErrorTotalUS;
 @property(nonatomic, readonly) int64_t submissionErrorMinimumUS;
 @property(nonatomic, readonly) int64_t submissionErrorMaximumUS;
+/// GPU render intervals around mpv OpenGL rendering, when enabled and supported.
+@property(nonatomic, copy, readonly) NSString *gpuRenderTimingAvailability;
+@property(nonatomic, copy, readonly) NSString *gpuRenderTimingMode;
+@property(nonatomic, readonly) uint64_t gpuRenderTimingSampleCount;
+@property(nonatomic, readonly) uint64_t gpuRenderIntervalNanoseconds;
+@property(nonatomic, readonly) uint64_t gpuRenderPendingQueryCount;
+@property(nonatomic, readonly) uint64_t gpuRenderDroppedSampleCount;
 @end
 
 /// Main-thread facade. The private control queue owns the mpv handle and all commands.
@@ -67,6 +97,11 @@ NS_SWIFT_UI_ACTOR
 - (void)seekSeconds:(double)seconds relative:(BOOL)relative requestID:(uint64_t)requestID
     NS_SWIFT_NAME(seek(seconds:relative:requestID:));
 - (void)setVolume:(double)volume;
+- (void)setSpeed:(double)speed;
+- (void)setAudioTrackID:(int64_t)trackID requestID:(uint64_t)requestID;
+- (void)setSubtitleTrackID:(int64_t)trackID requestID:(uint64_t)requestID;
+- (void)addExternalSubtitleURL:(NSURL *)url requestID:(uint64_t)requestID;
+- (void)setSubtitleDelay:(double)seconds requestID:(uint64_t)requestID;
 - (void)stop;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectDiagnosticsWithCompletion:(void (^)(BMPlaybackDiagnostics *))completion;

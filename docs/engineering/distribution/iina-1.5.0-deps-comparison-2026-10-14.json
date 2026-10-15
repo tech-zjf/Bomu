@@ -1,0 +1,2597 @@
+{
+  "canonicalization": "For each architecture, compare the complete Mach-O prefix before LC_CODE_SIGNATURE.dataoff. Before hashing, zero only __LINKEDIT vmsize/filesize and LC_CODE_SIGNATURE.datasize fields; require equal signature data offsets. This removes signature-size effects while retaining code, symbols, load commands and other content. Local universal inputs were split with lipo; only temporary copies were used.",
+  "componentCount": 44,
+  "components": [
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "b436591f6df819f9b57ec084440ee8592b9455a68ba5fa780e2cbf325ca97239",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4324528,
+            "workspace": 4324528
+          },
+          "x86_64": {
+            "reference": 4324528,
+            "workspace": 7698672
+          }
+        }
+      },
+      "lockSHA256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "name": "libSvtAv1Enc.4.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e298cd9e1cc29dce65d41f1d110607cf4bf3b4a228af260eae558bc333e74a62",
+            "workspace": "e298cd9e1cc29dce65d41f1d110607cf4bf3b4a228af260eae558bc333e74a62"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "73bba360b645d754e31a0abc7e23edfb2d4c6048cf2bd3826eb11b6c2612346f",
+            "workspace": "73bba360b645d754e31a0abc7e23edfb2d4c6048cf2bd3826eb11b6c2612346f"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "cc8b3b2b20518e47a48289fa37ed0ff6892a6194dee839c9d63a3b9312ac2d3e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4324528,
+            "workspace": 4324528
+          },
+          "x86_64": {
+            "reference": 7698672,
+            "workspace": 7698672
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "3d0a494f2d311f368c8d96571eaec9aefc15365ee273bd0334c3454b9f94a3c1",
+        "workspaceCanonicalSHA256": "e298cd9e1cc29dce65d41f1d110607cf4bf3b4a228af260eae558bc333e74a62",
+        "referenceRawSHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
+        "workspaceRawSHA256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+        "signatureDataOffsets": {
+          "reference": 4324528,
+          "workspace": 4324528
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "696de3fd12c7ccca4f8d3b7b26667a343200782c7c2f7b0b65c40526279d148e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 806656,
+            "workspace": 806656
+          },
+          "x86_64": {
+            "reference": 806656,
+            "workspace": 815584
+          }
+        }
+      },
+      "lockSHA256": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "name": "libarchive.13.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e4c28d03ada9d9875d9486334efaa470a40969e02fb271b3fd0cdb5874267038",
+            "workspace": "e4c28d03ada9d9875d9486334efaa470a40969e02fb271b3fd0cdb5874267038"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "e6ffa97a9232e1e68706db93e080b44910f99610686c4162713c7e3f0faf9853",
+            "workspace": "e6ffa97a9232e1e68706db93e080b44910f99610686c4162713c7e3f0faf9853"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "98dd6860fb8537082fff9d2821ff6dafe8882ee2b1d849ad468922cf5938190b",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 806656,
+            "workspace": 806656
+          },
+          "x86_64": {
+            "reference": 815584,
+            "workspace": 815584
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "e4c28d03ada9d9875d9486334efaa470a40969e02fb271b3fd0cdb5874267038",
+        "workspaceCanonicalSHA256": "e4c28d03ada9d9875d9486334efaa470a40969e02fb271b3fd0cdb5874267038",
+        "referenceRawSHA256": "98dd6860fb8537082fff9d2821ff6dafe8882ee2b1d849ad468922cf5938190b",
+        "workspaceRawSHA256": "e86aac6a71fb2b7979cf3f94b72a5fc2bfb4ae60471740b8c39086cbd8a30ac4",
+        "signatureDataOffsets": {
+          "reference": 806656,
+          "workspace": 806656
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "8a257a27cdaaa4ad72fccf2638cdec39f613457aaa61f44e301534cb3d32f171",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 247088,
+            "workspace": 247088
+          },
+          "x86_64": {
+            "reference": 247088,
+            "workspace": 285792
+          }
+        }
+      },
+      "lockSHA256": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "name": "libass.9.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "159872abb7786067a0ad0c5b5af6ba11ea6f0fbb16eed9b200ab394a177d6d9a",
+            "workspace": "159872abb7786067a0ad0c5b5af6ba11ea6f0fbb16eed9b200ab394a177d6d9a"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "7a7f0dd518a781a502064f2d16b39a4237bbbe2487ec351b9980024be638f8fc",
+            "workspace": "7a7f0dd518a781a502064f2d16b39a4237bbbe2487ec351b9980024be638f8fc"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "d6d41c6650305637595a25c2a3d8e1d535d660d87b172dd6b0179d6e5da99a10",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 247088,
+            "workspace": 247088
+          },
+          "x86_64": {
+            "reference": 285792,
+            "workspace": 285792
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "159872abb7786067a0ad0c5b5af6ba11ea6f0fbb16eed9b200ab394a177d6d9a",
+        "workspaceCanonicalSHA256": "159872abb7786067a0ad0c5b5af6ba11ea6f0fbb16eed9b200ab394a177d6d9a",
+        "referenceRawSHA256": "d6d41c6650305637595a25c2a3d8e1d535d660d87b172dd6b0179d6e5da99a10",
+        "workspaceRawSHA256": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+        "signatureDataOffsets": {
+          "reference": 247088,
+          "workspace": 247088
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "311bb487eb48bf02589dd2e1ddce71885bbb074512d66b02819f02ab47d4077d",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 13129584,
+            "workspace": 13129584
+          },
+          "x86_64": {
+            "reference": 13129584,
+            "workspace": 15893456
+          }
+        }
+      },
+      "lockSHA256": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "name": "libavcodec.63.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "853009d9813a11f664fd32537ac823ac88d03c36b08213153859683c6c3d1e4f",
+            "workspace": "853009d9813a11f664fd32537ac823ac88d03c36b08213153859683c6c3d1e4f"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "26a3f38d2c9420a4862f8fad35339de908721fb20a4271819f55f71add69c51e",
+            "workspace": "26a3f38d2c9420a4862f8fad35339de908721fb20a4271819f55f71add69c51e"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "46e9a90d8cd07039f2f306fc31065d2723c5cd235e0afd50d0f566f4ae91a6a3",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 13129584,
+            "workspace": 13129584
+          },
+          "x86_64": {
+            "reference": 15893456,
+            "workspace": 15893456
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "853009d9813a11f664fd32537ac823ac88d03c36b08213153859683c6c3d1e4f",
+        "workspaceCanonicalSHA256": "853009d9813a11f664fd32537ac823ac88d03c36b08213153859683c6c3d1e4f",
+        "referenceRawSHA256": "46e9a90d8cd07039f2f306fc31065d2723c5cd235e0afd50d0f566f4ae91a6a3",
+        "workspaceRawSHA256": "1a6e1c47c6799927de9fde906674eb368ba85d90b59b5164def259dc5cc17300",
+        "signatureDataOffsets": {
+          "reference": 13129584,
+          "workspace": 13129584
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "84de744e887286941c3f5c929c541623db09199e5202af7e95ad7d1d48588f25",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 97904,
+            "workspace": 97904
+          },
+          "x86_64": {
+            "reference": 97904,
+            "workspace": 65136
+          }
+        }
+      },
+      "lockSHA256": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "name": "libavdevice.63.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "0b87133fc45003d32a0700615adaa681743feb4328cae732b3238b068f07a365",
+            "workspace": "0b87133fc45003d32a0700615adaa681743feb4328cae732b3238b068f07a365"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "93d911560e37f8411def734fbb556465ed4d5db5d8059041f6d8903f86ba1142",
+            "workspace": "93d911560e37f8411def734fbb556465ed4d5db5d8059041f6d8903f86ba1142"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "eb724ae5512f9f27f850f2771fd735cd41ceb0faceb6565fe039b953eb9eaae0",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 97904,
+            "workspace": 97904
+          },
+          "x86_64": {
+            "reference": 65136,
+            "workspace": 65136
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "0b87133fc45003d32a0700615adaa681743feb4328cae732b3238b068f07a365",
+        "workspaceCanonicalSHA256": "0b87133fc45003d32a0700615adaa681743feb4328cae732b3238b068f07a365",
+        "referenceRawSHA256": "eb724ae5512f9f27f850f2771fd735cd41ceb0faceb6565fe039b953eb9eaae0",
+        "workspaceRawSHA256": "4a2992d2abba7a2dd83e7a5aba702ae742c2872b39bfca42888456ec16267db8",
+        "signatureDataOffsets": {
+          "reference": 97904,
+          "workspace": 97904
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "58c5b62a88b76d1e101672db59dfe8a0f43dad85c63a6407de8d99e2cc302ed1",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4280016,
+            "workspace": 4280016
+          },
+          "x86_64": {
+            "reference": 4280016,
+            "workspace": 5048688
+          }
+        }
+      },
+      "lockSHA256": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "name": "libavfilter.12.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "399d2b2d08d95c852bdda3d3837bdc8569917b5ba350b3464bd14bb2254d77e0",
+            "workspace": "399d2b2d08d95c852bdda3d3837bdc8569917b5ba350b3464bd14bb2254d77e0"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "63d18cd92dd084fccf02a6e1044f467c3309364fe886f4ae1192f5b700942531",
+            "workspace": "63d18cd92dd084fccf02a6e1044f467c3309364fe886f4ae1192f5b700942531"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "d19f664a23c31eff34f718e3935018bafaf3562090774ed596bdf0d5ea12f7c5",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4280016,
+            "workspace": 4280016
+          },
+          "x86_64": {
+            "reference": 5048688,
+            "workspace": 5048688
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "399d2b2d08d95c852bdda3d3837bdc8569917b5ba350b3464bd14bb2254d77e0",
+        "workspaceCanonicalSHA256": "399d2b2d08d95c852bdda3d3837bdc8569917b5ba350b3464bd14bb2254d77e0",
+        "referenceRawSHA256": "d19f664a23c31eff34f718e3935018bafaf3562090774ed596bdf0d5ea12f7c5",
+        "workspaceRawSHA256": "1d9171d301662007ea9050ca04c3c00275c2f1bafe92121f18301b4cd690fb6c",
+        "signatureDataOffsets": {
+          "reference": 4280016,
+          "workspace": 4280016
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "e7f7155a3ff0cc784836cd25eafccc3f0c84f0bf828dc0b85b6669d2bff48673",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 2620576,
+            "workspace": 2765072
+          },
+          "x86_64": {
+            "reference": 2620576,
+            "workspace": 2765072
+          }
+        }
+      },
+      "lockSHA256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+      "name": "libavformat.63.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": false,
+            "reference": "c43b9ec1d6911cadb236fc05c5bb5fc1630d8fd04254374d10fb192e66ced114",
+            "workspace": "0cf5536e69c01cb420c266fecb26e825a600f523f01cca1c831bf339496123c8"
+          },
+          "x86_64": {
+            "matches": false,
+            "reference": "03bc5bfff71a8b494a9dbd522555a7cdcfd5729d10caf13c97efe7295f45dd3c",
+            "workspace": "0cf5536e69c01cb420c266fecb26e825a600f523f01cca1c831bf339496123c8"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "ddcb4c2a969cbf41fc0bc499040b39a618228af598b3c87b3cd0aace837c4880",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 2620576,
+            "workspace": 2765072
+          },
+          "x86_64": {
+            "reference": 2552160,
+            "workspace": 2765072
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "c43b9ec1d6911cadb236fc05c5bb5fc1630d8fd04254374d10fb192e66ced114",
+        "workspaceCanonicalSHA256": "0cf5536e69c01cb420c266fecb26e825a600f523f01cca1c831bf339496123c8",
+        "referenceRawSHA256": "ddcb4c2a969cbf41fc0bc499040b39a618228af598b3c87b3cd0aace837c4880",
+        "workspaceRawSHA256": "d8d597689bd03c78d6ab743e981d4982948bac8385f22a452853d59bbd09058e",
+        "signatureDataOffsets": {
+          "reference": 2620576,
+          "workspace": 2765072
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "bec6790e9e845b9dd83a0370e680f90f0928376019fb3a2b315b6c189ca7c2f8",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 738912,
+            "workspace": 738912
+          },
+          "x86_64": {
+            "reference": 738912,
+            "workspace": 829888
+          }
+        }
+      },
+      "lockSHA256": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "name": "libavutil.61.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "c376d92c842a6f315d93f9acc28b3785e0fc8d204f896a15c664ed73a18c6d74",
+            "workspace": "c376d92c842a6f315d93f9acc28b3785e0fc8d204f896a15c664ed73a18c6d74"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "00401cbfaaedaa42aad8f20b40219bf125f9570915f6bc1a2883793db73b2f33",
+            "workspace": "00401cbfaaedaa42aad8f20b40219bf125f9570915f6bc1a2883793db73b2f33"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "20db31a51e077e449d25d3e8d14f14f12c843c1dc5cede8301ca9d2a25fe1c80",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 738912,
+            "workspace": 738912
+          },
+          "x86_64": {
+            "reference": 829888,
+            "workspace": 829888
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "c376d92c842a6f315d93f9acc28b3785e0fc8d204f896a15c664ed73a18c6d74",
+        "workspaceCanonicalSHA256": "c376d92c842a6f315d93f9acc28b3785e0fc8d204f896a15c664ed73a18c6d74",
+        "referenceRawSHA256": "20db31a51e077e449d25d3e8d14f14f12c843c1dc5cede8301ca9d2a25fe1c80",
+        "workspaceRawSHA256": "cb56decbebd361858bd7d86c65e965507cfec4728bfbdde20fccf3e0a0c59129",
+        "signatureDataOffsets": {
+          "reference": 738912,
+          "workspace": 738912
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "f05875e058f67d5b195172bc094ba61eedd7723c07bd8b72c64b696ef4d8067b",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 390928,
+            "workspace": 390928
+          },
+          "x86_64": {
+            "reference": 390928,
+            "workspace": 356672
+          }
+        }
+      },
+      "lockSHA256": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "name": "libbluray.3.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "ec4d16074cd3536119137f87c9241aceabcbdc103b17ff98c3cbe60594304a1b",
+            "workspace": "ec4d16074cd3536119137f87c9241aceabcbdc103b17ff98c3cbe60594304a1b"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "1be7b573844727ac0681f4ce34cb72d3ec4a7ad7ba6e19a476734e1bf60c2cdf",
+            "workspace": "1be7b573844727ac0681f4ce34cb72d3ec4a7ad7ba6e19a476734e1bf60c2cdf"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9f6acc4b1cc151cf60820649bd72909072bb2cc8147395f0bb17a5189fbbad23",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 390928,
+            "workspace": 390928
+          },
+          "x86_64": {
+            "reference": 356672,
+            "workspace": 356672
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "ec4d16074cd3536119137f87c9241aceabcbdc103b17ff98c3cbe60594304a1b",
+        "workspaceCanonicalSHA256": "ec4d16074cd3536119137f87c9241aceabcbdc103b17ff98c3cbe60594304a1b",
+        "referenceRawSHA256": "9f6acc4b1cc151cf60820649bd72909072bb2cc8147395f0bb17a5189fbbad23",
+        "workspaceRawSHA256": "da3a8730aa005c8175b2d1a4df1e3190e8ebad15e2dc37313377636d70d2a07d",
+        "signatureDataOffsets": {
+          "reference": 390928,
+          "workspace": 390928
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "459ce7748ccc1eae9aa0d2f3b0c216d8bd82c0d0adbe77f82332d3a6cece6654",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 181680,
+            "workspace": 181680
+          },
+          "x86_64": {
+            "reference": 181680,
+            "workspace": 148928
+          }
+        }
+      },
+      "lockSHA256": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "name": "libbrotlicommon.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "37ead1c65e6b98c32c8b790bad19171165a91ce635de6bdc1a55daa6d91c380c",
+            "workspace": "37ead1c65e6b98c32c8b790bad19171165a91ce635de6bdc1a55daa6d91c380c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "11cc556c6ffca601416843644f03d855e5885b4d8d9c17672d817b0b7678ec49",
+            "workspace": "11cc556c6ffca601416843644f03d855e5885b4d8d9c17672d817b0b7678ec49"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "d214b1da9336ca98dcb1dff9e36ae2f0668f3da9f579b46850061cd588b6e491",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 181680,
+            "workspace": 181680
+          },
+          "x86_64": {
+            "reference": 148928,
+            "workspace": 148928
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "37ead1c65e6b98c32c8b790bad19171165a91ce635de6bdc1a55daa6d91c380c",
+        "workspaceCanonicalSHA256": "37ead1c65e6b98c32c8b790bad19171165a91ce635de6bdc1a55daa6d91c380c",
+        "referenceRawSHA256": "d214b1da9336ca98dcb1dff9e36ae2f0668f3da9f579b46850061cd588b6e491",
+        "workspaceRawSHA256": "fb7075420058b0602d32ecfd9af5c4b255a1029ba2dc2ce2eec7e286cfae13c2",
+        "signatureDataOffsets": {
+          "reference": 181680,
+          "workspace": 181680
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "0498295c5bf3c678d064f334d6259beeea1ae972ca3cf7fbda6e9994ac280462",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 85504,
+            "workspace": 85504
+          },
+          "x86_64": {
+            "reference": 85504,
+            "workspace": 61024
+          }
+        }
+      },
+      "lockSHA256": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "name": "libbrotlidec.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e59523e4d410031107b6644ea5f5a5c4c7e246530d4ac673188fc199361fd67d",
+            "workspace": "e59523e4d410031107b6644ea5f5a5c4c7e246530d4ac673188fc199361fd67d"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "77e6025d88034f63b42c7295d0990900015e1aee64df877c5d44f6b882823dac",
+            "workspace": "77e6025d88034f63b42c7295d0990900015e1aee64df877c5d44f6b882823dac"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "51ef4af1dec4a2522f6e55d68b7f5de010c5e307e3f32e8522f7d3e2166e40dc",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 85504,
+            "workspace": 85504
+          },
+          "x86_64": {
+            "reference": 61024,
+            "workspace": 61024
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "e59523e4d410031107b6644ea5f5a5c4c7e246530d4ac673188fc199361fd67d",
+        "workspaceCanonicalSHA256": "e59523e4d410031107b6644ea5f5a5c4c7e246530d4ac673188fc199361fd67d",
+        "referenceRawSHA256": "51ef4af1dec4a2522f6e55d68b7f5de010c5e307e3f32e8522f7d3e2166e40dc",
+        "workspaceRawSHA256": "491a64d51063072b8c4a49d7dc707be385057c798f10b320f4b4bbfaf4f6856d",
+        "signatureDataOffsets": {
+          "reference": 85504,
+          "workspace": 85504
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "272c69dfb1f8fe1c65aeb0e17fab28d468c664f82548d196eb80a52e0f339479",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 764416,
+            "workspace": 764416
+          },
+          "x86_64": {
+            "reference": 764416,
+            "workspace": 846448
+          }
+        }
+      },
+      "lockSHA256": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "name": "libbrotlienc.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "f40fc5c784b897cd0591b0267271a9a241d6176a2dcfddac2c8f250aa7a36b6d",
+            "workspace": "f40fc5c784b897cd0591b0267271a9a241d6176a2dcfddac2c8f250aa7a36b6d"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "fb7b424c37645a7582669db7ad08d8583a8e92c83aa69fdfa4f1b09958281ceb",
+            "workspace": "fb7b424c37645a7582669db7ad08d8583a8e92c83aa69fdfa4f1b09958281ceb"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "bbadbefe6666b6a0091d3269077212255d242afaf9d7343c617f73f08a9f04fa",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 764416,
+            "workspace": 764416
+          },
+          "x86_64": {
+            "reference": 846448,
+            "workspace": 846448
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "f40fc5c784b897cd0591b0267271a9a241d6176a2dcfddac2c8f250aa7a36b6d",
+        "workspaceCanonicalSHA256": "f40fc5c784b897cd0591b0267271a9a241d6176a2dcfddac2c8f250aa7a36b6d",
+        "referenceRawSHA256": "bbadbefe6666b6a0091d3269077212255d242afaf9d7343c617f73f08a9f04fa",
+        "workspaceRawSHA256": "2cee4777b0ac413c7953a5e72a0636f181ea90e1c41fe92edbf3a58e88e63c55",
+        "signatureDataOffsets": {
+          "reference": 764416,
+          "workspace": 764416
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "46b5f0e619eb8a54bb5a73291848b94afc6d63a78b9fcc3eefe49eb94a92c05a",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 53104,
+            "workspace": 53104
+          },
+          "x86_64": {
+            "reference": 53104,
+            "workspace": 28528
+          }
+        }
+      },
+      "lockSHA256": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "name": "libbs2b.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "75ab15eb48bd31a2c1271d5ca9d90b799d3f08f1b9126bfa6f5cbc87c99d271c",
+            "workspace": "75ab15eb48bd31a2c1271d5ca9d90b799d3f08f1b9126bfa6f5cbc87c99d271c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "de4c5b77f373d16a49803ef3ed0a2a8bbe2f1111c389b09c9f31e0f58bd6b6de",
+            "workspace": "de4c5b77f373d16a49803ef3ed0a2a8bbe2f1111c389b09c9f31e0f58bd6b6de"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "070c2a02bfc06543d88b65e5670c29de6a7f23d0549cb637d9605f4f5f5223c6",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 53104,
+            "workspace": 53104
+          },
+          "x86_64": {
+            "reference": 28528,
+            "workspace": 28528
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "75ab15eb48bd31a2c1271d5ca9d90b799d3f08f1b9126bfa6f5cbc87c99d271c",
+        "workspaceCanonicalSHA256": "75ab15eb48bd31a2c1271d5ca9d90b799d3f08f1b9126bfa6f5cbc87c99d271c",
+        "referenceRawSHA256": "070c2a02bfc06543d88b65e5670c29de6a7f23d0549cb637d9605f4f5f5223c6",
+        "workspaceRawSHA256": "cd914764efd9109ac6c0c3f8dd2422b091028ee53f0b577169a45af4caf369fc",
+        "signatureDataOffsets": {
+          "reference": 53104,
+          "workspace": 53104
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "bfdf9c2b9f3e1cf7469cc6ebea9417e669e03b1939009f48b1b91700fb9d2fac",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 839504,
+            "workspace": 839504
+          },
+          "x86_64": {
+            "reference": 839504,
+            "workspace": 2368896
+          }
+        }
+      },
+      "lockSHA256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "name": "libdav1d.7.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "fd5e9a3bf5420438f4b7c9c4417d28839d29418cf156bcee2b7a6a080f07e838",
+            "workspace": "fd5e9a3bf5420438f4b7c9c4417d28839d29418cf156bcee2b7a6a080f07e838"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "9e3e0de92f68fe761136e8c4287e0d8ba11f943ad1e11dda5ebd20e03a545165",
+            "workspace": "9e3e0de92f68fe761136e8c4287e0d8ba11f943ad1e11dda5ebd20e03a545165"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "5c89a989a934a2d1d4f07bc61eaaf3426ad71705bc7e9e83f4558050ad3aca2e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 839504,
+            "workspace": 839504
+          },
+          "x86_64": {
+            "reference": 2368896,
+            "workspace": 2368896
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "fd5e9a3bf5420438f4b7c9c4417d28839d29418cf156bcee2b7a6a080f07e838",
+        "workspaceCanonicalSHA256": "fd5e9a3bf5420438f4b7c9c4417d28839d29418cf156bcee2b7a6a080f07e838",
+        "referenceRawSHA256": "5c89a989a934a2d1d4f07bc61eaaf3426ad71705bc7e9e83f4558050ad3aca2e",
+        "workspaceRawSHA256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+        "signatureDataOffsets": {
+          "reference": 839504,
+          "workspace": 839504
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "1fba5d68b312208e9c12a24a2ceed27dc68c53e3e3921376d187df457b8aa50a",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 385568,
+            "workspace": 385568
+          },
+          "x86_64": {
+            "reference": 385568,
+            "workspace": 357584
+          }
+        }
+      },
+      "lockSHA256": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "name": "libfontconfig.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "4d71c54d099fe2465fbd05f02e090b2e9c8e7388c134f1bed589a282719eae82",
+            "workspace": "4d71c54d099fe2465fbd05f02e090b2e9c8e7388c134f1bed589a282719eae82"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "ab9a30e01c408c1a3735f045039cd6ca4f1b6932f0c2b85e7fba4577cb3c94cb",
+            "workspace": "ab9a30e01c408c1a3735f045039cd6ca4f1b6932f0c2b85e7fba4577cb3c94cb"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "da54338371c7c98de206232361500c67c70504c47f8dbac879a30a03cece9283",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 385568,
+            "workspace": 385568
+          },
+          "x86_64": {
+            "reference": 357584,
+            "workspace": 357584
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "4d71c54d099fe2465fbd05f02e090b2e9c8e7388c134f1bed589a282719eae82",
+        "workspaceCanonicalSHA256": "4d71c54d099fe2465fbd05f02e090b2e9c8e7388c134f1bed589a282719eae82",
+        "referenceRawSHA256": "da54338371c7c98de206232361500c67c70504c47f8dbac879a30a03cece9283",
+        "workspaceRawSHA256": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+        "signatureDataOffsets": {
+          "reference": 385568,
+          "workspace": 385568
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "c1661746ee40d0c2fb522f425c9f96cd7ff52cf0f0b3e435295154128c293574",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 711280,
+            "workspace": 711280
+          },
+          "x86_64": {
+            "reference": 711280,
+            "workspace": 752656
+          }
+        }
+      },
+      "lockSHA256": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "name": "libfreetype.6.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "9f8a0baf3191195616f7929927a509bf93ba9e3e2f0e2950503f5e35f51747eb",
+            "workspace": "9f8a0baf3191195616f7929927a509bf93ba9e3e2f0e2950503f5e35f51747eb"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "0c7f93222dfd6a13f0f80e55ffad5cc35ba3e36ed8ca07617e0ee84802a7bdb7",
+            "workspace": "0c7f93222dfd6a13f0f80e55ffad5cc35ba3e36ed8ca07617e0ee84802a7bdb7"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9f6a9a7d007779ce87e11482e99e9175934ffafa4ef96f1d668be2a4478ebc36",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 711280,
+            "workspace": 711280
+          },
+          "x86_64": {
+            "reference": 752656,
+            "workspace": 752656
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "9f8a0baf3191195616f7929927a509bf93ba9e3e2f0e2950503f5e35f51747eb",
+        "workspaceCanonicalSHA256": "9f8a0baf3191195616f7929927a509bf93ba9e3e2f0e2950503f5e35f51747eb",
+        "referenceRawSHA256": "9f6a9a7d007779ce87e11482e99e9175934ffafa4ef96f1d668be2a4478ebc36",
+        "workspaceRawSHA256": "0d7e4499686bd3c18edb1a3f252ed4a968a38926e3fee4b28fed8bd6efb7ec9f",
+        "signatureDataOffsets": {
+          "reference": 711280,
+          "workspace": 711280
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "ba5a5565f152a43a5279b23d232b268075ede6ca1c050d225068f354c1a22355",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 168656,
+            "workspace": 168656
+          },
+          "x86_64": {
+            "reference": 168656,
+            "workspace": 127568
+          }
+        }
+      },
+      "lockSHA256": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "name": "libfribidi.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e7700fd7362b129c32454879d4dcd6ab29999576d1cda8a6647b0e8b3c211a4e",
+            "workspace": "e7700fd7362b129c32454879d4dcd6ab29999576d1cda8a6647b0e8b3c211a4e"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "5f8f2f861a48b4ab3d3130ccf93c6892975c55f2c1b6c17836b5849626ce7f1c",
+            "workspace": "5f8f2f861a48b4ab3d3130ccf93c6892975c55f2c1b6c17836b5849626ce7f1c"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "2af717db66ca5423fb8075e8af7511325aa638cf18a950a029c1aa17a55067e8",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 168656,
+            "workspace": 168656
+          },
+          "x86_64": {
+            "reference": 127568,
+            "workspace": 127568
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "e7700fd7362b129c32454879d4dcd6ab29999576d1cda8a6647b0e8b3c211a4e",
+        "workspaceCanonicalSHA256": "e7700fd7362b129c32454879d4dcd6ab29999576d1cda8a6647b0e8b3c211a4e",
+        "referenceRawSHA256": "2af717db66ca5423fb8075e8af7511325aa638cf18a950a029c1aa17a55067e8",
+        "workspaceRawSHA256": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+        "signatureDataOffsets": {
+          "reference": 168656,
+          "workspace": 168656
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "2c979433d7c82941941e114e0b16881b9691d4e3e9d3272c1ffc23fee0211e19",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 1424672,
+            "workspace": 1424672
+          },
+          "x86_64": {
+            "reference": 1424672,
+            "workspace": 1442176
+          }
+        }
+      },
+      "lockSHA256": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "name": "libharfbuzz.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "dd7ae611bbe7460cb2e3f5d8bc8c3627af38ec4b24580587af74cad4e2914fe7",
+            "workspace": "dd7ae611bbe7460cb2e3f5d8bc8c3627af38ec4b24580587af74cad4e2914fe7"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "64aef4aba9ffcf1658b43cc0d6f5b02bafe7ca7c00c8ed85a43267504ba20a1a",
+            "workspace": "64aef4aba9ffcf1658b43cc0d6f5b02bafe7ca7c00c8ed85a43267504ba20a1a"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "836ae77534f0e19be097ff0dba81329a9126a60c91a8d1a8dd84b3626bd216cc",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 1424672,
+            "workspace": 1424672
+          },
+          "x86_64": {
+            "reference": 1442176,
+            "workspace": 1442176
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "dd7ae611bbe7460cb2e3f5d8bc8c3627af38ec4b24580587af74cad4e2914fe7",
+        "workspaceCanonicalSHA256": "dd7ae611bbe7460cb2e3f5d8bc8c3627af38ec4b24580587af74cad4e2914fe7",
+        "referenceRawSHA256": "836ae77534f0e19be097ff0dba81329a9126a60c91a8d1a8dd84b3626bd216cc",
+        "workspaceRawSHA256": "c3b8cb4279110cbf314eccec60956e49d6352978d416c56b8bf02e1c1dab04a7",
+        "signatureDataOffsets": {
+          "reference": 1424672,
+          "workspace": 1424672
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "9198a06dd4ddd7094fa8cecb46c299471f35dac1efc73977698600fcec41c5d4",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 646704,
+            "workspace": 646704
+          },
+          "x86_64": {
+            "reference": 646704,
+            "workspace": 896112
+          }
+        }
+      },
+      "lockSHA256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "name": "libjpeg.62.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "ff0810e047df0b25a75f158a7d18b0407c788b96904edfdd6d8e99a575b43bfa",
+            "workspace": "ff0810e047df0b25a75f158a7d18b0407c788b96904edfdd6d8e99a575b43bfa"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "8cb9f0207e9d6a71ad91b762a77eff906214b7ddda98ffc31372f18ed9f2397d",
+            "workspace": "8cb9f0207e9d6a71ad91b762a77eff906214b7ddda98ffc31372f18ed9f2397d"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9379e5c286ad821ba1ad165c596c4c975aaec7cb0b062f584e353d8e2e008108",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 646704,
+            "workspace": 646704
+          },
+          "x86_64": {
+            "reference": 896112,
+            "workspace": 896112
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "a84c46e6c1f22571b3bc15f6643ee4f7a009a53e4fd02bcbdc9102d09fed2827",
+        "workspaceCanonicalSHA256": "ff0810e047df0b25a75f158a7d18b0407c788b96904edfdd6d8e99a575b43bfa",
+        "referenceRawSHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
+        "workspaceRawSHA256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+        "signatureDataOffsets": {
+          "reference": 646704,
+          "workspace": 646704
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "92d5491c931ea008336e04f29406d5571bd4264e7003d21ddd775d5efca32eec",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 2418336,
+            "workspace": 2418336
+          },
+          "x86_64": {
+            "reference": 2418336,
+            "workspace": 3899872
+          }
+        }
+      },
+      "lockSHA256": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "name": "libjxl.0.11.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "60143a788d16f5e402ef4b437de5bb1724bb73a132e148cd7dae55a194316661",
+            "workspace": "60143a788d16f5e402ef4b437de5bb1724bb73a132e148cd7dae55a194316661"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "2807f2747761d87d32b3d5933d11398f2884e1015d5b0fbadb6024f4b091bba0",
+            "workspace": "2807f2747761d87d32b3d5933d11398f2884e1015d5b0fbadb6024f4b091bba0"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "607712461b946a62cae640f6378f35178d88315915eaef35e5a8435fa9cd3c6a",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 2418336,
+            "workspace": 2418336
+          },
+          "x86_64": {
+            "reference": 3899872,
+            "workspace": 3899872
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "60143a788d16f5e402ef4b437de5bb1724bb73a132e148cd7dae55a194316661",
+        "workspaceCanonicalSHA256": "60143a788d16f5e402ef4b437de5bb1724bb73a132e148cd7dae55a194316661",
+        "referenceRawSHA256": "607712461b946a62cae640f6378f35178d88315915eaef35e5a8435fa9cd3c6a",
+        "workspaceRawSHA256": "711dda492da284e8c8af5ca43a034014d2821878a0a89da958e77096fa8e5eb6",
+        "signatureDataOffsets": {
+          "reference": 2418336,
+          "workspace": 2418336
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "463fd5fb07677b372a0b8f72222d03c932863ec536277b6be0f2928a24119a7e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 434080,
+            "workspace": 434080
+          },
+          "x86_64": {
+            "reference": 434080,
+            "workspace": 478064
+          }
+        }
+      },
+      "lockSHA256": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "name": "libjxl_cms.0.11.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "f16357aaf1b1fe57c873cda6b8cdc4e51b2747d0f4f46f82bc00a263431fea09",
+            "workspace": "f16357aaf1b1fe57c873cda6b8cdc4e51b2747d0f4f46f82bc00a263431fea09"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "c4b9aa0847020f300d18f3bdad0f2ca8902de6414d39b9ba657c3b8d446dd870",
+            "workspace": "c4b9aa0847020f300d18f3bdad0f2ca8902de6414d39b9ba657c3b8d446dd870"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "72c305e32b9d1382d0fe5ffd6635ae9722ef67e1f486384183ee0d2ae4a1ef74",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 434080,
+            "workspace": 434080
+          },
+          "x86_64": {
+            "reference": 478064,
+            "workspace": 478064
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "f16357aaf1b1fe57c873cda6b8cdc4e51b2747d0f4f46f82bc00a263431fea09",
+        "workspaceCanonicalSHA256": "f16357aaf1b1fe57c873cda6b8cdc4e51b2747d0f4f46f82bc00a263431fea09",
+        "referenceRawSHA256": "72c305e32b9d1382d0fe5ffd6635ae9722ef67e1f486384183ee0d2ae4a1ef74",
+        "workspaceRawSHA256": "3e63e70ffaadaa4f038a03f98e1183826225af6450ebd7f079fc953bf67f18da",
+        "signatureDataOffsets": {
+          "reference": 434080,
+          "workspace": 434080
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "2aae7df5b5b31d4fd95d8e0c7b62ec826e14610dc776fcf39228ee326e02fb70",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 53456,
+            "workspace": 53456
+          },
+          "x86_64": {
+            "reference": 53456,
+            "workspace": 24800
+          }
+        }
+      },
+      "lockSHA256": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "name": "libjxl_threads.0.11.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "b68601d51b7e38b39e5d33776408ffbd7aac0a838b554a63924a9fce2b9e8b35",
+            "workspace": "b68601d51b7e38b39e5d33776408ffbd7aac0a838b554a63924a9fce2b9e8b35"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "783c8d655a3dd02da8cd99045b361407d15dd5daf1b0d10e711301d9be4d13ad",
+            "workspace": "783c8d655a3dd02da8cd99045b361407d15dd5daf1b0d10e711301d9be4d13ad"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "ffca2750367f5cc6bc755f4f37061941dd054bb1e71250a01e140df6d8bbad1d",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 53456,
+            "workspace": 53456
+          },
+          "x86_64": {
+            "reference": 24800,
+            "workspace": 24800
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "b68601d51b7e38b39e5d33776408ffbd7aac0a838b554a63924a9fce2b9e8b35",
+        "workspaceCanonicalSHA256": "b68601d51b7e38b39e5d33776408ffbd7aac0a838b554a63924a9fce2b9e8b35",
+        "referenceRawSHA256": "ffca2750367f5cc6bc755f4f37061941dd054bb1e71250a01e140df6d8bbad1d",
+        "workspaceRawSHA256": "580ca805d966fcb37120f51c54ee91c8b0ba28f923acf398be1db2d5d510ab3d",
+        "signatureDataOffsets": {
+          "reference": 53456,
+          "workspace": 53456
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "dac8202d91f1a50683c41e5748161520a2b0b56938e58024637d437bda52957f",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 402048,
+            "workspace": 402048
+          },
+          "x86_64": {
+            "reference": 402048,
+            "workspace": 401824
+          }
+        }
+      },
+      "lockSHA256": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "name": "liblcms2.2.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "20bdd9e3a9caf459b3ee23517536720e2cd460dce2b02c2dfca4b06c766f62fe",
+            "workspace": "20bdd9e3a9caf459b3ee23517536720e2cd460dce2b02c2dfca4b06c766f62fe"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "fe0ed7a5b48b96c443a935a54722a180e2df785b591e3408b9e2f758d9dc0668",
+            "workspace": "fe0ed7a5b48b96c443a935a54722a180e2df785b591e3408b9e2f758d9dc0668"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "0cb481e982c0e65d2643c6100b55027239ae6e460f364cbbd3188b69bf1c8379",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 402048,
+            "workspace": 402048
+          },
+          "x86_64": {
+            "reference": 401824,
+            "workspace": 401824
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "20bdd9e3a9caf459b3ee23517536720e2cd460dce2b02c2dfca4b06c766f62fe",
+        "workspaceCanonicalSHA256": "20bdd9e3a9caf459b3ee23517536720e2cd460dce2b02c2dfca4b06c766f62fe",
+        "referenceRawSHA256": "0cb481e982c0e65d2643c6100b55027239ae6e460f364cbbd3188b69bf1c8379",
+        "workspaceRawSHA256": "5c78a90a8092e72147a37c27859a401c92be131335820a5a8c12eaa4e192bf58",
+        "signatureDataOffsets": {
+          "reference": 402048,
+          "workspace": 402048
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "7f20a2d16592bfdf8854f8624122640970dbedb16b9878b6892b53f824ae76b1",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 702736,
+            "workspace": 702736
+          },
+          "x86_64": {
+            "reference": 702736,
+            "workspace": 678128
+          }
+        }
+      },
+      "lockSHA256": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "name": "libluajit-5.1.2.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "11f8a151efe909941dbd6a11ed9668094b4842520fed66f6a2fdbd9c0bf7285c",
+            "workspace": "11f8a151efe909941dbd6a11ed9668094b4842520fed66f6a2fdbd9c0bf7285c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "720342d43c6862591de795e081bbcb1924d3488e9f05a86b1e3498be3366687a",
+            "workspace": "720342d43c6862591de795e081bbcb1924d3488e9f05a86b1e3498be3366687a"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9da9440864306d834c219cbdf6e6c0d0254ee6ba1dd5056caf6f011aa6245251",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 702736,
+            "workspace": 702736
+          },
+          "x86_64": {
+            "reference": 678128,
+            "workspace": 678128
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "11f8a151efe909941dbd6a11ed9668094b4842520fed66f6a2fdbd9c0bf7285c",
+        "workspaceCanonicalSHA256": "11f8a151efe909941dbd6a11ed9668094b4842520fed66f6a2fdbd9c0bf7285c",
+        "referenceRawSHA256": "9da9440864306d834c219cbdf6e6c0d0254ee6ba1dd5056caf6f011aa6245251",
+        "workspaceRawSHA256": "4e9329051fc74b9dc309486ff9c683d1dc630d8958cea541dd04ac99be39e8e9",
+        "signatureDataOffsets": {
+          "reference": 702736,
+          "workspace": 702736
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "0325e887e31ae0ab3c77c5195f8e113a51a07c1a7f635d7a4ff426d81e5ed97b",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 192912,
+            "workspace": 192912
+          },
+          "x86_64": {
+            "reference": 192912,
+            "workspace": 182672
+          }
+        }
+      },
+      "lockSHA256": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "name": "liblz4.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "2faafe7e21323c54a7981b48c58ed1f9d02648a946c7ce5950815afbdeb63c2e",
+            "workspace": "2faafe7e21323c54a7981b48c58ed1f9d02648a946c7ce5950815afbdeb63c2e"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "fb5246208b9a6aa575e596a06fa8b0cc3d588a6a9d7ae7dd993b275eeb12f681",
+            "workspace": "fb5246208b9a6aa575e596a06fa8b0cc3d588a6a9d7ae7dd993b275eeb12f681"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "f13cb5c23e88d0624ad0b63b89e7e43787a1204255546596e6e767a831dbbf57",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 192912,
+            "workspace": 192912
+          },
+          "x86_64": {
+            "reference": 182672,
+            "workspace": 182672
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "2faafe7e21323c54a7981b48c58ed1f9d02648a946c7ce5950815afbdeb63c2e",
+        "workspaceCanonicalSHA256": "2faafe7e21323c54a7981b48c58ed1f9d02648a946c7ce5950815afbdeb63c2e",
+        "referenceRawSHA256": "f13cb5c23e88d0624ad0b63b89e7e43787a1204255546596e6e767a831dbbf57",
+        "workspaceRawSHA256": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+        "signatureDataOffsets": {
+          "reference": 192912,
+          "workspace": 192912
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "091df2af81ac8c774b1bee13d7c11de16f3f080de2664836ee62cdae0b960dc3",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4158976,
+            "workspace": 4159552
+          },
+          "x86_64": {
+            "reference": 4158976,
+            "workspace": 4254992
+          }
+        }
+      },
+      "lockSHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "name": "libmpv.2.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "1807845ab04f855a3d6339293bf12e4ecbc1a8ba90f12c208a4ba0569c5cb6c1",
+            "workspace": "1807845ab04f855a3d6339293bf12e4ecbc1a8ba90f12c208a4ba0569c5cb6c1"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "a2835e5fff7975406cebfa4ff7be8bb56664c820bab100e2e8c5a888de9dad44",
+            "workspace": "a2835e5fff7975406cebfa4ff7be8bb56664c820bab100e2e8c5a888de9dad44"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "1d225787bde2b9758e1c7fcce9721ac05732d2bd33ff7240f0ebf09ccf1d0b48",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 4159552,
+            "workspace": 4159552
+          },
+          "x86_64": {
+            "reference": 4254992,
+            "workspace": 4254992
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "3a9aef3ab68b83929f69affd05c4fca63d42af79fde95d5ab76040939f9125dc",
+        "workspaceCanonicalSHA256": "1807845ab04f855a3d6339293bf12e4ecbc1a8ba90f12c208a4ba0569c5cb6c1",
+        "referenceRawSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+        "workspaceRawSHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+        "signatureDataOffsets": {
+          "reference": 4158976,
+          "workspace": 4159552
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "baf14180968299e31e8707c46e66a644bf4a3c886567adf958823138cab42e6d",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 402064,
+            "workspace": 402064
+          },
+          "x86_64": {
+            "reference": 402064,
+            "workspace": 394400
+          }
+        }
+      },
+      "lockSHA256": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "name": "libmujs.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "0499a61669a03d594864d9a3209369e07e4259d86b6067f2cc2c1e438ff3b60c",
+            "workspace": "0499a61669a03d594864d9a3209369e07e4259d86b6067f2cc2c1e438ff3b60c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "cb098c3a19b42b9d93eea90e8e2c1cf99918f4939d32353bce4b190c0d631bda",
+            "workspace": "cb098c3a19b42b9d93eea90e8e2c1cf99918f4939d32353bce4b190c0d631bda"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "5e7e0b90bd147c80e258e65c856be5a9eab6a0f7d8b9cd7116576c0f4a3a7458",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 402064,
+            "workspace": 402064
+          },
+          "x86_64": {
+            "reference": 394400,
+            "workspace": 394400
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "0499a61669a03d594864d9a3209369e07e4259d86b6067f2cc2c1e438ff3b60c",
+        "workspaceCanonicalSHA256": "0499a61669a03d594864d9a3209369e07e4259d86b6067f2cc2c1e438ff3b60c",
+        "referenceRawSHA256": "5e7e0b90bd147c80e258e65c856be5a9eab6a0f7d8b9cd7116576c0f4a3a7458",
+        "workspaceRawSHA256": "3e5e97a9a8c792c17e619567c072bf17ab6694821a5429698b8df0fac446750e",
+        "signatureDataOffsets": {
+          "reference": 402064,
+          "workspace": 402064
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "5989700bc32a4ad54114b0b6a55d124a0e2d70feef95e89b5d4c0ddfa3f77706",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 69760,
+            "workspace": 69760
+          },
+          "x86_64": {
+            "reference": 69760,
+            "workspace": 32944
+          }
+        }
+      },
+      "lockSHA256": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "name": "libogg.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "64abb12eb9b6972ad6e2c98fcabdbfa0552fc5792d3b21754f08fabdf0f0f877",
+            "workspace": "64abb12eb9b6972ad6e2c98fcabdbfa0552fc5792d3b21754f08fabdf0f0f877"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "b7959d0728b5da675618f56c70785ed9d86c37b389a286e5f5b506267bd96179",
+            "workspace": "b7959d0728b5da675618f56c70785ed9d86c37b389a286e5f5b506267bd96179"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "f1fee407df49c0cbcaad6ba94f74196bf43995fa355d2704483fbfb63a3922ef",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 69760,
+            "workspace": 69760
+          },
+          "x86_64": {
+            "reference": 32944,
+            "workspace": 32944
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "64abb12eb9b6972ad6e2c98fcabdbfa0552fc5792d3b21754f08fabdf0f0f877",
+        "workspaceCanonicalSHA256": "64abb12eb9b6972ad6e2c98fcabdbfa0552fc5792d3b21754f08fabdf0f0f877",
+        "referenceRawSHA256": "f1fee407df49c0cbcaad6ba94f74196bf43995fa355d2704483fbfb63a3922ef",
+        "workspaceRawSHA256": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+        "signatureDataOffsets": {
+          "reference": 69760,
+          "workspace": 69760
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "d3b49a0e5237c722019a46c3b3e7c79cc962e72c479a1b3030476c635f836749",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 865328,
+            "workspace": 865328
+          },
+          "x86_64": {
+            "reference": 865328,
+            "workspace": 1006720
+          }
+        }
+      },
+      "lockSHA256": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "name": "libplacebo.360.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "1fa1eb37ebe5185033e066266aee53930d84f72f66f6c5890a5c4a9030574c36",
+            "workspace": "1fa1eb37ebe5185033e066266aee53930d84f72f66f6c5890a5c4a9030574c36"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "da53d19281cb85d32b21e7f6893b13340adc7bda6d0c1b714b75a7002e13a5ef",
+            "workspace": "da53d19281cb85d32b21e7f6893b13340adc7bda6d0c1b714b75a7002e13a5ef"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "dc13c7ad9e859fb3dc083261235d44f6505adabea86c1f6579c3be4a20bf62d3",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 865328,
+            "workspace": 865328
+          },
+          "x86_64": {
+            "reference": 1006720,
+            "workspace": 1006720
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "1fa1eb37ebe5185033e066266aee53930d84f72f66f6c5890a5c4a9030574c36",
+        "workspaceCanonicalSHA256": "1fa1eb37ebe5185033e066266aee53930d84f72f66f6c5890a5c4a9030574c36",
+        "referenceRawSHA256": "dc13c7ad9e859fb3dc083261235d44f6505adabea86c1f6579c3be4a20bf62d3",
+        "workspaceRawSHA256": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+        "signatureDataOffsets": {
+          "reference": 865328,
+          "workspace": 865328
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "43ae30b46938d0b3bea3cc25e19de3d7884499de9bd48faff4aed114b00c0021",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 456992,
+            "workspace": 456992
+          },
+          "x86_64": {
+            "reference": 456992,
+            "workspace": 477616
+          }
+        }
+      },
+      "lockSHA256": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "name": "librubberband.3.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "9b200d4d748c3b13e463dd0e99c2ce228fc0482e3ab8c04f140c962df71d06d2",
+            "workspace": "9b200d4d748c3b13e463dd0e99c2ce228fc0482e3ab8c04f140c962df71d06d2"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "1864503fbd6f0fd0e5d974f9121b0aaeb343723944408b6063bfc4deef9ea8cc",
+            "workspace": "1864503fbd6f0fd0e5d974f9121b0aaeb343723944408b6063bfc4deef9ea8cc"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "8d1162d9b1102307a72888d231f9244728d764ea1588a4f98bd0598727dd21e0",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 456992,
+            "workspace": 456992
+          },
+          "x86_64": {
+            "reference": 477616,
+            "workspace": 477616
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "9b200d4d748c3b13e463dd0e99c2ce228fc0482e3ab8c04f140c962df71d06d2",
+        "workspaceCanonicalSHA256": "9b200d4d748c3b13e463dd0e99c2ce228fc0482e3ab8c04f140c962df71d06d2",
+        "referenceRawSHA256": "8d1162d9b1102307a72888d231f9244728d764ea1588a4f98bd0598727dd21e0",
+        "workspaceRawSHA256": "7c5ced74f7af9392c3b7a03e5fed003007fe9fccfe4197926276f47c690dd9cc",
+        "signatureDataOffsets": {
+          "reference": 456992,
+          "workspace": 456992
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "48efc85b4c4c98bdff94322095a8271405bda9cad01bb81aae5fc3208f985bb3",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 67472,
+            "workspace": 67472
+          },
+          "x86_64": {
+            "reference": 67472,
+            "workspace": 34944
+          }
+        }
+      },
+      "lockSHA256": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "name": "libsharpyuv.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "1fe86b8cea650f589f6be758dbbc10afa362f7f8324c97a3aae5f9a4fdee40f6",
+            "workspace": "1fe86b8cea650f589f6be758dbbc10afa362f7f8324c97a3aae5f9a4fdee40f6"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "ae99756dde524b51764a02a230cf83373c4bca0174cd77a7ce96c84b16911c3d",
+            "workspace": "ae99756dde524b51764a02a230cf83373c4bca0174cd77a7ce96c84b16911c3d"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "b7c19183577284511d55e6f891b182a28b06dceedb467ab8298d0da11dcc6dfe",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 67472,
+            "workspace": 67472
+          },
+          "x86_64": {
+            "reference": 34944,
+            "workspace": 34944
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "1fe86b8cea650f589f6be758dbbc10afa362f7f8324c97a3aae5f9a4fdee40f6",
+        "workspaceCanonicalSHA256": "1fe86b8cea650f589f6be758dbbc10afa362f7f8324c97a3aae5f9a4fdee40f6",
+        "referenceRawSHA256": "b7c19183577284511d55e6f891b182a28b06dceedb467ab8298d0da11dcc6dfe",
+        "workspaceRawSHA256": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+        "signatureDataOffsets": {
+          "reference": 67472,
+          "workspace": 67472
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "481f15ebf09ddd29fa04fa997656e7d495c91d9beddd55d2c1460bdaacc7849b",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 205040,
+            "workspace": 205040
+          },
+          "x86_64": {
+            "reference": 205040,
+            "workspace": 287008
+          }
+        }
+      },
+      "lockSHA256": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "name": "libsoxr.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "15545ed3660cf5cc457293e1c08be8d628cd105871bd631e4c16e2dd5cac8568",
+            "workspace": "15545ed3660cf5cc457293e1c08be8d628cd105871bd631e4c16e2dd5cac8568"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "95f3048fa97dd2b8cd5ecb9710bc669b62daf68ae0da5d68eff0231907d9cd60",
+            "workspace": "95f3048fa97dd2b8cd5ecb9710bc669b62daf68ae0da5d68eff0231907d9cd60"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "0ae0b8aefd31d59fa39751a5ee4e5b7dc7d8a2827e48d9b02125ef1e37984192",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 205040,
+            "workspace": 205040
+          },
+          "x86_64": {
+            "reference": 287008,
+            "workspace": 287008
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "15545ed3660cf5cc457293e1c08be8d628cd105871bd631e4c16e2dd5cac8568",
+        "workspaceCanonicalSHA256": "15545ed3660cf5cc457293e1c08be8d628cd105871bd631e4c16e2dd5cac8568",
+        "referenceRawSHA256": "0ae0b8aefd31d59fa39751a5ee4e5b7dc7d8a2827e48d9b02125ef1e37984192",
+        "workspaceRawSHA256": "1bf4950dd0ae31949020ce6319cd32322f80eec5f8cff5d42e9e92079f42de4b",
+        "signatureDataOffsets": {
+          "reference": 205040,
+          "workspace": 205040
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "a8cf46d6dfad238e2579423fb969795a3ba24d5f7ec1c127ba65450fce6d3d3e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 172800,
+            "workspace": 172800
+          },
+          "x86_64": {
+            "reference": 172800,
+            "workspace": 136240
+          }
+        }
+      },
+      "lockSHA256": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "name": "libspeex.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e7a89db4c2dd9fa9a2d1906a02eb3fa8cd8359eee2bad94c8e1ff0f1a314ed8c",
+            "workspace": "e7a89db4c2dd9fa9a2d1906a02eb3fa8cd8359eee2bad94c8e1ff0f1a314ed8c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "a7df446cd4ed61dfd42f2c7a43e2be2b7a563be3391dc74ca3307b70e809c2b9",
+            "workspace": "a7df446cd4ed61dfd42f2c7a43e2be2b7a563be3391dc74ca3307b70e809c2b9"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9ad1e0202967388169b307b29200800a577c9c34fd13620e4c98435e0d07c2a5",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 172800,
+            "workspace": 172800
+          },
+          "x86_64": {
+            "reference": 136240,
+            "workspace": 136240
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "e7a89db4c2dd9fa9a2d1906a02eb3fa8cd8359eee2bad94c8e1ff0f1a314ed8c",
+        "workspaceCanonicalSHA256": "e7a89db4c2dd9fa9a2d1906a02eb3fa8cd8359eee2bad94c8e1ff0f1a314ed8c",
+        "referenceRawSHA256": "9ad1e0202967388169b307b29200800a577c9c34fd13620e4c98435e0d07c2a5",
+        "workspaceRawSHA256": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+        "signatureDataOffsets": {
+          "reference": 172800,
+          "workspace": 172800
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "3515a8658ae540f54877f02c6676fe3a0e05b1053e730e4d81f52e6eca04bb2e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 136112,
+            "workspace": 136112
+          },
+          "x86_64": {
+            "reference": 136112,
+            "workspace": 136736
+          }
+        }
+      },
+      "lockSHA256": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "name": "libswresample.7.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "583a54a1670e9e951ab2ee5daaba1b7c37913ec1ae716c9e6166b4108bbf9ea3",
+            "workspace": "583a54a1670e9e951ab2ee5daaba1b7c37913ec1ae716c9e6166b4108bbf9ea3"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "f9d91286995bd71e4571381eda975c72c5e0e8ee6aab5570cc57408bf1c52799",
+            "workspace": "f9d91286995bd71e4571381eda975c72c5e0e8ee6aab5570cc57408bf1c52799"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "415ba21f8a3ac51e43bfb603b9db0fb515546ca0c06d5de1d984631b937f36aa",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 136112,
+            "workspace": 136112
+          },
+          "x86_64": {
+            "reference": 136736,
+            "workspace": 136736
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "583a54a1670e9e951ab2ee5daaba1b7c37913ec1ae716c9e6166b4108bbf9ea3",
+        "workspaceCanonicalSHA256": "583a54a1670e9e951ab2ee5daaba1b7c37913ec1ae716c9e6166b4108bbf9ea3",
+        "referenceRawSHA256": "415ba21f8a3ac51e43bfb603b9db0fb515546ca0c06d5de1d984631b937f36aa",
+        "workspaceRawSHA256": "93ebf463362c0b6dda2b54987ba1a1614df5ab8e0c402a48a183b578ef415efc",
+        "signatureDataOffsets": {
+          "reference": 136112,
+          "workspace": 136112
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "11f0169817b19a2c5ee2c4ebc6aa59e219a910357d5b1497d1a229698331aab8",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 1208768,
+            "workspace": 1208768
+          },
+          "x86_64": {
+            "reference": 1208768,
+            "workspace": 1592896
+          }
+        }
+      },
+      "lockSHA256": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "name": "libswscale.10.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "8494319cfdc94ce2f4cf953a34c5e1b2d59a129a89f62f524c2473a53a1889a8",
+            "workspace": "8494319cfdc94ce2f4cf953a34c5e1b2d59a129a89f62f524c2473a53a1889a8"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "6df561cccca9b01a9ddd4de2275c092d78aad7d36552af23c0c1acf0ce8bc7e9",
+            "workspace": "6df561cccca9b01a9ddd4de2275c092d78aad7d36552af23c0c1acf0ce8bc7e9"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "e0b7e8b0e8678cb5c2575feeea89f0964a8a4584be4afc470f82695004d11891",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 1208768,
+            "workspace": 1208768
+          },
+          "x86_64": {
+            "reference": 1592896,
+            "workspace": 1592896
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "8494319cfdc94ce2f4cf953a34c5e1b2d59a129a89f62f524c2473a53a1889a8",
+        "workspaceCanonicalSHA256": "8494319cfdc94ce2f4cf953a34c5e1b2d59a129a89f62f524c2473a53a1889a8",
+        "referenceRawSHA256": "e0b7e8b0e8678cb5c2575feeea89f0964a8a4584be4afc470f82695004d11891",
+        "workspaceRawSHA256": "30eea85f5201c165ac2f4e1f7b0f309bbff398da78f9bb72afd19276de7128e5",
+        "signatureDataOffsets": {
+          "reference": 1208768,
+          "workspace": 1208768
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "fa707f273e69b73401d11f7c288698f5284aec2f30f265055e5a3776e178438e",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 237952,
+            "workspace": 237952
+          },
+          "x86_64": {
+            "reference": 237952,
+            "workspace": 205200
+          }
+        }
+      },
+      "lockSHA256": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "name": "libuchardet.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "5d47b544651adb6081bdabbb81945131b054a842922409704910afb1733bfe7c",
+            "workspace": "5d47b544651adb6081bdabbb81945131b054a842922409704910afb1733bfe7c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "851827bb384d88130d583b47384e1048c15554dc2ea8a996aa3501a2cbd5cdf1",
+            "workspace": "851827bb384d88130d583b47384e1048c15554dc2ea8a996aa3501a2cbd5cdf1"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "2da28bd800ba39a2a663052040cb17c03786f80050cc93ebaf6c37cdc4f1d408",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 237952,
+            "workspace": 237952
+          },
+          "x86_64": {
+            "reference": 205200,
+            "workspace": 205200
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "5d47b544651adb6081bdabbb81945131b054a842922409704910afb1733bfe7c",
+        "workspaceCanonicalSHA256": "5d47b544651adb6081bdabbb81945131b054a842922409704910afb1733bfe7c",
+        "referenceRawSHA256": "2da28bd800ba39a2a663052040cb17c03786f80050cc93ebaf6c37cdc4f1d408",
+        "workspaceRawSHA256": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+        "signatureDataOffsets": {
+          "reference": 237952,
+          "workspace": 237952
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "fa43c92f57063ea67cb6b424a2e18f8c9055924d88d4b9bec943969b4a7bb409",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 69040,
+            "workspace": 69040
+          },
+          "x86_64": {
+            "reference": 69040,
+            "workspace": 40384
+          }
+        }
+      },
+      "lockSHA256": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "name": "libudfread.3.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "880e646a64b5ab99f6ead05961ff46f3551bc95fa5097cd6244e58c9fac0712d",
+            "workspace": "880e646a64b5ab99f6ead05961ff46f3551bc95fa5097cd6244e58c9fac0712d"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "91b1a2048849d688a98d41cddeb3ab4a02fc47b999f7e4a17ae28b624797dc7a",
+            "workspace": "91b1a2048849d688a98d41cddeb3ab4a02fc47b999f7e4a17ae28b624797dc7a"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "3cfa38c117ad3384099713c33c6a51cbf3624ad422b5938546f0f92ebf442d9f",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 69040,
+            "workspace": 69040
+          },
+          "x86_64": {
+            "reference": 40384,
+            "workspace": 40384
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "880e646a64b5ab99f6ead05961ff46f3551bc95fa5097cd6244e58c9fac0712d",
+        "workspaceCanonicalSHA256": "880e646a64b5ab99f6ead05961ff46f3551bc95fa5097cd6244e58c9fac0712d",
+        "referenceRawSHA256": "3cfa38c117ad3384099713c33c6a51cbf3624ad422b5938546f0f92ebf442d9f",
+        "workspaceRawSHA256": "a4d1db58da0564c969b0f83f797d9cba1d680eba50694c6ba1ca77862cfe225b",
+        "signatureDataOffsets": {
+          "reference": 69040,
+          "workspace": 69040
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "11df8e0979360499f326874119ae3de1a224b5e3b5b8792fa5bd7323667b87d2",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 190752,
+            "workspace": 190752
+          },
+          "x86_64": {
+            "reference": 190752,
+            "workspace": 166192
+          }
+        }
+      },
+      "lockSHA256": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "name": "libunibreak.7.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "1ec45bd0cbaeda49a365623175ec2d97e7e8ba7b82fff07a6b2eabc7fe29fd16",
+            "workspace": "1ec45bd0cbaeda49a365623175ec2d97e7e8ba7b82fff07a6b2eabc7fe29fd16"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "8a739f0ee358c51d12c1e53edc72fb093dbda0e57c9adaa894c946056077b68e",
+            "workspace": "8a739f0ee358c51d12c1e53edc72fb093dbda0e57c9adaa894c946056077b68e"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "70ed2a3ca548e49ae92e266027a3e142df772fa4419b1dc9b6d5da6767dc879a",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 190752,
+            "workspace": 190752
+          },
+          "x86_64": {
+            "reference": 166192,
+            "workspace": 166192
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "1ec45bd0cbaeda49a365623175ec2d97e7e8ba7b82fff07a6b2eabc7fe29fd16",
+        "workspaceCanonicalSHA256": "1ec45bd0cbaeda49a365623175ec2d97e7e8ba7b82fff07a6b2eabc7fe29fd16",
+        "referenceRawSHA256": "70ed2a3ca548e49ae92e266027a3e142df772fa4419b1dc9b6d5da6767dc879a",
+        "workspaceRawSHA256": "866dd50d336f95465cf2c0b8ded9a103803025dfce2f2bcb85debe463ff8356f",
+        "signatureDataOffsets": {
+          "reference": 190752,
+          "workspace": 190752
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "5f6d6b2a091dd2045adef9443cc2dbc746aaf03941898b70071d31e6544ebfb0",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 255408,
+            "workspace": 255408
+          },
+          "x86_64": {
+            "reference": 255408,
+            "workspace": 243184
+          }
+        }
+      },
+      "lockSHA256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "name": "libvorbis.0.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "8c0582f6e28f7b536fe695247ccee6217de1a32c194752f42b60002e13f1441c",
+            "workspace": "8c0582f6e28f7b536fe695247ccee6217de1a32c194752f42b60002e13f1441c"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "99d889430f3cb4008e30193810c6a92640c8b9cbaf44a6058d8bd9ad7f942aa3",
+            "workspace": "99d889430f3cb4008e30193810c6a92640c8b9cbaf44a6058d8bd9ad7f942aa3"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "2dd44058c83952acbb05577fbff0732b20b45f089862c796c382bde19a883954",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 255408,
+            "workspace": 255408
+          },
+          "x86_64": {
+            "reference": 243184,
+            "workspace": 243184
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "b9831909f47c44fd0d7c51302e49daa6d1e43bb2ad7e466cdd6cb6af356c3ed2",
+        "workspaceCanonicalSHA256": "8c0582f6e28f7b536fe695247ccee6217de1a32c194752f42b60002e13f1441c",
+        "referenceRawSHA256": "df605ca333ae455bf52a91e2806aea5d1890f18728aa531572381b6999eeaf42",
+        "workspaceRawSHA256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+        "signatureDataOffsets": {
+          "reference": 255408,
+          "workspace": 255408
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": false,
+        "rawSHA256": "2507484981b278126b01d82c7d2ffd3473b34f083396d8ce8e284e4fd08eb5a1",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 747872,
+            "workspace": 747872
+          },
+          "x86_64": {
+            "reference": 747872,
+            "workspace": 735632
+          }
+        }
+      },
+      "lockSHA256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "name": "libvorbisenc.2.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "e1e83af0836a156689c8644ee0a3fc104e974fc2393387b4d79ddab05d70d38d",
+            "workspace": "e1e83af0836a156689c8644ee0a3fc104e974fc2393387b4d79ddab05d70d38d"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "37a524f552b7550b8b10854f67b0a53f90cc91abd7e268d2853b6cfd26ade6d2",
+            "workspace": "37a524f552b7550b8b10854f67b0a53f90cc91abd7e268d2853b6cfd26ade6d2"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "66a533628b045402a1da0eb64f57328577694cd3d9a78879934b1d2e0b3dcf9f",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 747872,
+            "workspace": 747872
+          },
+          "x86_64": {
+            "reference": 735632,
+            "workspace": 735632
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": false,
+        "referenceCanonicalSHA256": "9d041b2d035195249c0f80f6a22d9827fcbef03d81f9f63e97c1b572f0e1d88a",
+        "workspaceCanonicalSHA256": "e1e83af0836a156689c8644ee0a3fc104e974fc2393387b4d79ddab05d70d38d",
+        "referenceRawSHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0",
+        "workspaceRawSHA256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+        "signatureDataOffsets": {
+          "reference": 747872,
+          "workspace": 747872
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "363e434b9904ba7cf2781b70e5b11813c0080ac6d79adfe2990cb16864fc9d5c",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 493456,
+            "workspace": 493456
+          },
+          "x86_64": {
+            "reference": 493456,
+            "workspace": 637568
+          }
+        }
+      },
+      "lockSHA256": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "name": "libwebp.7.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "605e73a026b0cbd7451dd83dc27a24d0491e7df16e608476dbf43b506b8f605a",
+            "workspace": "605e73a026b0cbd7451dd83dc27a24d0491e7df16e608476dbf43b506b8f605a"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "8efd470132ce172ad96177e0c936aaeb22063a66ca8721f4e66b00699a50cd1e",
+            "workspace": "8efd470132ce172ad96177e0c936aaeb22063a66ca8721f4e66b00699a50cd1e"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "9e27724d6be9a7c38d017654a1caf1eeec84554aa6c798ed99dd93c6bedc4fbc",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 493456,
+            "workspace": 493456
+          },
+          "x86_64": {
+            "reference": 637568,
+            "workspace": 637568
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "605e73a026b0cbd7451dd83dc27a24d0491e7df16e608476dbf43b506b8f605a",
+        "workspaceCanonicalSHA256": "605e73a026b0cbd7451dd83dc27a24d0491e7df16e608476dbf43b506b8f605a",
+        "referenceRawSHA256": "9e27724d6be9a7c38d017654a1caf1eeec84554aa6c798ed99dd93c6bedc4fbc",
+        "workspaceRawSHA256": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+        "signatureDataOffsets": {
+          "reference": 493456,
+          "workspace": 493456
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "4667f2ef972a3d9cee3f07321e228ca2f3ee4eb56b5007261080accdd8e6bae1",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 87376,
+            "workspace": 87376
+          },
+          "x86_64": {
+            "reference": 87376,
+            "workspace": 50544
+          }
+        }
+      },
+      "lockSHA256": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "name": "libwebpmux.3.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "8f20ac5614d1e7d00f3cfe2c4753657a7db324708e61fad916503d8b86173d52",
+            "workspace": "8f20ac5614d1e7d00f3cfe2c4753657a7db324708e61fad916503d8b86173d52"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "b9a3040ab75320fbfeafba881d3f52a7d6504381a48a29448f8a7d662a73113c",
+            "workspace": "b9a3040ab75320fbfeafba881d3f52a7d6504381a48a29448f8a7d662a73113c"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "19932677d8dd9f2d7bfd79db0771b3779aac42f33877ae98cb8469a6b7e6de01",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 87376,
+            "workspace": 87376
+          },
+          "x86_64": {
+            "reference": 50544,
+            "workspace": 50544
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "8f20ac5614d1e7d00f3cfe2c4753657a7db324708e61fad916503d8b86173d52",
+        "workspaceCanonicalSHA256": "8f20ac5614d1e7d00f3cfe2c4753657a7db324708e61fad916503d8b86173d52",
+        "referenceRawSHA256": "19932677d8dd9f2d7bfd79db0771b3779aac42f33877ae98cb8469a6b7e6de01",
+        "workspaceRawSHA256": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+        "signatureDataOffsets": {
+          "reference": 87376,
+          "workspace": 87376
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "42778632cb6dbcfd61f7954175df1f7394078bfae193c95d2abd74b4aba2dc80",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 372688,
+            "workspace": 372688
+          },
+          "x86_64": {
+            "reference": 372688,
+            "workspace": 710016
+          }
+        }
+      },
+      "lockSHA256": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "name": "libzimg.2.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "c49a7ee3003e00f31fbe6d7d038cdfb51a0af217da13c264704ce0382404ac12",
+            "workspace": "c49a7ee3003e00f31fbe6d7d038cdfb51a0af217da13c264704ce0382404ac12"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "24d1364e733ea962edb072514f202c3869b23cb828d31f4087bfe02e568577c0",
+            "workspace": "24d1364e733ea962edb072514f202c3869b23cb828d31f4087bfe02e568577c0"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "fa214d54d2851a934f131e19940061cb849ff76e3679c876ee449f2cf7bb5158",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 372688,
+            "workspace": 372688
+          },
+          "x86_64": {
+            "reference": 710016,
+            "workspace": 710016
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "c49a7ee3003e00f31fbe6d7d038cdfb51a0af217da13c264704ce0382404ac12",
+        "workspaceCanonicalSHA256": "c49a7ee3003e00f31fbe6d7d038cdfb51a0af217da13c264704ce0382404ac12",
+        "referenceRawSHA256": "fa214d54d2851a934f131e19940061cb849ff76e3679c876ee449f2cf7bb5158",
+        "workspaceRawSHA256": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+        "signatureDataOffsets": {
+          "reference": 372688,
+          "workspace": 372688
+        }
+      }
+    },
+    {
+      "depsBuildscriptsArm64Release": {
+        "canonicalContentMatch": true,
+        "rawSHA256": "c4f7e6d7613170955fe4b7451ff7390e088258b4d7f2f2728b11a7c58b7a8c30",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 808304,
+            "workspace": 808304
+          },
+          "x86_64": {
+            "reference": 808304,
+            "workspace": 957904
+          }
+        }
+      },
+      "lockSHA256": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad",
+      "name": "libzstd.1.dylib",
+      "versionedIINA": {
+        "canonicalContentByArchitecture": {
+          "arm64": {
+            "matches": true,
+            "reference": "857791d42bdfec14fc722b40b40435df617291223cc94fcc89ab1eadee2e0ff2",
+            "workspace": "857791d42bdfec14fc722b40b40435df617291223cc94fcc89ab1eadee2e0ff2"
+          },
+          "x86_64": {
+            "matches": true,
+            "reference": "d354f2c2a8e16675e6285abfb747f10f5ed0d3daadabfafad4e6f757f5450b20",
+            "workspace": "d354f2c2a8e16675e6285abfb747f10f5ed0d3daadabfafad4e6f757f5450b20"
+          }
+        },
+        "rawMatchesWorkspace": false,
+        "rawSHA256": "5947ee456759d8731af51074da6138b1e69b89655d4d3b7d6bdcde88a8e14ec7",
+        "signatureDataOffsets": {
+          "arm64": {
+            "reference": 808304,
+            "workspace": 808304
+          },
+          "x86_64": {
+            "reference": 957904,
+            "workspace": 957904
+          }
+        }
+      },
+      "workspaceMatchesLock": true,
+      "workspaceSHA256": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad",
+      "depsBuildscriptsFatRelease": {
+        "canonicalArm64ContentMatch": true,
+        "referenceCanonicalSHA256": "857791d42bdfec14fc722b40b40435df617291223cc94fcc89ab1eadee2e0ff2",
+        "workspaceCanonicalSHA256": "857791d42bdfec14fc722b40b40435df617291223cc94fcc89ab1eadee2e0ff2",
+        "referenceRawSHA256": "5947ee456759d8731af51074da6138b1e69b89655d4d3b7d6bdcde88a8e14ec7",
+        "workspaceRawSHA256": "dddd4e4c8e2ded28022c6550b94b50ca4e649f3b19e8f4932fca446a520a22ad",
+        "signatureDataOffsets": {
+          "reference": 808304,
+          "workspace": 808304
+        }
+      }
+    }
+  ],
+  "depsBuildscriptsArm64Release": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-arm64.zip",
+    "assetSHA256": "ec7266468a297b907eadbb473c7b3d2992cd274c40d379d8e0e8910caedfae50",
+    "canonicalArm64ContentMatches": 38,
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "componentCount": 44,
+    "release": "https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release",
+    "repository": "https://github.com/iina/deps-buildscripts"
+  },
+  "iinaVersionedEndpoint": {
+    "canonicalContentMatches": 43,
+    "componentCount": 44,
+    "filelistSHA256": "3f3555deb2107677b8060cd2c4ea9487b2adf8f40c70329742e3335f47024cf6",
+    "rawMatches": 0,
+    "url": "https://iina.io/dylibs/1.5.0/universal"
+  },
+  "recordedAt": "2026-10-14",
+  "runtimeSource": "https://github.com/iina/iina/releases/download/v1.5.0/IINA.v1.5.0.dmg",
+  "runtimeSourceSHA256": "8fad50479b10e09645053457cec46bd53d054ced2242cfe68f74586735a20dc7",
+  "schemaVersion": 5,
+  "workspaceRuntimeSHA256MatchesLock": 44,
+  "upstreamSourceChain": {
+    "releaseTag": "iina-1.5.0-release",
+    "releaseURL": "https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFile": {
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/versions.env",
+      "githubBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+      "ffmpegVersion": "9.0.1",
+      "ffmpegSourceSHA256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635"
+    },
+    "buildWorkflow": {
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/.github/workflows/build.yml",
+      "githubBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+      "triggers": [
+        "push to master for dependency/build workflow paths",
+        "workflow_dispatch"
+      ],
+      "outputs": [
+        "iina-deps-arm64",
+        "iina-deps-x86_64",
+        "iina-deps-fat"
+      ],
+      "successfulRun": {
+        "id": 35411161790,
+        "url": "https://github.com/iina/deps-buildscripts/actions/runs/35411161790",
+        "event": "push",
+        "headSHA": "f86d54276547df6d14104583ea604af67433f1e1",
+        "conclusion": "success",
+        "jobs": [
+          "Build (arm64): success",
+          "Build (x86_64): success",
+          "Package (arm64 / x86_64 / fat): success"
+        ],
+        "artifactsMatchReleaseAssetsBySHA256": {
+          "iina-deps-arm64": "ec7266468a297b907eadbb473c7b3d2992cd274c40d379d8e0e8910caedfae50",
+          "iina-deps-x86_64": "2ec8496268a50fec9d83bcc595475af25b3c837525855d1970f243aae92018ea",
+          "iina-deps-fat": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e"
+        }
+      },
+      "releaseAssetsMatchSuccessfulWorkflowArtifacts": true,
+      "publishesVersionedDylibEndpoint": false
+    },
+    "conclusion": "The release tag resolves to the pinned commit. A successful workflow run for that commit produced three artifacts whose SHA-256 values exactly match the corresponding GitHub Release assets. This proves the source commit to CI artifact to GitHub Release asset chain. The downloaded fat Release asset was locally hash-verified and its arm64 slices canonically match 38/44 locked workspace libraries; the versioned iina.io endpoint matches 43/44 locked workspace libraries. The two sources therefore have substantial binary correspondence, but are not the same exact build for every component, and the workflow does not publish the versioned endpoint. The single libavformat mismatch in the workspace is the intentional Bomu FFmpeg overlay; remaining non-overlay mismatches are unexplained build differences."
+  },
+  "depsBuildscriptsFatRelease": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "assetSHA256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "archiveSHA256VerifiedLocally": true,
+    "workflowRunID": 35411161790,
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "componentCount": 44,
+    "canonicalArm64ContentMatches": 38,
+    "versionedEndpointMatchesWorkspace": 43,
+    "allComponentsMatchWorkspace": false,
+    "unexplainedMismatchedComponents": [
+      "libSvtAv1Enc.4.dylib",
+      "libjpeg.62.dylib",
+      "libmpv.2.dylib",
+      "libvorbis.0.dylib",
+      "libvorbisenc.2.dylib"
+    ]
+  }
+}

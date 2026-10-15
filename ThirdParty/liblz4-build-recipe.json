@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "component": "liblz4.1.dylib",
+  "source": {
+    "url": "https://github.com/lz4/lz4/archive/refs/tags/v1.10.0.tar.gz",
+    "version": "1.10.0",
+    "archiveSHA256": "537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b",
+    "tag": "v1.10.0"
+  },
+  "sourceLicense": {
+    "file": "lib/LICENSE",
+    "repository": "https://github.com/lz4/lz4",
+    "tag": "v1.10.0",
+    "gitBlobSHA1": "488491695a6b6984aa3a49a8392b192ed2bcac1d",
+    "localSnapshot": "ThirdParty/liblz4-LICENSE.txt",
+    "spdx": "BSD-2-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-lz4.sh",
+      "gitBlobSHA1": "01981a91e2b9c10a32935fdef0ede5ab51b87aab",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-lz4.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "692e09711433643656e517eb0182b3c222afbdde0238458420452c2442ff4ebe",
+    "canonicalArm64SHA256": "2faafe7e21323c54a7981b48c58ed1f9d02648a946c7ce5950815afbdeb63c2e",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

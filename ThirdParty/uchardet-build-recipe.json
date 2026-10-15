@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "component": "libuchardet.0.dylib",
+  "source": {
+    "url": "https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz",
+    "version": "uchardet 0.0.8",
+    "archiveSHA256": "e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0",
+    "licenseArchiveEntries": [
+      "uchardet-0.0.8/COPYING"
+    ]
+  },
+  "sourceLicense": {
+    "localSnapshot": "ThirdParty/uchardet-COPYING.txt",
+    "archiveEntrySHA256": "107a29ccdd2d778aa2df5462f85dddfa099059abd22e064e07ec2cc9bafc37cd",
+    "spdx": "MPL-1.1"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-uchardet.sh",
+      "gitBlobSHA1": "bee1a25d3048ac72bbd4d67656e5cb632fa4d8e1",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-uchardet.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "cmakeOptions": [
+      "-DBUILD_STATIC=OFF",
+      "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "f525b632975a7d72bb41a41b599093c1b8af582b4b35ea9bfa86bcc2f9ff39e6",
+    "canonicalArm64SHA256": "5d47b544651adb6081bdabbb81945131b054a842922409704910afb1733bfe7c",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

@@ -9,6 +9,51 @@ def cpu_percent(start, end):
     return 100 * (end['cpuSeconds'] - start['cpuSeconds']) / (end['uptime'] - start['uptime'])
 
 
+def raw_counter_span(samples, key):
+    values = [sample.get(key) for sample in samples]
+    if len(values) < 2 or any(value is None for value in values):
+        return 'n/a'
+    if any(current < previous for previous, current in zip(values, values[1:])):
+        return 'reset'
+    elapsed = samples[-1]['uptime'] - samples[0]['uptime']
+    if elapsed <= 0:
+        return 'n/a'
+    delta = values[-1] - values[0]
+    return f'{delta} over {elapsed:.1f} s ({delta / elapsed:.2f} raw units/s)'
+
+
+def gpu_render_interval_span(before, after):
+    start = before.get('gpuRenderTiming')
+    end = after.get('gpuRenderTiming')
+    if not end:
+        return 'missing'
+    availability = end.get('availability')
+    if availability is None:
+        availability = 'supported' if end.get('supported') else 'unsupported or unavailable'
+    if availability != 'supported':
+        return availability.replace('-', ' ')
+    start_availability = start.get('availability') if start else None
+    if start_availability is None and start:
+        start_availability = 'supported' if start.get('supported') else 'unsupported or unavailable'
+    if not start or start_availability != 'supported':
+        return 'missing baseline'
+    start_samples = start.get('sampleCount')
+    end_samples = end.get('sampleCount')
+    start_interval = start.get('intervalNanoseconds')
+    end_interval = end.get('intervalNanoseconds')
+    if not all(isinstance(value, (int, float)) for value in
+               (start_samples, end_samples, start_interval, end_interval)):
+        return 'incomplete'
+    if end_samples < start_samples or end_interval < start_interval:
+        return 'counter reset'
+    pending = end.get('pendingQueryCount')
+    dropped = end.get('droppedSampleCount')
+    return (f'{(end_interval - start_interval) / 1_000_000:.3f} ms across '
+            f'{end_samples - start_samples} completed intervals; '
+            f'{pending if isinstance(pending, int) else "n/a"} pending / '
+            f'{dropped if isinstance(dropped, int) else "n/a"} dropped')
+
+
 def uninterrupted(visibility):
     return (visibility and visibility.get('endedAtSeconds') is not None and visibility.get('changes')
             and all(change['isVisible'] for change in visibility['changes']))
@@ -17,7 +62,7 @@ def uninterrupted(visibility):
 def main():
     root = Path(sys.argv[1])
     report = json.loads((root / 'window-lifecycle.json').read_text())
-    if report['schemaVersion'] not in {1, 2, 3, 4} or not report['completed']:
+    if report['schemaVersion'] not in {1, 2, 3, 4, 5, 6, 7, 8, 9} or not report['completed']:
         raise SystemExit('Window benchmark is incomplete. Inspect its partial JSON and process.log.')
     if report['schemaVersion'] >= 3:
         visibility = report.get('soakVisibility')
@@ -113,6 +158,10 @@ def main():
         lines += ['', f'Continuous playback: {elapsed:.1f} s, position advanced {positions:.1f} s, '
                   f'{frames} new submitted frames ({frames / elapsed:.2f}/s).',
                   f'CPU: {cpu_percent(start["process"], end["process"]):.2f}% (100% = one logical core).',
+                  f'OpenGL GPU render interval: {gpu_render_interval_span(start["playback"], end["playback"])}.',
+                  f'OpenGL GPU query mode: {end["playback"].get("gpuRenderTiming", {}).get("mode", "unknown")}.',
+                  f'Raw task-energy counter: {raw_counter_span([item["process"] for item in soak], "taskEnergyCounterRaw")}; '
+                  f'raw GPU-utilisation counter: {raw_counter_span([item["process"] for item in soak], "gpuUtilisationCounterRaw")}.',
                   f'Footprint: {footprints[0]:.1f} → {footprints[-1]:.1f} MiB; '
                   f'observed range {min(footprints):.1f}–{max(footprints):.1f} MiB.',
                   f'Mean frame-submission error: {total / count:.3f} ms; '
@@ -120,6 +169,10 @@ def main():
     stopped = report['stopped']
     lines += ['', f'Stopped CPU: {cpu_percent(stopped["process"][0], stopped["process"][-1]):.2f}%; '
               'new frames, draws and snapshots: 0.',
+              f'Stopped raw task-energy counter: {raw_counter_span(stopped["process"], "taskEnergyCounterRaw")}; '
+              f'raw GPU-utilisation counter: {raw_counter_span(stopped["process"], "gpuUtilisationCounterRaw")}.',
+              f'Stopped OpenGL GPU render interval: {gpu_render_interval_span(stopped.get("before", {}), stopped.get("after", {}))}.',
+              f'OpenGL GPU query mode: {stopped.get("after", {}).get("gpuRenderTiming", {}).get("mode", "unknown")}.',
               f'After shutdown: coreAlive={report["shutdown"]["coreAlive"]}, '
               f'renderContextAlive={report["shutdown"]["renderContextAlive"]}.', '',
               'Pause/resume exercises the production overlay; screenshots and manual interaction remain separate '

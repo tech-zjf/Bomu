@@ -45,6 +45,33 @@ class MediaSuiteTests(unittest.TestCase):
         self.probe['streams'].append(deepcopy(self.probe['streams'][1]))
         media_suite.validate_recipe(recipe, self.probe)
 
+    def test_b11_has_sixty_unique_audio_and_video_cases_without_changing_a04(self):
+        a04 = media_suite.recipes_for_suite('a04')
+        b11 = media_suite.recipes_for_suite('b11')
+        self.assertEqual(len(a04), 30)
+        self.assertEqual(len(b11), 60)
+        self.assertTrue(all(recipe.video and recipe.audio for recipe in b11))
+        self.assertEqual(len({recipe.file for recipe in b11}), 60)
+
+    def test_nonstandard_video_encoders_have_real_probe_mappings(self):
+        cases = [
+            (media_suite.Recipe('mpeg4.avi', 'test', size='640x480', rate='25',
+                                video='mpeg4', profile=''), 'mpeg4', 'yuv420p'),
+            (media_suite.Recipe('mpeg2.mpg', 'test', size='720x576', rate='25',
+                                video='mpeg2video', profile=''), 'mpeg2video', 'yuv420p'),
+            (media_suite.Recipe('prores.mov', 'test', size='1280x720', rate='25',
+                                video='prores_ks', pixel_format='yuv422p10le', profile=''),
+             'prores', 'yuv422p10le'),
+        ]
+        for recipe, codec, pixel_format in cases:
+            with self.subTest(codec=codec):
+                probe = deepcopy(self.probe)
+                width, height = map(int, recipe.size.split('x'))
+                probe['streams'][0].update(codec_name=codec, width=width, height=height,
+                                           pix_fmt=pixel_format, profile='')
+                probe['streams'][0]['avg_frame_rate'] = recipe.rate + '/1' if '/' not in recipe.rate else recipe.rate
+                media_suite.validate_recipe(recipe, probe)
+
 
 if __name__ == '__main__':
     unittest.main()

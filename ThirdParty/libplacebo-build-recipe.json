@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    "libplacebo.360.dylib"
+  ],
+  "sourceClosure": {
+    "repository": "https://code.videolan.org/videolan/libplacebo.git",
+    "tag": "v7.360.1",
+    "commit": "cee9b076f2c63104ccfd497fa79c39a867293ec4",
+    "submodules": [
+      {
+        "path": "3rdparty/Vulkan-Headers",
+        "url": "https://github.com/KhronosGroup/Vulkan-Headers",
+        "commit": "450bd2232225d6c7728a4108055ac2e37cef6475"
+      },
+      {
+        "path": "3rdparty/fast_float",
+        "url": "https://github.com/fastfloat/fast_float.git",
+        "commit": "97b54ca9e75f5303507699d27c6b4f4efe4641a1"
+      },
+      {
+        "path": "3rdparty/glad",
+        "url": "https://github.com/Dav1dde/glad",
+        "commit": "73db193f853e2ee079bf3ca8a64aa2eaf6459043"
+      },
+      {
+        "path": "3rdparty/jinja",
+        "url": "https://github.com/pallets/jinja",
+        "commit": "15206881c006c79667fe5154fe80c01c65410679"
+      },
+      {
+        "path": "3rdparty/markupsafe",
+        "url": "https://github.com/pallets/markupsafe",
+        "commit": "297fc8e356e6836a62087949245d09a28e9f1b13"
+      },
+      {
+        "path": "demos/3rdparty/nuklear",
+        "url": "https://github.com/Immediate-Mode-UI/Nuklear.git",
+        "commit": "242f35efa067a46c595645eeda7b1771ea1f83b1"
+      }
+    ]
+  },
+  "sourceClosureSHA256": "df549098d69fa0e58df2f4923e7a334ad674692d6dafd05ea740e7557230f3b4",
+  "sourceDigestMethod": "SHA-256 of UTF-8 canonical JSON (sorted keys, compact separators) containing the root commit and all recursively pinned submodule paths, URLs and commit IDs.",
+  "sourceLicenses": {
+    "libplacebo": "LGPL-2.1-or-later; ThirdParty/libplacebo-LICENSE.txt",
+    "glad": "MIT; generated OpenGL/EGL loader code is compiled into libplacebo.",
+    "Khronos OpenGL specification": "Apache-2.0; included in generated glad code; retained in the complete upstream glad LICENSE.",
+    "Khronos EGL headers": "LicenseRef-glad-khronos-egl; included in generated glad code; exact terms retained in the complete upstream glad LICENSE.",
+    "fast_float": "MIT selected from the upstream multi-license; header-only code included by src/convert.cc.",
+    "Little CMS": "Dynamically linked dependency, separately packaged and noticed as liblcms2.2.dylib."
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libplacebo.sh",
+      "gitBlobSHA1": "10b46d50468e5ad5f57737a925f4ae0aff47c9ea",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-libplacebo.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "mesonOptions": [
+      "-Dvulkan=disabled",
+      "-Dopengl=enabled",
+      "-Dd3d11=disabled",
+      "-Ddemos=false",
+      "-Dtests=false",
+      "-Dshaderc=disabled",
+      "-Dglslang=disabled",
+      "-Dlcms=enabled"
+    ],
+    "sourceBuildFacts": [
+      "OpenGL loader is generated from the pinned glad submodule and compiled into libplacebo.",
+      "fast_float headers from the pinned submodule are included by src/convert.cc.",
+      "Little CMS is linked dynamically from the separately pinned liblcms2.2.dylib.",
+      "Vulkan, demos, tests, shaderc and glslang are disabled."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "11e0b5b80ac98e73dc4b644b50a580e5f25104d01d18509b57f5b862a6a64c27",
+    "canonicalArm64SHA256": "1fa1eb37ebe5185033e066266aee53930d84f72f66f6c5890a5c4a9030574c36",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  },
+  "noticeFiles": {
+    "ThirdParty/libplacebo-LICENSE.txt": {
+      "path": "ThirdParty/libplacebo-LICENSE.txt",
+      "sha256": "b3aa400aca6d2ba1f0bd03bd98d03d1fe7489a3bbb26969d72016360af8a5c9d"
+    },
+    "ThirdParty/libplacebo-glad-LICENSE.txt": {
+      "path": "ThirdParty/libplacebo-glad-LICENSE.txt",
+      "sha256": "cbb325cd4ac5bd06717ffa34a322b984f9d285e4c67c8ca1b7380d6ef08c2a77"
+    },
+    "ThirdParty/libplacebo-fast_float-LICENSE-MIT.txt": {
+      "path": "ThirdParty/libplacebo-fast_float-LICENSE-MIT.txt",
+      "sha256": "e562f3f974ced7e69dd1db77b820b36bcf8f30377f1aa105723fba449c53c4e6"
+    }
+  },
+  "notice": {
+    "path": "ThirdParty/libplacebo-NOTICE.txt",
+    "sha256": "b5d44a3b390ad8343f67eadaba89f1c5b12506c647317462bf76d34f9a954d4d"
+  }
+}

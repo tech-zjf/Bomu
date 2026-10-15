@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "component": "libogg.0.dylib",
+  "source": {
+    "url": "https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-1.3.6.tar.gz",
+    "version": "1.3.6",
+    "archiveSHA256": "83e6704730683d004d20e21b8f7f55dcb3383cdf84c0daedf30bde175f774638",
+    "tag": "v1.3.6"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/xiph/ogg",
+    "tag": "v1.3.6",
+    "gitBlobSHA1": "6111c6c5a6b95057e43d36b7c217b073bf5f9b22",
+    "localSnapshot": "ThirdParty/libogg-COPYING.txt",
+    "spdx": "BSD-3-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libogg.sh",
+      "gitBlobSHA1": "fc742e1abc9dd1034fc6eae74409e451c6c657dc",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libogg.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "72e6e2554916f5871e0164c7a36dd4ea45257f9b8706a1051a30277f03be638d",
+    "canonicalArm64SHA256": "64abb12eb9b6972ad6e2c98fcabdbfa0552fc5792d3b21754f08fabdf0f0f877",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

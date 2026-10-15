@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    "libsharpyuv.0.dylib",
+    "libwebp.7.dylib",
+    "libwebpmux.3.dylib"
+  ],
+  "source": {
+    "url": "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz",
+    "version": "1.6.0",
+    "archiveSHA256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+    "tag": "v1.6.0"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/webmproject/libwebp",
+    "tag": "v1.6.0",
+    "gitBlobSHA1": "7a6f99547d4d6b4c5e6d5321acfaeba313e08de3",
+    "localSnapshot": "ThirdParty/libwebp-COPYING.txt",
+    "spdx": "BSD-3-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libwebp.sh",
+      "gitBlobSHA1": "244b806bfe445008f235fd503fad6ed1e97efbbe",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libwebp.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json",
+    "components": {
+      "libsharpyuv.0.dylib": {
+        "workspaceBinarySHA256": "93edf5a034abaaae9ac291b42841bcf58e0bee051c7502013b17408d8bae0a19",
+        "canonicalArm64SHA256": "1fe86b8cea650f589f6be758dbbc10afa362f7f8324c97a3aae5f9a4fdee40f6",
+        "matchesReleaseArtifact": true
+      },
+      "libwebp.7.dylib": {
+        "workspaceBinarySHA256": "ff18b3c0314a1e51c24c07f5f056f14db5937d1db642be684b82e26864a6bf3f",
+        "canonicalArm64SHA256": "605e73a026b0cbd7451dd83dc27a24d0491e7df16e608476dbf43b506b8f605a",
+        "matchesReleaseArtifact": true
+      },
+      "libwebpmux.3.dylib": {
+        "workspaceBinarySHA256": "b8cca61a3ecf192f4b5f12e390bdd9041c5e2c38af4b49e5602fd574c79c1ece",
+        "canonicalArm64SHA256": "8f20ac5614d1e7d00f3cfe2c4753657a7db324708e61fad916503d8b86173d52",
+        "matchesReleaseArtifact": true
+      }
+    }
+  }
+}

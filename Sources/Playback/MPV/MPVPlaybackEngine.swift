@@ -41,6 +41,15 @@ final class MPVPlaybackEngine: PlaybackEngine {
         }
     }
     func setVolume(_ volume: Double) { session.setVolume(volume) }
+    func setSpeed(_ speed: Double) { session.setSpeed(speed) }
+    func setAudioTrack(id: Int, requestID: UInt64) { session.setAudioTrackID(Int64(id), requestID: requestID) }
+    func setSubtitleTrack(id: Int, requestID: UInt64) { session.setSubtitleTrackID(Int64(id), requestID: requestID) }
+    func addExternalSubtitle(_ url: URL, requestID: UInt64) {
+        session.addExternalSubtitleURL(url, requestID: requestID)
+    }
+    func setSubtitleDelay(_ seconds: Double, requestID: UInt64) {
+        session.setSubtitleDelay(seconds, requestID: requestID)
+    }
     func stop() { session.stop() }
 
     func shutdown() async {
@@ -74,16 +83,32 @@ final class MPVPlaybackEngine: PlaybackEngine {
                 isSeeking: update.seeking,
                 isBuffering: update.buffering,
                 isSeekable: update.seekable,
-                volume: update.volume
+                volume: update.volume,
+                speed: update.speed,
+                audioTrackID: update.audioTrackID?.intValue,
+                subtitleTrackID: update.subtitleTrackID?.intValue,
+                subtitleDelay: update.subtitleDelay,
+                tracks: update.tracks.compactMap { value in
+                    let kindValue = value.trackType == "sub" ? "subtitle" : value.trackType
+                    guard let kind = PlaybackTrack.Kind(rawValue: kindValue) else { return nil }
+                    return PlaybackTrack(id: Int(value.trackID), kind: kind, language: value.language,
+                                         title: value.title, isSelected: value.selected, isExternal: value.external)
+                }
             )))
         case .ended:
             onEvent?(.ended(update.requestID))
         case .failed:
-            guard let message = update.message else {
-                assertionFailure("Native failure must include a message")
-                return
+            let kind: PlaybackFailure.Kind
+            switch update.failureKind {
+            case .unavailable: kind = .unavailable
+            case .permissionDenied: kind = .permissionDenied
+            case .unsupportedOrDamaged: kind = .unsupportedOrDamaged
+            case .engine: kind = .engine
+            @unknown default:
+                assertionFailure("Unmapped native playback failure")
+                kind = .engine
             }
-            onEvent?(.failed(update.requestID, message))
+            onEvent?(.failed(update.requestID, PlaybackFailure(kind: kind, detail: update.message)))
         @unknown default:
             assertionFailure("Unmapped native playback event")
         }

@@ -47,6 +47,10 @@
 
 各 target 首次读取旧编译器增量缓存时出现 priors 读取警告，随后完成重新编译。另有未使用 AppIntents 的元数据提取提示。原生测试宿主启动时还记录了 `com.apple.linkd.autoShortcut` 的系统服务连接失败，随后全部 5 项播放测试通过；本项目没有实现 Shortcuts 集成，该系统日志仍保留，未宣称所有系统服务无异常。本轮没有通过屏蔽日志取得成功。
 
+## A05 干净构建复验
+
+2026-10-14 在新建的 `.build/DerivedData-a05-clean-20261014/` 中，以固定的绝对 SwiftPM checkout/cache 路径执行 arm64 Debug 构建，Xcode 返回 0，Bomu.app 可执行文件 SHA-256 为 `534b99cbd73a84f0b280ac2fb9a5e20c9eebccb3a75ac026497f4ee6916cfe42`。工具链、依赖锁、`Package.resolved` 与产物哈希见 [干净构建记录](clean-build-xcode27-2026-10-14.json)。此前一次诊断命令误用了相对 SwiftPM 路径并得到 `Missing package product 'GRDB'`；纠正为绝对路径后独立干净构建通过，那个误报不代表项目构建故障。
+
 ## 完成边界与下一步
 
 本轮完成工具链迁移的自动回归，不改变正式依赖中的 TS 已知问题。候选尚未接入正式应用；此前用户明确回答“没观察到，暂不确认”，本轮也没有新的人工画面或听感确认。跨屏/全屏循环、物理同步、校准色彩、长期泄漏和公开发行均未因此视为通过。

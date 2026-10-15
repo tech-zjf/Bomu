@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "component": "libdav1d.7.dylib",
+  "source": {
+    "url": "https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.bz2",
+    "version": "1.5.3",
+    "archiveSHA256": "e099f53253f6c247580c554d53a13f1040638f2066edc3c740e4c2f15174ce22"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/videolan/dav1d",
+    "tag": "1.5.3",
+    "gitBlobSHA1": "8d4d6418c1ab4adf0a05bddfc11182216d5238a1",
+    "localSnapshot": "ThirdParty/dav1d-COPYING.txt"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-dav1d.sh",
+      "gitBlobSHA1": "944491721730b90c0a902f7e665130403452e274",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-dav1d.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
+    "canonicalArm64SHA256": "fd5e9a3bf5420438f4b7c9c4417d28839d29418cf156bcee2b7a6a080f07e838",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

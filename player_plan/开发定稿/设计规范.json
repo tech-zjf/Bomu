@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "product": "Mori",
-  "status": "用户已确认视觉方向，原生实现待开发",
+  "product": "Bomu",
+  "status": "按用户反馈收敛桌面组件圆角；当前 Debug 包已在单窗口目视检查，整体验收仍在进行",
   "platform": "macOS 14+ arm64",
   "units": "pt for native layout",
   "colors": {
@@ -14,12 +14,18 @@
     "playerFallback": "#111722"
   },
   "typography": {
-    "family": "System SF / PingFang",
-    "pageTitle": 27,
-    "sectionTitle": 18,
-    "body": 14,
-    "metadata": 12,
-    "timeDigits": "monospaced"
+    "interfaceFamily": "System sans (SF / localized platform fallback)",
+    "displayFamily": "System serif design, reserved for brand moments (localized platform fallback)",
+    "roles": {
+      "brand": { "family": "display", "size": 32, "weight": "semibold" },
+      "pageTitle": { "family": "interface", "size": 27, "weight": "semibold" },
+      "sectionTitle": { "family": "interface", "size": 17, "weight": "semibold" },
+      "body": { "family": "interface", "size": 14 },
+      "subtitle": { "family": "interface", "size": 13, "weight": "regular" },
+      "metadata": { "family": "interface", "size": 12 },
+      "timeDigits": "interface with monospaced digits"
+    },
+    "bundledFonts": false
   },
   "spacing": {
     "sidebarWidth": 176,
@@ -30,9 +36,18 @@
   },
   "radius": {
     "windowVisual": 20,
-    "thumbnail": 14,
-    "menu": 16,
-    "dialog": 22
+    "dropTargetOverlay": 6,
+    "thumbnail": 4,
+    "menu": 12,
+    "dialog": 16,
+    "selection": 2,
+    "surface": 3,
+    "control": 4,
+    "player": 4,
+    "field": 4,
+    "folderIcon": 2,
+    "badge": 2,
+    "emptyStateIcon": 10
   },
   "player": {
     "centralButton": 88,

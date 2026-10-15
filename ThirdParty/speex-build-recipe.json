@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "component": "libspeex.1.dylib",
+  "source": {
+    "url": "https://ftp.osuosl.org/pub/xiph/releases/speex/speex-1.2.1.tar.gz",
+    "version": "1.2.1",
+    "archiveSHA256": "4b44d4f2b38a370a2d98a78329fefc56a0cf93d1c1be70029217baae6628feea",
+    "tag": "Speex-1.2.1"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/xiph/speex",
+    "tag": "Speex-1.2.1",
+    "gitBlobSHA1": "7d6dc4aabd38f6e184028ff871744ac6b71b63ae",
+    "localSnapshot": "ThirdParty/speex-COPYING.txt",
+    "spdx": "BSD-3-Clause"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-speex.sh",
+      "gitBlobSHA1": "1f983a4804f03e6211ee0a1af61c4362213c29b2",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-speex.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "configureFlags": [
+      "--enable-shared",
+      "--disable-static",
+      "--disable-ogg"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "b35383a60e077770fd3eac9e528ab5977d3371172c296792987027b587728c05",
+    "canonicalArm64SHA256": "e7a89db4c2dd9fa9a2d1906a02eb3fa8cd8359eee2bad94c8e1ff0f1a314ed8c",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

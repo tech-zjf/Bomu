@@ -9,8 +9,7 @@
 ## 当前状态
 
 - 当前开发里程碑为 **`v0.0.1-dev.2`**：媒体矩阵、渲染清屏、定位候选验证与文件打开入口修复快照。版本范围、验证结果和下一步见 [本轮里程碑](docs/playback/native-poc/milestone-dev2.md)；[dev.1 记录](docs/playback/native-poc/milestone.md) 保留，v0.0 阶段验收尚未完成。
-- 后续已补齐 30 个 CC0 合成素材并实际跑完单窗口回归：29/30 通过，MPEG-TS 中途定位后无新视频帧的问题仍待修复。同窗口 100 次暂停/恢复、一次最小化恢复和 120 秒持续播放已取得证据，见 [媒体矩阵验证](docs/playback/media-suite/validation.md)。
-- TS 问题已定位到解封装层，独立候选通过内核、15 分钟文件对照及连续定位/替换/退出回归；进一步通过单窗口 30/30 素材、100 次暂停恢复和 120 秒持续播放自动检查。人工观感待确认，尚未接入正式运行库，见 [候选验证](docs/playback/media-suite/desktop-candidate-validation.md)。
+- 30 个 CC0 合成素材已通过正式开发运行库下的单窗口回归；TS 中途定位修正已接入依赖锁，并通过连续定位、文件替换、退出和暂停恢复检查，见 [TS 定位修复接入](docs/playback/media-suite/ts-seek-integration.md)。
 - 播放用候选已补齐读取配置，通过格式/协议/符号清单比较、9 组内核回归与重复构建一致性检查，独立测试应用已备好，见 [运行库候选](docs/playback/media-suite/runtime-candidate.md)。
 - 已按用户选择固定 Xcode 27.0，重新通过正式构建、52 项 Python、12 项 Swift 逻辑和全部 5 项原生测试；新版候选也完成同屏单窗口回归，见 [工具链升级记录](docs/engineering/toolchain/requirements.md)。
 - 实际画面检查发现并修复了视频切到纯音频时残留上一帧的问题；渲染层按原生视频输出生命周期清屏，已复查音频/视频切换与资源释放。
@@ -19,6 +18,7 @@
 - MKV 通过应用导入类型声明接入系统选择器；选择面板依附主窗口，连续打开不会叠加。真实入口回归见 [文件打开验证](docs/playback/native-poc/file-opening.md)。
 - 播放状态、内核适配和 AppKit 视频宿主分离；使用 OpenGL render API，当前验证 SDR。
 - 已通过开发构建、状态测试和真实内核集成测试，并用用户指定的视频完成画面、比例及声音验证。
+- 已加入 GRDB 7.11.1 的精确依赖锁、本地 SQLite 迁移与播放历史恢复；17 项无宿主 Swift 测试覆盖迁移、按文件隔离、保存边界和模型恢复。真实播放器跨进程续播仍待单窗口集成验收，设计见 [播放历史数据层](docs/playback/persistence/playback-history.md)。
 - 已归档产品方案、83 项版本任务、UI 参考和命名研究。
 - v0.0 完整验收仍在进行；媒体库、原生 HDR 与公开发行包尚未实现。具体证据和待验收项见 [原生播放 POC](docs/playback/native-poc/requirements.md)。
 
@@ -37,13 +37,21 @@ python3 scripts/dependencies.py bootstrap
 
 该脚本构建无分发签名的本地开发版本，产物位于 `.build/DerivedData/Build/Products/Debug/Bomu.app`。应用内携带运行库，不依赖本机 Homebrew 的 libmpv。它不是经过签名公证的发布包；当前依赖配置会阻止 Release 构建，详见 [依赖来源与许可边界](ThirdParty/libmpv/README.md)。
 
+生成便于内部传递的开发 DMG：
+
+```sh
+./scripts/package-internal-dev.sh
+```
+
+打包前会重新构建并检查 arm64 动态库依赖闭包，产物在 `.build/distribution/internal/`。这是 ad-hoc 签名的内部包；Developer ID、公证和 Gatekeeper 下载验收尚未完成，细节见 [内部安装包流程](docs/engineering/distribution/internal-package.md)。
+
 默认验证命令运行构建校验的行为测试及无界面播放逻辑测试，不启动播放器：
 
 ```sh
 ./scripts/test-dev.sh
 ```
 
-`BomuLogicTests` 直接编译生产播放状态与模型源码，不依赖应用宿主或 libmpv。需要真实内核验证时，另外运行 `./scripts/test-dev.sh --native`；此入口启动一个应用宿主窗口，渲染用例借用并恢复该窗口的内容，包含同屏尺寸变化检查，不创建第二个窗口。
+`BomuLogicTests` 直接编译生产播放状态、模型和 GRDB 数据层源码，不依赖应用宿主或 libmpv。需要真实内核验证时，另外运行 `./scripts/test-dev.sh --native`；此入口启动一个应用宿主窗口，渲染用例借用并恢复该窗口的内容，包含同屏尺寸变化检查，不创建第二个窗口。GRDB 精确版本和提交号同步锁定于 `Config/Dependencies.lock.json` 与 `Package.resolved`；SwiftPM 检出缓存位于 `.build/SourcePackages/`。
 
 首次原生测试需要本机 `ffmpeg` / `ffprobe`，用于生成有来源记录的合成测试片；生成器需包含 libx264、libx265 和 AAC 编码器。测试片、真实属性 manifest、依赖缓存和测试产物都在忽略的 `.build/` 下。原生自动测试静音运行，声音、颜色和同步仍有专门人工验收要求。
 

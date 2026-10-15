@@ -12,14 +12,35 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
     private var observationStarted: Double = 0
     private var visibilityObservation: WindowVisibilityMeasurement?
     private var visibilityNotificationCount = 0
+    private var sleepNotificationCount = 0
+    private var wakeNotificationCount = 0
+    private var sleepObservers: [NSObjectProtocol] = []
 
     func run(media: URL, output: URL, scenario: WindowScenario,
              cycles: Int, soakSeconds: Double, suiteDirectory: URL? = nil,
              previewSeconds: Double = 0, initialDisplayID: UInt32? = nil,
              replacementMedia: URL? = nil, activationGraceSeconds: Double = 0,
-             minimizeRestoreProbe: Bool = true) async throws {
+             minimizeRestoreProbe: Bool = true, syncMedia: URL? = nil) async throws {
         let manifest = try suiteDirectory.map { try MediaSuiteManifest.read(from: $0) }
-        let expectedOpenCount = UInt64((manifest?.samples.count ?? 0) + 1)
+        if scenario == .b11Suite {
+            guard manifest?.suite == "bomu-b11", syncMedia?.isFileURL == true, soakSeconds >= 1_800,
+                  cycles == 100 else {
+                throw BenchmarkError.failed("B11 requires its 60-case suite, synchronization fixture, 100 file switches and a 1,800-second soak")
+            }
+            let workspaceNotifications = NSWorkspace.shared.notificationCenter
+            sleepObservers = [
+                workspaceNotifications.addObserver(forName: NSWorkspace.willSleepNotification,
+                    object: nil, queue: .main) { [weak self] _ in
+                        Task { @MainActor [weak self] in self?.sleepNotificationCount += 1 }
+                    },
+                workspaceNotifications.addObserver(forName: NSWorkspace.didWakeNotification,
+                    object: nil, queue: .main) { [weak self] _ in
+                        Task { @MainActor [weak self] in self?.wakeNotificationCount += 1 }
+                    },
+            ]
+        }
+        let expectedOpenCount = UInt64((manifest?.samples.count ?? 0)
+            + (scenario == .b11Suite ? cycles : 0) + 1)
         let screens = NSScreen.screens
         let selectedScreen: NSScreen?
         if let initialDisplayID {
@@ -41,6 +62,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         switch scenario {
         case .singleWindow: window.title = "Bomu · 单窗口播放测试（静音）"
         case .mediaSuite: window.title = "Bomu · 30 个素材测试（单窗口，静音）"
+        case .b11Suite: window.title = "Bomu · B11 回归（60 个素材，单窗口）"
         case .replacementBurst: window.title = "Bomu · 快速替换 / 取消测试（单窗口，静音）"
         case .displayTransitions: window.title = "Bomu · 窗口组合测试（自动全屏 / 跨屏，静音）"
         }
@@ -52,9 +74,17 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         window.collectionBehavior = [.fullScreenPrimary]
         if scenario == .displayTransitions { window.collectionBehavior.insert(.moveToActiveSpace) }
         window.delegate = self
-        window.contentView = NSHostingView(rootView: PlayerScreen(player: player, videoView: engine.videoView))
+        window.contentView = NSHostingView(rootView: PlayerScreen(player: player,
+            videoView: engine.videoView, nowPlaying: NowPlayingController(player: player),
+            onReturnToLibrary: { player.stop() }))
         recordWindowLocation(window, event: "created")
-        defer { window.delegate = nil; window.contentView = nil; window.close() }
+        defer {
+            for observer in sleepObservers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
+            sleepObservers.removeAll()
+            window.delegate = nil
+            window.contentView = nil
+            window.close()
+        }
         let started = CACurrentMediaTime()
         do {
             if scenario == .displayTransitions {
@@ -68,16 +98,26 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             } else {
                 window.center()
             }
-            window.makeKeyAndOrderFront(nil)
             NSApplication.shared.activate()
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
             recordWindowLocation(window, event: "orderedFront")
             print("Window test ready: active=\(NSApplication.shared.isActive), key=\(window.isKeyWindow), visible=\(window.occlusionState.contains(.visible)), activeSpace=\(window.isOnActiveSpace)")
             fflush(nil)
             // Desktop launch/activation may require a user or accessibility action.
             // Allow that startup handoff without weakening any playback deadline.
-            try await waitUntil("active visible test window", timeout: 60) {
-                NSApplication.shared.isActive && window.isKeyWindow
-                    && window.occlusionState.contains(.visible) && window.isOnActiveSpace
+            do {
+                try await waitUntil("active visible test window", timeout: 15) {
+                    NSApplication.shared.isActive && window.isKeyWindow
+                        && window.occlusionState.contains(.visible) && window.isOnActiveSpace
+                }
+            } catch {
+                let screenID = try window.screen.map(DisplayMeasurement.id(of:))
+                throw BenchmarkError.failed(
+                    "Test window did not activate (appActive=\(NSApplication.shared.isActive), key=\(window.isKeyWindow), " +
+                    "visible=\(window.occlusionState.contains(.visible)), activeSpace=\(window.isOnActiveSpace), " +
+                    "screenID=\(screenID.map { String($0) } ?? "nil"), frame=\(NSStringFromRect(window.frame))): \(error)"
+                )
             }
             if activationGraceSeconds > 0 {
                 print("Visible test window ready for desktop handoff: \(activationGraceSeconds) seconds")
@@ -105,7 +145,8 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 try await waitUntilIdle(engine)
                 await player.shutdown()
                 report.shutdown = await engine.diagnostics()
-                try require(report.shutdown?.coreAlive == false && report.shutdown?.renderContextAlive == false,
+                try require(report.shutdown?.coreAlive == false && report.shutdown?.renderContextAlive == false
+                    && report.shutdown?.graphicsContextAlive == false,
                             "Replacement-burst resources were not released")
                 report.completed = true
                 try report.save(to: output)
@@ -116,12 +157,23 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                     engine: engine, player: player, started: started, previewSeconds: previewSeconds,
                     output: output, report: &report)
             }
+            if scenario == .b11Suite, let manifest, let suiteDirectory {
+                try await runFileSwitches(manifest.samples, directory: suiteDirectory,
+                    window: window, engine: engine, player: player, started: started,
+                    count: cycles, output: output, report: &report)
+            }
+            let soakMedia = scenario == .b11Suite ? (syncMedia ?? media) : media
             window.title = "Bomu · 暂停 / 恢复测试（单窗口，静音）"
-            player.open(media)
+            player.open(soakMedia)
             try await waitUntil("first frame in production UI") {
                 player.canControlPlayback && (player.state.snapshot?.position ?? 0) > 0.2
             }
-            try require((player.state.snapshot?.duration ?? 0) >= 600, "Window stress needs a continuous long sample")
+            if scenario == .b11Suite {
+                try require((player.state.snapshot?.duration ?? 0) >= soakSeconds - 2,
+                    "B11 synchronization fixture is shorter than the requested soak")
+            } else {
+                try require((player.state.snapshot?.duration ?? 0) >= 600, "Window stress needs a continuous long sample")
+            }
             guard let initialScreen = window.screen else { throw BenchmarkError.failed("Missing initial display") }
             let initialDisplayID = try DisplayMeasurement.id(of: initialScreen)
             for cycle in 1...cycles {
@@ -180,17 +232,27 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 try await probeOcclusion(window: window, engine: engine, started: started, report: &report)
             } else {
                 report.minimizeRestoreProbeSkippedReason =
-                    "Skipped for same-display soak; the independent minimize/restore probe moved an external-display window to display 1."
+                    "Skipped to keep this acceptance on its selected display; minimize/restore requires a separate visible interaction."
             }
             try report.save(to: output)
-            window.title = "Bomu · 持续播放测试（\(Int(soakSeconds)) 秒，静音）"
+            window.title = scenario == .b11Suite
+                ? "Bomu · 音画同步持续测试（\(Int(soakSeconds / 60)) 分钟，自动静音）"
+                : "Bomu · 持续播放测试（\(Int(soakSeconds)) 秒，静音）"
             print("Uninterrupted production-UI playback: \(soakSeconds) seconds")
             fflush(nil)
             try await soak(window: window, engine: engine, player: player,
                 started: started, seconds: soakSeconds, expectedOpenCount: expectedOpenCount,
                 output: output, report: &report)
+            if scenario == .b11Suite {
+                report.systemSleepWake = SystemSleepWakeMeasurement(
+                    sleepNotifications: sleepNotificationCount, wakeNotifications: wakeNotificationCount,
+                    recoveryEvidence: sleepNotificationCount > 0 && wakeNotificationCount > 0
+                        ? "A real system sleep/wake occurred during playback; the subsequent continuous-playback checkpoints are the recovery evidence."
+                        : "No real system sleep/wake occurred during this run; sleep recovery remains unverified.")
+            }
             player.stop()
             try await waitUntilIdle(engine)
+            try await waitForGPURenderQueriesToSettle(engine)
             try await Task.sleep(for: .milliseconds(500))
             let before = await engine.diagnostics()
             let processBefore = try ProcessSample.read(window: window)
@@ -200,9 +262,18 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 process: [processBefore, try ProcessSample.read(window: window)], before: before, after: after)
             try require(before.videoFrameCount == after.videoFrameCount && before.drawCount == after.drawCount
                 && before.snapshotCount == after.snapshotCount, "Stopped playback continued rendering or sampling")
+            if before.gpuRenderTiming.supported {
+                try require(before.gpuRenderTiming.pendingQueryCount == 0
+                            && after.gpuRenderTiming.pendingQueryCount == 0,
+                            "GPU render timestamp queries must settle before and during the stopped interval")
+                try require(after.gpuRenderTiming.sampleCount == before.gpuRenderTiming.sampleCount
+                            && after.gpuRenderTiming.intervalNanoseconds == before.gpuRenderTiming.intervalNanoseconds,
+                            "Stopped GPU render intervals must remain constant")
+            }
             await player.shutdown()
             report.shutdown = await engine.diagnostics()
-            try require(report.shutdown?.coreAlive == false && report.shutdown?.renderContextAlive == false,
+            try require(report.shutdown?.coreAlive == false && report.shutdown?.renderContextAlive == false
+                && report.shutdown?.graphicsContextAlive == false,
                 "Window benchmark resources were not released")
             let failedSamples = report.mediaSamples.filter { !$0.passed }.map { $0.sample.file }
             try require(failedSamples.isEmpty, "Media cases failed: \(failedSamples.joined(separator: ", "))")
@@ -215,6 +286,54 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             throw error
         }
         try report.save(to: output)
+    }
+
+    private func runFileSwitches(_ samples: [MediaSuiteManifest.Sample], directory: URL,
+                                 window: NSWindow, engine: MPVPlaybackEngine, player: PlayerModel,
+                                 started: Double, count: Int, output: URL,
+                                 report: inout WindowLifecycleReport) async throws {
+        guard samples.count == 60, samples.allSatisfy({
+            $0.expected.outcome == .play && $0.expected.video != nil && $0.expected.audio != nil
+        }) else { throw BenchmarkError.failed("B11 switch matrix must contain 60 audiovisual samples") }
+        for index in 0..<count {
+            let sample = samples[index % samples.count]
+            let before = await engine.diagnostics()
+            let began = CACurrentMediaTime()
+            let file = directory.appendingPathComponent(sample.file)
+            player.open(file)
+            guard let requestID = player.state.request?.id else {
+                throw BenchmarkError.failed("File switch did not create a playback request")
+            }
+            try await waitUntil("file switch \(index + 1) ready") {
+                guard player.state.request?.id == requestID,
+                      let snapshot = player.state.snapshot else { return false }
+                if case .failed(let message) = player.state.phase {
+                    throw BenchmarkError.failed("File switch failed for \(sample.file): \(message)")
+                }
+                return player.canControlPlayback && snapshot.position > 0.15
+            }
+            let after = await engine.diagnostics()
+            guard let video = sample.expected.video, let audio = sample.expected.audio,
+                  after.coreAlive, after.renderContextAlive,
+                  after.coreCreationCount == 1, after.renderContextCreationCount == 1,
+                  after.openCount == before.openCount + 1,
+                  after.videoOutputConfigured == true,
+                  after.videoWidth == video.width, after.videoHeight == video.height,
+                  after.videoFrameCount > before.videoFrameCount,
+                  after.audioSampleRate == audio.sampleRate,
+                  after.audioChannelCount == audio.channels,
+                  let outputRate = after.audioOutputSampleRate, outputRate > 0,
+                  engine.videoView.window === window, window.occlusionState.contains(.visible) else {
+                throw BenchmarkError.failed("File switch did not produce expected audio/video output: \(sample.file)")
+            }
+            report.fileSwitches.append(FileSwitchMeasurement(index: index + 1, file: sample.file,
+                requestID: requestID, elapsedSeconds: CACurrentMediaTime() - began, diagnostics: after))
+            if (index + 1).isMultiple(of: 10) || index + 1 == count {
+                try report.save(to: output)
+                print("B11 file switches: \(index + 1)/\(count)")
+                fflush(nil)
+            }
+        }
     }
 
     private func runReplacementBurst(initialMedia: URL, replacementMedia: URL, window: NSWindow,
@@ -484,6 +603,20 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             let value = await engine.diagnostics()
             if value.idle == true && value.videoOutputConfigured == false { return }
             if CACurrentMediaTime() >= deadline { throw BenchmarkError.failed("Stop did not reach native idle") }
+            try await Task.sleep(for: .milliseconds(25))
+        }
+    }
+
+    private func waitForGPURenderQueriesToSettle(_ engine: MPVPlaybackEngine) async throws {
+        let deadline = CACurrentMediaTime() + 10
+        while true {
+            let diagnostics = await engine.diagnostics()
+            if !diagnostics.gpuRenderTiming.supported || diagnostics.gpuRenderTiming.pendingQueryCount == 0 {
+                return
+            }
+            if CACurrentMediaTime() >= deadline {
+                throw BenchmarkError.failed("GPU render timestamp queries did not settle after stop")
+            }
             try await Task.sleep(for: .milliseconds(25))
         }
     }

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "component": "libfribidi.0.dylib",
+  "source": {
+    "url": "https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz",
+    "version": "1.0.16",
+    "archiveSHA256": "1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c",
+    "tag": "v1.0.16"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/fribidi/fribidi",
+    "tag": "v1.0.16",
+    "gitBlobSHA1": "ae23fcfda2da8599b52baff4c257847205d78c56",
+    "localSnapshot": "ThirdParty/fribidi-COPYING.txt",
+    "spdx": "LGPL-2.1-or-later",
+    "authorsFile": {
+      "path": "AUTHORS",
+      "gitBlobSHA1": "a47e0dc93650dfa93410a389b6eff84787e6d7cb",
+      "localSnapshot": "ThirdParty/fribidi-AUTHORS.txt"
+    }
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-fribidi.sh",
+      "gitBlobSHA1": "5c4bd09a23591899bc3fdf0568d5b792cceafc95",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-fribidi.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "f03d9595ad59deaba3ab1bfe76ea815bb69f9e13b0fcd84a111eccdc91e0bdb6",
+    "canonicalArm64SHA256": "e7700fd7362b129c32454879d4dcd6ab29999576d1cda8a6647b0e8b3c211a4e",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

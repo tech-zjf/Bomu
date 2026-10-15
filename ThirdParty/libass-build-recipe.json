@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "component": "libass.9.dylib",
+  "source": {
+    "url": "https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz",
+    "version": "0.17.5",
+    "archiveSHA256": "2dca25c0e0c837ddf00b52011b3f82cac1e4ddd3ad018227806b0c2288864acc",
+    "tag": "0.17.5"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "repository": "https://github.com/libass/libass",
+    "tag": "0.17.5",
+    "gitBlobSHA1": "3ff0e11457a6edccfab065cae0f905a6e1ed80ee",
+    "localSnapshot": "ThirdParty/libass-COPYING.txt",
+    "spdx": "ISC"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-libass.sh",
+      "gitBlobSHA1": "80c4030d673bf32c99468d53af540f225677caf3",
+      "url": "https://github.com/iina/deps-buildscripts/blob/f86d54276547df6d14104583ea604af67433f1e1/buildscripts/build-libass.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": []
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "d28253c9db9a4cac08055e7a8c32bc736e6c09945c61cc7bfdd2bec906479962",
+    "canonicalArm64SHA256": "159872abb7786067a0ad0c5b5af6ba11ea6f0fbb16eed9b200ab394a177d6d9a",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

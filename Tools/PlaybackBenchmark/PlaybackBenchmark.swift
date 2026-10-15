@@ -42,19 +42,30 @@ final class PlaybackBenchmark {
             try require(before.firstVideoFrameUptime == nil, "Idle draws must not count as media frames")
             try await waitUntil("first-frame window visible") { window.occlusionState.contains(.visible) }
             let started = CACurrentMediaTime()
+            let powerBeforeOpen = try ProcessSample.read(window: window)
             engine.open(PlaybackRequest(id: 1, url: url))
             let first = try await waitForDiagnostics(engine) { $0.firstVideoFrameUptime != nil }
+            let powerAfterFirstFrame = try ProcessSample.read(window: window)
             guard let submitted = first.firstVideoFrameUptime else {
                 throw BenchmarkError.failed("Missing first media-frame timestamp")
             }
             try require(submitted >= started, "First frame must follow open")
             let measurement = FirstFrameMeasurement(sample: name, iteration: iteration,
                 milliseconds: (submitted - started) * 1_000,
-                decoder: first.hardwareDecoder, width: first.videoWidth, height: first.videoHeight)
+                decoder: first.hardwareDecoder, width: first.videoWidth, height: first.videoHeight,
+                taskEnergyCounterDelta: ProcessSample.counterDelta(
+                    start: powerBeforeOpen.taskEnergyCounterRaw,
+                    end: powerAfterFirstFrame.taskEnergyCounterRaw
+                ),
+                gpuUtilisationCounterDelta: ProcessSample.counterDelta(
+                    start: powerBeforeOpen.gpuUtilisationCounterRaw,
+                    end: powerAfterFirstFrame.gpuUtilisationCounterRaw
+                ))
             await engine.shutdown()
             let closed = await engine.diagnostics()
             try require(!closed.coreAlive, "Core must be released after shutdown")
             try require(!closed.renderContextAlive, "Render context must be released after shutdown")
+            try require(closed.graphicsContextAlive == false, "CGL context must be released after shutdown")
             return measurement
         } catch {
             await engine.shutdown()
@@ -118,16 +129,28 @@ final class PlaybackBenchmark {
             state.stop()
             engine.stop()
             _ = try await waitForDiagnostics(engine) { $0.idle == true && $0.videoOutputConfigured == false }
+            _ = try await waitForDiagnostics(engine) {
+                !$0.gpuRenderTiming.supported || $0.gpuRenderTiming.pendingQueryCount == 0
+            }
             try await Task.sleep(for: .milliseconds(500))
             let stopped = try await sampleActivity("stopped", engine: engine, window: window, seconds: 5)
             report.activity.append(stopped)
             try require(stopped.after.videoFrameCount == stopped.before.videoFrameCount, "Stopped videoFrameCount must remain constant")
             try require(stopped.after.snapshotCount == stopped.before.snapshotCount, "Stopped snapshotCount must remain constant")
             try require(stopped.after.drawCount == stopped.before.drawCount, "Stopped drawCount must remain constant")
+            if stopped.before.gpuRenderTiming.supported {
+                try require(stopped.before.gpuRenderTiming.pendingQueryCount == 0
+                            && stopped.after.gpuRenderTiming.pendingQueryCount == 0,
+                            "GPU render timestamp queries must settle before and during the stopped interval")
+                try require(stopped.after.gpuRenderTiming.sampleCount == stopped.before.gpuRenderTiming.sampleCount
+                            && stopped.after.gpuRenderTiming.intervalNanoseconds == stopped.before.gpuRenderTiming.intervalNanoseconds,
+                            "Stopped GPU render intervals must remain constant")
+            }
             await engine.shutdown()
             let closed = await engine.diagnostics()
             try require(!closed.coreAlive, "Core must be released after shutdown")
             try require(!closed.renderContextAlive, "Render context must be released after shutdown")
+            try require(closed.graphicsContextAlive == false, "CGL context must be released after shutdown")
             report.activity.append(try await sampleActivity("shutdown", engine: engine, window: window, seconds: 3))
         } catch {
             await engine.shutdown()
@@ -167,7 +190,8 @@ final class PlaybackBenchmark {
             try validateTiming(activity)
             await engine.shutdown()
             let closed = await engine.diagnostics()
-            try require(!closed.coreAlive && !closed.renderContextAlive, "Sync fixture resources must be released")
+            try require(!closed.coreAlive && !closed.renderContextAlive && closed.graphicsContextAlive == false,
+                        "Sync fixture resources must be released")
         } catch {
             await engine.shutdown()
             throw error
@@ -186,6 +210,14 @@ final class PlaybackBenchmark {
         try require(after.earlyFrameCount == beforeEarly, "Frames were submitted more than 2 ms before their target")
         try require(after.minimumErrorMilliseconds > -1_000 && after.maximumErrorMilliseconds < 1_000,
                     "Frame target clock contract or rendering deadline is invalid")
+        let gpuBefore = activity.before.gpuRenderTiming
+        let gpuAfter = activity.after.gpuRenderTiming
+        if gpuAfter.supported {
+            try require(gpuAfter.sampleCount > gpuBefore.sampleCount,
+                        "GPU timestamp queries returned no completed OpenGL render intervals")
+            try require(gpuAfter.intervalNanoseconds > gpuBefore.intervalNanoseconds,
+                        "OpenGL render interval did not advance during active playback")
+        }
     }
 
     private func sampleActivity(_ name: String, engine: MPVPlaybackEngine,

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "component": "libfontconfig.1.dylib",
+  "source": {
+    "url": "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/2.18.1/fontconfig-2.18.1.tar.gz",
+    "version": "2.18.1",
+    "archiveSHA256": "e9309564717b6301230112b173f36c288489479d381d2f0add1210ca5b16ba7e",
+    "archiveEntry": "fontconfig-2.18.1/COPYING"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "archiveEntrySHA256": "51a51aa9823704fd90bccc616cdd17ebabb5b2b3e9cbde886ca02c7002288067",
+    "localSnapshot": "ThirdParty/fontconfig-COPYING.txt",
+    "spdx": "MIT"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-fontconfig.sh",
+      "gitBlobSHA1": "a5b145cd05261dc849534d13a2b545ba9b913447",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-fontconfig.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "externalDependencies": [
+      "Freetype is used through the dependency graph; no additional runtime dependency inferred here."
+    ],
+    "mesonOptions": [
+      "-Dcache-build=disabled",
+      "-Dtests=disabled",
+      "-Dtools=disabled",
+      "-Ddoc=disabled",
+      "-Dnls=disabled"
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "c01301a58e7d85458ac5b83bdd6d7cc9cafaf387d243e6cb9b33ac996f50a692",
+    "canonicalArm64SHA256": "4d71c54d099fe2465fbd05f02e090b2e9c8e7388c134f1bed589a282719eae82",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

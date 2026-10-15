@@ -7,13 +7,16 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
+import zipfile
 
 import ffmpeg_overlay
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = json.loads((ROOT / 'Config/Dependencies.lock.json').read_text())
 LIBRARIES = ROOT / '.build/dependencies/lib'
+PACKAGE_RESOLVED = ROOT / 'Bomu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
 
 
 def verify(path, expected):
@@ -21,6 +24,44 @@ def verify(path, expected):
     if actual != expected:
         raise SystemExit(f'Missing or changed dependency: {path}\nExpected {expected}; found {actual}.\n'
                          'Run python3 scripts/dependencies.py bootstrap.')
+
+
+def copy_locked_archive_libraries(archive_path, destination, *, expected_names, selected_hashes):
+    """Copy selected flat dylibs from a verified ZIP without extracting untrusted paths."""
+    archive_path = Path(archive_path)
+    destination = Path(destination)
+    expected_names = set(expected_names)
+    selected_names = set(selected_hashes)
+    if not selected_names <= expected_names:
+        raise ValueError('Selected dependency names are not present in the locked archive contents.')
+
+    with zipfile.ZipFile(archive_path) as archive:
+        members = archive.infolist()
+        names = [member.filename for member in members]
+        if len(names) != len(set(names)):
+            raise ValueError('Dependency archive contains duplicate paths.')
+        if set(names) != expected_names:
+            raise ValueError('Dependency archive contents do not match the locked runtime file set.')
+        if any('/' in name or '\\' in name or name in {'.', '..'} for name in names):
+            raise ValueError('Dependency archive must contain flat library filenames only.')
+        if any(member.is_dir() for member in members):
+            raise ValueError('Dependency archive must not contain directory entries.')
+
+        destination.mkdir(parents=True, exist_ok=True)
+        for name in sorted(selected_names):
+            member = archive.getinfo(name)
+            output = destination / name
+            digest = hashlib.sha256()
+            try:
+                with archive.open(member) as source, output.open('wb') as target:
+                    while chunk := source.read(1024 * 1024):
+                        digest.update(chunk)
+                        target.write(chunk)
+                if digest.hexdigest() != selected_hashes[name]:
+                    raise ValueError(f'Locked binary hash mismatch for {name}.')
+            except Exception:
+                output.unlink(missing_ok=True)
+                raise
 
 
 def check(directory=LIBRARIES):
@@ -31,6 +72,17 @@ def check(directory=LIBRARIES):
         verify(directory / name, item['sha256'])
     for name, checksum in LOCK['headers'].items():
         verify(ROOT / name, checksum)
+    for name, package in LOCK.get('swiftPackages', {}).items():
+        if not PACKAGE_RESOLVED.is_file():
+            raise SystemExit(f'Missing Swift package lock: {PACKAGE_RESOLVED}')
+        resolved = json.loads(PACKAGE_RESOLVED.read_text())
+        pin = next((item for item in resolved.get('pins', [])
+                    if item.get('identity', '').casefold() == name.casefold()), None)
+        state = (pin or {}).get('state', {})
+        if (pin is None or state.get('version') != package['version']
+                or state.get('revision') != package['revision']
+                or pin.get('location') != package['url']):
+            raise SystemExit(f"Swift package lock mismatch for {name}; resolve the exact version in Config/Dependencies.lock.json.")
 
 
 def copy_original_format_library(destination):
@@ -66,6 +118,8 @@ def bootstrap():
             or overlay['configure'] != ffmpeg_overlay.CONFIGURE):
         raise SystemExit('FFmpeg overlay definition differs from its verified builder.')
     archive = ROOT / '.build/downloads' / f"IINA.v{source['version']}.dmg"
+    runtime_artifact = LOCK['verifiedRuntimeArtifact']
+    runtime_archive = ROOT / '.build/downloads' / 'iina-deps-fat.zip'
     archive.parent.mkdir(parents=True, exist_ok=True)
     if not archive.exists():
         partial = archive.with_suffix('.download')
@@ -73,6 +127,13 @@ def bootstrap():
         verify(partial, source['sha256'])
         partial.replace(archive)
     verify(archive, source['sha256'])
+    if not runtime_archive.exists():
+        partial = runtime_archive.with_suffix('.download')
+        subprocess.run(['curl', '--fail', '--location', '--retry', '2',
+                        runtime_artifact['url'], '-o', str(partial)], check=True)
+        verify(partial, runtime_artifact['sha256'])
+        partial.replace(runtime_archive)
+    verify(runtime_archive, runtime_artifact['sha256'])
     LIBRARIES.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='bomu-deps-', dir=LIBRARIES.parent) as directory:
         work = Path(directory)
@@ -80,15 +141,26 @@ def bootstrap():
         mount.mkdir()
         staging = work / 'lib'
         staging.mkdir()
+        replacement_names = set(runtime_artifact['overriddenLibraries'])
         subprocess.run(['hdiutil', 'attach', '-readonly', '-nobrowse', '-mountpoint', str(mount), str(archive)], check=True)
         try:
             frameworks = mount / 'IINA.app/Contents/Frameworks'
             for name, item in LOCK['libraries'].items():
-                expected = overlay['baseSHA256'] if name == overlay['library'] else item['sha256']
+                if name in replacement_names:
+                    expected = runtime_artifact['replacedDMGHashes'][name]
+                else:
+                    expected = overlay['baseSHA256'] if name == overlay['library'] else item['sha256']
                 verify(frameworks / name, expected)
-                shutil.copy2(frameworks / name, staging / name)
+                if name not in replacement_names:
+                    shutil.copy2(frameworks / name, staging / name)
         finally:
             subprocess.run(['hdiutil', 'detach', str(mount)], check=True)
+        copy_locked_archive_libraries(
+            runtime_archive,
+            staging,
+            expected_names=LOCK['libraries'],
+            selected_hashes={name: LOCK['libraries'][name]['sha256'] for name in replacement_names},
+        )
         overlay_build = work / 'ffmpeg-overlay'
         overlay_build.mkdir()
         library = ffmpeg_overlay.build_library(overlay_build)
@@ -109,7 +181,11 @@ def bootstrap():
 
 def embed(destination):
     if os.environ.get('CONFIGURATION') == 'Release':
-        raise SystemExit('This dependency lock is for development only. Complete the distribution dependency/license workflow before Release.')
+        audit = subprocess.run([sys.executable, str(ROOT / 'scripts/license_audit.py'), 'check'])
+        if audit.returncode != 0:
+            raise SystemExit('Release build stopped because the dependency license/provenance audit is incomplete.')
+        if not LOCK.get('distributionReady', False):
+            raise SystemExit('Release build stopped because Dependencies.lock.json does not declare distributionReady.')
     check()
     destination.mkdir(parents=True, exist_ok=True)
     for name in LOCK['libraries']:

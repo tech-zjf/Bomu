@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "component": "libzimg.2.dylib",
+  "source": {
+    "url": "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz",
+    "version": "3.0.6",
+    "archiveSHA256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
+    "archiveEntry": "zimg-release-3.0.6/COPYING"
+  },
+  "sourceLicense": {
+    "file": "COPYING",
+    "archiveEntrySHA256": "7637386b5f81e8a719ca336233149005e5fa28b5e6054ea7b67de49355b0ad40",
+    "localSnapshot": "ThirdParty/zimg-COPYING.txt",
+    "spdx": "WTFPL"
+  },
+  "buildSystem": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "commit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "versionsFileGitBlobSHA1": "6688f6817247d35617c436545e656e39077922da",
+    "buildScript": {
+      "path": "buildscripts/build-zimg.sh",
+      "gitBlobSHA1": "59a594593f747050ed0c13f67e731968a473bb3e",
+      "localSnapshot": "docs/engineering/distribution/iina-deps-buildscripts-f86d542-build-zimg.sh"
+    },
+    "sharedBuildScriptGitBlobSHA1": "1a026356437a58092d88fa0d4f9fa54619850270",
+    "workflowGitBlobSHA1": "af8edcea00924f2b4a2a38227be9b6a8c65aed1a",
+    "successfulWorkflowRunID": 35411161790,
+    "patchesApplied": [],
+    "sourceTransformations": [
+      "Generate the missing configure script by running upstream autogen.sh on the fixed source archive."
+    ]
+  },
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true
+  },
+  "binaryMatch": {
+    "workspaceBinarySHA256": "be6f7565426ea3f41a98b6136984ac663644b4c45afeab8d5229e18936491a12",
+    "canonicalArm64SHA256": "c49a7ee3003e00f31fbe6d7d038cdfb51a0af217da13c264704ce0382404ac12",
+    "matchesReleaseArtifact": true,
+    "comparisonReport": "docs/engineering/distribution/iina-1.5.0-deps-comparison-2026-10-14.json"
+  }
+}

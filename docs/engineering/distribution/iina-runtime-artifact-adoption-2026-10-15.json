@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-15",
+  "purpose": "Replace five IINA DMG runtime binaries whose source could not be bound to a release workflow with exact files from the hash-verified deps-buildscripts release artifact.",
+  "source": {
+    "repository": "https://github.com/iina/deps-buildscripts",
+    "releaseTag": "iina-1.5.0-release",
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "archiveSHA256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "archiveSHA256VerifiedLocally": true,
+    "fullRuntimeFileSetValidated": true,
+    "runtimeFileCount": 44
+  },
+  "adoptedLibraries": [
+    {
+      "name": "libSvtAv1Enc.4.dylib",
+      "previousIINADmgSHA256": "c1e740f7a11c6cad769303d904536af1d751508c10dc944f5fcabc0d4f3e3f23",
+      "adoptedRuntimeSHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
+      "releaseArtifactRawSHA256": "44397873729c424973bbdcf13e63499aaf88ae00e942d7e5d977b7bbbaa828ac",
+      "releaseArtifactCanonicalArm64SHA256": "3d0a494f2d311f368c8d96571eaec9aefc15365ee273bd0334c3454b9f94a3c1",
+      "previousDMGCanonicalArm64MatchedVersionedIINAEndpoint": true,
+      "previousDMGCanonicalArm64MatchedReleaseArtifact": false,
+      "nowUsesExactReleaseArtifactFile": true
+    },
+    {
+      "name": "libjpeg.62.dylib",
+      "previousIINADmgSHA256": "6fb1f1bdec2871bab718045cf5767239e941c6d49cb852ae36360a24f673a0ad",
+      "adoptedRuntimeSHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
+      "releaseArtifactRawSHA256": "8f98567da1f8ab6668702301a6088fae252596027aee5eba231b69555ff2a659",
+      "releaseArtifactCanonicalArm64SHA256": "a84c46e6c1f22571b3bc15f6643ee4f7a009a53e4fd02bcbdc9102d09fed2827",
+      "previousDMGCanonicalArm64MatchedVersionedIINAEndpoint": true,
+      "previousDMGCanonicalArm64MatchedReleaseArtifact": false,
+      "nowUsesExactReleaseArtifactFile": true
+    },
+    {
+      "name": "libmpv.2.dylib",
+      "previousIINADmgSHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+      "adoptedRuntimeSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+      "releaseArtifactRawSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+      "releaseArtifactCanonicalArm64SHA256": "3a9aef3ab68b83929f69affd05c4fca63d42af79fde95d5ab76040939f9125dc",
+      "previousDMGCanonicalArm64MatchedVersionedIINAEndpoint": true,
+      "previousDMGCanonicalArm64MatchedReleaseArtifact": false,
+      "nowUsesExactReleaseArtifactFile": true
+    },
+    {
+      "name": "libvorbis.0.dylib",
+      "previousIINADmgSHA256": "0a52fbf9e5d88df3a4f0b3e824b3ee65fc201659c1338d753bcfca3ac7961e79",
+      "adoptedRuntimeSHA256": "df605ca333ae455bf52a91e2806aea5d1890f18728aa531572381b6999eeaf42",
+      "releaseArtifactRawSHA256": "df605ca333ae455bf52a91e2806aea5d1890f18728aa531572381b6999eeaf42",
+      "releaseArtifactCanonicalArm64SHA256": "b9831909f47c44fd0d7c51302e49daa6d1e43bb2ad7e466cdd6cb6af356c3ed2",
+      "previousDMGCanonicalArm64MatchedVersionedIINAEndpoint": true,
+      "previousDMGCanonicalArm64MatchedReleaseArtifact": false,
+      "nowUsesExactReleaseArtifactFile": true
+    },
+    {
+      "name": "libvorbisenc.2.dylib",
+      "previousIINADmgSHA256": "b92e515d7d23bd69956fd9286b21a2f2a5f781d0e79bd88c9a3e96cab58bfb9c",
+      "adoptedRuntimeSHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0",
+      "releaseArtifactRawSHA256": "3e41fd2bedbbb557640cc9c36b28826f5cd2086e0a296c6ab92ccbeec74cdcb0",
+      "releaseArtifactCanonicalArm64SHA256": "9d041b2d035195249c0f80f6a22d9827fcbef03d81f9f63e97c1b572f0e1d88a",
+      "previousDMGCanonicalArm64MatchedVersionedIINAEndpoint": true,
+      "previousDMGCanonicalArm64MatchedReleaseArtifact": false,
+      "nowUsesExactReleaseArtifactFile": true
+    }
+  ]
+}

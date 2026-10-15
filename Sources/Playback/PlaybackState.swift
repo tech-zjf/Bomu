@@ -25,6 +25,62 @@ struct PlaybackSeekRequest: Equatable, Sendable {
     let target: Target
 }
 
+struct PlaybackTrack: Equatable, Identifiable, Sendable {
+    enum Kind: String, Equatable, Sendable {
+        case audio
+        case subtitle
+        case video
+    }
+
+    let id: Int
+    let kind: Kind
+    let language: String?
+    let title: String?
+    let isSelected: Bool
+    let isExternal: Bool
+}
+
+struct PlaybackFailure: Equatable, Sendable {
+    enum Kind: Equatable, Sendable {
+        case unavailable
+        case permissionDenied
+        case unsupportedOrDamaged
+        case engine
+    }
+
+    let kind: Kind
+    let detail: String?
+
+    init(kind: Kind, detail: String? = nil) {
+        self.kind = kind
+        guard kind == .unsupportedOrDamaged || kind == .engine,
+              let detail else {
+            self.detail = nil
+            return
+        }
+        let value = String(detail.trimmingCharacters(in: .whitespacesAndNewlines).prefix(300))
+        self.detail = value.isEmpty ? nil : value
+    }
+
+    var title: String {
+        switch kind {
+        case .unavailable: String(localized: "failure.unavailable.title")
+        case .permissionDenied: String(localized: "failure.permission.title")
+        case .unsupportedOrDamaged: String(localized: "failure.decode.title")
+        case .engine: String(localized: "failure.engine.title")
+        }
+    }
+
+    var explanation: String {
+        switch kind {
+        case .unavailable: String(localized: "failure.unavailable.message")
+        case .permissionDenied: String(localized: "failure.permission.message")
+        case .unsupportedOrDamaged: String(localized: "failure.decode.message")
+        case .engine: String(localized: "failure.engine.message")
+        }
+    }
+}
+
 struct PlaybackSnapshot: Equatable, Sendable {
     let requestID: UInt64
     var pauseCommandID: UInt64
@@ -35,13 +91,18 @@ struct PlaybackSnapshot: Equatable, Sendable {
     var isBuffering: Bool
     var isSeekable: Bool
     var volume: Double
+    var speed: Double = 1
+    var audioTrackID: Int? = nil
+    var subtitleTrackID: Int? = nil
+    var subtitleDelay: Double = 0
+    var tracks: [PlaybackTrack] = []
 }
 
 enum PlaybackEvent: Equatable, Sendable {
     case loaded(UInt64)
     case snapshot(PlaybackSnapshot)
     case ended(UInt64)
-    case failed(UInt64, String)
+    case failed(UInt64, PlaybackFailure)
 }
 
 /// The current request is authoritative. Late events from replaced files have no effect.
@@ -51,7 +112,7 @@ struct PlaybackState: Equatable, Sendable {
         case opening
         case ready
         case ended
-        case failed(String)
+        case failed(PlaybackFailure)
     }
 
     private(set) var request: PlaybackRequest?
@@ -83,9 +144,9 @@ struct PlaybackState: Equatable, Sendable {
         case .ended(let id):
             guard request?.id == id, phase == .ready else { return }
             phase = .ended
-        case .failed(let id, let message):
+        case .failed(let id, let failure):
             guard request?.id == id else { return }
-            phase = .failed(message)
+            phase = .failed(failure)
             snapshot = nil
         }
     }
