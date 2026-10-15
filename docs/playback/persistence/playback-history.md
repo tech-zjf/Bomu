@@ -23,6 +23,8 @@ The application opens its database in `~/Library/Application Support/Bomu/playba
 
 While a file is active, the player writes the latest native snapshot every five seconds. It also captures the current snapshot when replacing a file, stopping, reaching natural end, or terminating. Termination awaits the final write before releasing the playback engine. SQLite work stays behind the store actor and never runs from SwiftUI view evaluation. Hostless behavior tests now wait for a periodic checkpoint before shutdown, then reopen the on-disk database through a fresh store instance to verify that the final position, tracks, and volume survived.
 
+After changing resume startup to pass the validated position to libmpv's `loadfile` start option, Xcode 27 native runs on 2026-10-15 passed both `testSavedAudioTrackAndPositionRestoreInNewNativeSession` and the first-snapshot assertion in `testRealPlaybackPauseSeekReplaceAndRelease`. The tests used a single host window and confirmed audio-track plus position restoration across fresh engines. A fresh visible-app check is still required to close the previously observed frame/timecode mismatch.
+
 If the final checkpoint fails, shutdown still proceeds and releases the native engine; the failure remains visible through the persistence error state. A hostless injected-store test verifies the failure is attempted once, surfaced, and does not block teardown. Database-driver failure presentation has not yet been exercised with a real on-disk I/O fault in the app host.
 
 ## Migration and dependency policy

@@ -57,4 +57,4 @@
 
 现在恢复点作为 `PlaybackOpenOptions` 随打开请求传到 libmpv，通过 `loadfile` 的文件级 `start` 选项应用；播放快照只用于确认内核状态，不再负责补正起播位置。无宿主逻辑回归 99 项通过，正式 Debug 构建与 Xcode 静态分析通过。一次针对新原生恢复路径的 XCTest 在测试宿主进程启动后一直未能创建 XCTest worker；为释放桌面而中断后，result bundle 记录的是“Testing was canceled”，没有测试断言执行，因此不记作原生通过或产品失败。
 
-待补证据：重新运行 `testSavedAudioTrackAndPositionRestoreInNewNativeSession`，确认原生首份快照从保存点开始；再用正式 Bomu 窗口复核实际首帧。此前记录的 5.533 秒画面 / 9.233 秒界面差异仍未关闭，A07 不通过本次代码修改自动结案。
+2026-10-15 的 Xcode 27 原生回归现已补上：`testRealPlaybackPauseSeekReplaceAndRelease` 确认从 5 秒恢复时首个原生快照误差在 0.4 秒内；`testSavedAudioTrackAndPositionRestoreInNewNativeSession` 确认新会话恢复保存的音轨与 1.2 秒进度。此前记录的 5.533 秒画面 / 9.233 秒界面差异仍需在正式 Bomu 窗口复核实际首帧；这两项 XCTest 不证明物理屏幕出光时间，A07 仍未结案。

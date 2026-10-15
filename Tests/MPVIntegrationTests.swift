@@ -37,6 +37,7 @@ final class MPVIntegrationTests: XCTestCase {
             player.setVolume(0)
             player.open(try fixture("h264-sdr"))
             try await waitUntil { player.canControlPlayback }
+            try await waitUntil { (player.state.snapshot?.position ?? 0) > 0.3 }
             player.togglePause()
             try await waitUntil { player.state.snapshot?.isPaused == true }
 
