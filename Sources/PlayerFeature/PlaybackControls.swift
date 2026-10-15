@@ -60,7 +60,7 @@ struct PlaybackControls: View {
         .task(id: HideTask(interaction: interaction, isPinned: isPinned)) {
             guard !isPinned else { return }
             do {
-                try await Task.sleep(for: .seconds(2.5))
+                try await Task.sleep(for: .seconds(AppTheme.PlayerControls.autoHideSeconds))
                 idleExpired = true
             } catch { /* A fresh interaction replaces the pending hide deadline. */ }
         }
@@ -106,7 +106,7 @@ struct PlaybackControls: View {
             .onHover { hover($0, in: .transport) }
             Spacer(minLength: 12)
             timeline
-                .padding(.horizontal, 22)
+                .padding(.horizontal, AppTheme.Layout.playerHorizontalInset)
                 .padding(.vertical, 12)
                 .padding(.bottom, 9)
                 .onHover { hover($0, in: .timeline) }
@@ -128,7 +128,7 @@ struct PlaybackControls: View {
             .accessibilityLabel(Text("library.backToLibrary"))
 
             Text(player.state.request?.url.lastPathComponent ?? "")
-                .font(.system(size: 13, weight: .medium))
+                .font(AppTheme.Typography.playerFileName)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: 420, alignment: .leading)
@@ -306,7 +306,7 @@ struct PlaybackControls: View {
             .accessibilityLabel(Text("player.fullscreen"))
             .help(Text("player.fullscreen"))
         }
-        .font(.system(size: 11, weight: .medium).monospacedDigit())
+        .font(AppTheme.Typography.timeReadout)
     }
 
     private func toolbarButton(_ label: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {

@@ -32,7 +32,7 @@ The app currently declares English as its supported language. The Simplified Chi
 | Brand / page / section title | system serif 32 / system sans 27 / system sans 17 |
 | Media title / metadata / subtitle | system sans 14 / 12 / 13 |
 | Sidebar / content inset | 176 / 30 |
-| Grid gap / section gap | 17 / 28 |
+| Grid gap / section gap / player horizontal inset | 17 / 28 / 22 |
 | Artwork / player / control / field radius | 4 / 4 / 4 / 4 |
 | Selection / compact surface / badge radius | 2 / 3 / 2 |
 | Empty-state icon backing radius | 10 |
@@ -43,7 +43,7 @@ Use radii only where the component needs a visible shape. Keep folder rows and e
 
 ## Interaction and accessibility
 
-- Selecting a media item does not start playback. The separate play action and context menu expose playback, favorite, watched, and manual-category actions.
+- A single click selects a media item; a double-click plays it. The explicit play action and context menu keep playback available to keyboard and pointer users, alongside favorite, watched, and manual-category actions.
 - The playback page remains alive while browsing. Returning to the library does not stop playback; the current-playback bar reflects the same player state.
 - Open, pause, seek, playback speed, audio/subtitle tracks, queue, volume, and fullscreen controls use native semantic controls with localized accessibility names.
 - Playback controls remain visible while paused, while VoiceOver is active, or while a control is being used. Reduced transparency uses a more opaque control surface.

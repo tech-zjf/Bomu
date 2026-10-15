@@ -140,7 +140,7 @@ struct SettingsView: View {
                             Spacer()
                             Text("settings.subtitles.later")
                         }
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -172,7 +172,7 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(folder.displayName)
                             Text("\(folder.volumeName) · \(folder.relativePath)")
-                                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                .font(AppTheme.Typography.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
                         Spacer()
                         Button("settings.privacy.remove") {

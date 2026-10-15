@@ -2,20 +2,20 @@
 
 ## Decision
 
-Bomu uses a restrained two-face system. The default platform sans-serif stays responsible for the working interface. The platform serif is a display accent for the brand wordmark, page titles, and media-section headings.
+Bomu uses the platform sans-serif for the working interface. The system serif is reserved for the brand wordmark; page and section titles, navigation, controls, filenames, and technical details stay sans-serif. Time values use monospaced digits. No external font files are bundled.
 
 | Role | Typeface | Use |
 | --- | --- | --- |
-| Brand and page titles | System serif | App identity and the first heading on a library page |
-| Content-section titles | System serif | “Continue Watching”, “Recently Added”, and equivalent section labels |
-| Navigation and controls | Default system sans-serif | Sidebar, buttons, menus, search, and playback controls |
-| Media titles and technical details | Default system sans-serif | Dynamic file names, codecs, dimensions, durations, and file sizes |
-| Time readouts | System sans-serif with monospaced digits | Stable alignment while playback time changes |
+| Brand wordmark | System serif | Bomu identity in the start view |
+| Page and section titles | System sans-serif | Library and folder hierarchy |
+| Navigation and controls | System sans-serif | Sidebar, buttons, menus, search, and playback controls |
+| Media names and technical details | System sans-serif | Dynamic filenames, codecs, dimensions, durations, and file sizes |
+| Time values | System sans-serif with monospaced digits | Stable playback and duration readouts |
 
-The serif face gives the media library a warmer, film-editorial character. Keeping it out of file names and controls preserves fast scanning and familiar macOS interaction. Both faces are system designs rather than bundled font files, avoiding an extra font dependency and allowing the platform to choose localized glyph fallbacks when Chinese is enabled.
+The typeface split follows the product tokens in [`设计规范.json`](../../../player_plan/开发定稿/设计规范.json). Localized text relies on platform glyph fallback, so enabling Chinese later still requires visual review of line wrapping and fallback glyphs.
 
-## Implementation and verification
+## Implementation
 
-`AppTheme.Typography` is the single source for display roles. `StartView` uses the brand role; `MediaLibraryView` uses the page and section roles. Other views inherit the normal SwiftUI system face unless a distinct technical role such as monospaced digits is explicitly needed.
+`AppTheme.Typography` owns the text styles used by product views. Semantic roles preserve the selected sizes and weights while keeping repeated typography in one place. SF Symbol sizing may remain local to a control because it defines icon geometry rather than a text role.
 
-The English-only app bundle builds successfully with the locked Xcode 27.0 toolchain. The current Home window was visually reviewed on Screen 1: display headings are distinct from the sans-serif media labels and technical metadata, with no clipping at the tested window size. Chinese strings are retained for future localization, but fallback glyphs and line wrapping have not been visually reviewed yet.
+The currently bundled app localization remains English. Chinese strings are retained for later activation. Shared typography tokens and a successful build do not establish visual acceptance; the current Debug build still needs comparison in one ordinary Bomu window at the specified sizes, followed by keyboard and VoiceOver checks.

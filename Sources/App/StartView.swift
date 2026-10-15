@@ -17,7 +17,7 @@ struct StartView: View {
                 .tint(AppTheme.textPrimary)
                 .controlSize(.large)
             Text("app.preview")
-                .font(.system(size: 12))
+                .font(AppTheme.Typography.metadata)
                 .foregroundStyle(AppTheme.textSecondary)
         }
         .padding(30)

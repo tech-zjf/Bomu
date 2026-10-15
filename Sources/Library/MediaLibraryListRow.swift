@@ -42,6 +42,11 @@ struct MediaLibraryListRow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .simultaneousGesture(TapGesture(count: 2).onEnded {
+                guard isPlayable else { return }
+                model.select(item)
+                onPlay(item)
+            })
             .accessibilityLabel(Text(item.displayName))
             .accessibilityValue(Text(accessibilityValue))
 

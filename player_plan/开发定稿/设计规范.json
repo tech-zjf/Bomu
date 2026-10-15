@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "product": "Bomu",
-  "status": "按用户反馈收敛桌面组件圆角；当前 Debug 包已在单窗口目视检查，整体验收仍在进行",
+  "status": "按用户反馈收敛桌面组件圆角；整体验收仍在进行",
   "platform": "macOS 14+ arm64",
   "units": "pt for native layout",
   "colors": {

@@ -15,7 +15,7 @@ Last reviewed: 2026-10-15. The requirements and dependencies remain in [`开发�
 
 | Area | Remaining evidence |
 | --- | --- |
-| A01, A02, C05 | Finish the manual user flows and visual acceptance. The current interface has been reviewed in one ordinary window, but overall design acceptance, all required window sizes, keyboard navigation, and VoiceOver are incomplete. |
+| A01, A02, C05 | A01's five repeatable user flows are documented in `docs/product/acceptance-tasks.md`; the required visual-style acceptance is still open, so A01 remains in progress. The native library uses shared minimum-window, grid, section-spacing, player inset, and text-style tokens; its media cards and list rows implement select-on-single-click and play-on-double-click. The typography decision matches the current sans-serif interface and brand-only serif rule. The updated Debug build and static analysis pass, but A02/C05 still need visual comparison at all required window sizes, plus keyboard and VoiceOver acceptance. |
 | A03 | Competitor inspection is partial; the five acceptance flows and remaining competitor coverage are not complete. |
 | A07 | Finish playback controls over video and the authorized fullscreen/display scenarios. No automatic fullscreen or cross-display test has been run. |
 | A08 | Built-in display SDR and HDR-to-SDR smoke tests exist. External-display and calibrated color acceptance remain open; native HDR output is not implemented. |

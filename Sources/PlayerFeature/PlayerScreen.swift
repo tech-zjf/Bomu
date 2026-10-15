@@ -57,7 +57,7 @@ struct PlayerScreen: View {
             videoFrame {
                 ProgressView("player.loading")
                     .controlSize(.large)
-                    .padding(.horizontal, 22)
+                    .padding(.horizontal, AppTheme.Layout.playerHorizontalInset)
                     .padding(.vertical, 16)
                     .background(AppTheme.playerControlBackground,
                                 in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
@@ -73,11 +73,11 @@ struct PlayerScreen: View {
             videoFrame {
                 VStack(spacing: 14) {
                     Text("player.ended")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                     HStack(spacing: 10) {
                         Button(action: onReturnToLibrary) {
                             Label("library.backToLibrary", systemImage: "chevron.left")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(AppTheme.Typography.controlLabel)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 10)
@@ -93,7 +93,7 @@ struct PlayerScreen: View {
                         .buttonStyle(.plain)
                         Button { player.replay() } label: {
                             Label("player.replay", systemImage: "play.fill")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(AppTheme.Typography.controlEmphasis)
                                 .foregroundStyle(AppTheme.textPrimary)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 10)
@@ -130,14 +130,14 @@ struct PlayerScreen: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 30, weight: .light))
                 .accessibilityHidden(true)
-            Text(failure.title).font(.headline)
+            Text(failure.title).font(AppTheme.Typography.headline)
             Text(failure.explanation)
                 .multilineTextAlignment(.center)
                 .textSelection(.enabled)
                 .foregroundStyle(.white.opacity(0.75))
             if let detail = failure.detail {
                 Text(detail)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(AppTheme.Typography.diagnostic)
                     .textSelection(.enabled)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,7 +153,7 @@ struct PlayerScreen: View {
             .buttonStyle(.bordered)
             .tint(.white)
         }
-        .font(.system(size: 13))
+        .font(AppTheme.Typography.controlBody)
         .padding(30)
         .frame(maxWidth: .infinity, minHeight: 420)
         .foregroundStyle(.white)
@@ -172,15 +172,15 @@ private struct PlaybackCommandFailureNotice: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(failure.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(AppTheme.Typography.controlEmphasis)
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(failure.explanation)
-                    .font(.system(size: 12))
+                    .font(AppTheme.Typography.metadata)
                     .foregroundStyle(AppTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let detail = failure.detail {
                     Text(detail)
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(AppTheme.Typography.commandDiagnostic)
                         .foregroundStyle(AppTheme.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -210,11 +210,11 @@ private struct PlayerMediaDetails: View {
         HStack(alignment: .center, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(url.deletingPathExtension().lastPathComponent)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.playerMediaTitle)
                     .foregroundStyle(AppTheme.textPrimary)
                     .lineLimit(1)
                 Text(url.deletingLastPathComponent().path)
-                    .font(.system(size: 11))
+                    .font(AppTheme.Typography.mediaPath)
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -232,7 +232,7 @@ private struct PlayerMediaDetails: View {
 
     private func metadataBadge(_ value: String) -> some View {
         Text(value)
-            .font(.system(size: 10, weight: .medium))
+            .font(AppTheme.Typography.compactBadge)
             .foregroundStyle(AppTheme.textSecondary)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)

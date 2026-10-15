@@ -63,6 +63,7 @@ struct MediaLibraryCard: View {
                 artworkImage
             }
             .buttonStyle(.plain)
+            .simultaneousGesture(TapGesture(count: 2).onEnded { play() })
             .accessibilityLabel(Text(item.displayName))
             .accessibilityValue(Text(MediaLibraryAccessibilitySummary.value(
                 for: item,
@@ -85,7 +86,7 @@ struct MediaLibraryCard: View {
 
             if let badge = durationBadge {
                 Text(badge)
-                    .font(.system(size: 10, weight: .medium).monospacedDigit())
+                    .font(AppTheme.Typography.durationBadge)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 4)
@@ -207,6 +208,7 @@ struct MediaLibraryCard: View {
     }
 
     private func play() {
+        guard isPlayable else { return }
         model.select(item)
         if presentation == .continueWatching, item.playbackPosition > 0 {
             onContinue(item)

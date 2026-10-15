@@ -9,7 +9,7 @@
       "acceptance": "使用本定稿边界；设计风格已获用户认可；形成五条可重复的用户验收任务",
       "size": "S",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.0",
       "dependsOn": [],
       "evidenceRequired": "实现记录、相应测试结果和人工验收；勾选规划不替代完成证据",

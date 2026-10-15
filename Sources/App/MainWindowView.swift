@@ -52,7 +52,7 @@ struct MainWindowView: View {
                     .padding(12)
                     .overlay {
                         Text("open.dropHere")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                             .foregroundStyle(isPlayerVisible ? .white : AppTheme.textPrimary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)

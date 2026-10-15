@@ -54,7 +54,7 @@ struct MediaLibrarySidebar: View {
                         .disabled(!isStorageAvailable)
                     }
                 }
-                .font(.system(size: 13))
+                .font(AppTheme.Typography.sidebarLabel)
                 .padding(.horizontal, 12)
                 .padding(.top, 19)
                 .padding(.bottom, 16)
@@ -63,7 +63,7 @@ struct MediaLibrarySidebar: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Label("library.localOnly", systemImage: "lock.shield")
-                    .font(.system(size: 11))
+                    .font(AppTheme.Typography.compactCaption)
                     .foregroundStyle(AppTheme.textSecondary)
                 Button(action: onShowSettings) {
                     Label("library.nav.settings", systemImage: "gearshape")
@@ -88,7 +88,7 @@ struct MediaLibrarySidebar: View {
 
     private func sectionHeading(_ title: LocalizedStringKey) -> some View {
         Text(title)
-            .font(.system(size: 11, weight: .semibold))
+            .font(AppTheme.Typography.sidebarSection)
             .foregroundStyle(AppTheme.textSecondary)
             .padding(.horizontal, 10)
             .padding(.top, 3)
@@ -100,7 +100,7 @@ struct MediaLibrarySidebar: View {
 
         return Button { onSelect(destination) } label: {
             Label(destination.title, systemImage: destination.symbol)
-                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                .font(isSelected ? AppTheme.Typography.sidebarSelected : AppTheme.Typography.sidebarLabel)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 10)

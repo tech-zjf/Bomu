@@ -13,13 +13,35 @@ enum AppTheme {
     static let playerControlBackground = Color.black.opacity(0.55)
 
     enum Typography {
-        // Keep the active interface crisp and contemporary; the serif face is reserved for brand moments.
+        // The serif face is reserved for the brand; all working interface text stays sans-serif.
         static let pageTitle = Font.system(size: 27, weight: .semibold)
         static let sectionTitle = Font.system(size: 17, weight: .semibold)
         static let brandName = Font.system(size: 32, weight: .semibold, design: .serif)
         static let mediaTitle = Font.system(size: 14, weight: .medium)
         static let metadata = Font.system(size: 12, weight: .regular)
         static let subtitle = Font.system(size: 13, weight: .regular)
+        static let body = Font.system(size: 14)
+        static let controlBody = Font.system(size: 13)
+        static let controlLabel = Font.system(size: 13, weight: .medium)
+        static let controlEmphasis = Font.system(size: 13, weight: .semibold)
+        static let filterLabel = Font.system(size: 12, weight: .medium)
+        static let sidebarLabel = Font.system(size: 13)
+        static let sidebarSelected = Font.system(size: 13, weight: .medium)
+        static let sidebarSection = Font.system(size: 11, weight: .semibold)
+        static let compactCaption = Font.system(size: 11)
+        static let compactBadge = Font.system(size: 10, weight: .medium)
+        static let durationBadge = Font.system(size: 10, weight: .medium).monospacedDigit()
+        static let timeReadout = Font.system(size: 11, weight: .medium).monospacedDigit()
+        static let playerFileName = Font.system(size: 13, weight: .medium)
+        static let playerMediaTitle = Font.system(size: 16, weight: .semibold)
+        static let mediaPath = Font.system(size: 11)
+        static let commandDiagnostic = Font.system(size: 11, design: .monospaced)
+        static let diagnostic = Font.system(.caption, design: .monospaced)
+        static let headline = Font.headline
+        static let callout = Font.callout
+        static let emphasizedCallout = Font.callout.weight(.medium)
+        static let caption = Font.caption
+        static let emphasizedCaption = Font.caption.weight(.semibold)
     }
 
     enum Layout {
@@ -27,6 +49,7 @@ enum AppTheme {
         static let contentInset: CGFloat = 30
         static let gridGap: CGFloat = 17
         static let sectionGap: CGFloat = 28
+        static let playerHorizontalInset: CGFloat = 22
         static let minimumWindowWidth: CGFloat = 900
         static let minimumWindowHeight: CGFloat = 600
     }
@@ -51,5 +74,6 @@ enum AppTheme {
         static let primaryIconSize: CGFloat = 39
         static let skipIconSize: CGFloat = 27
         static let buttonGap: CGFloat = 26
+        static let autoHideSeconds: Double = 2.5
     }
 }

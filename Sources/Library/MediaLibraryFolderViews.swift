@@ -19,7 +19,7 @@ struct MediaLibrarySourceFolderRow: View {
             }
             Spacer()
             Text("library.sourceOnline")
-                .font(.system(size: 10, weight: .medium))
+                .font(AppTheme.Typography.compactBadge)
                 .foregroundStyle(AppTheme.textSecondary)
             Image(systemName: "chevron.right")
                 .font(.system(size: 10, weight: .semibold))
@@ -76,7 +76,7 @@ struct MediaLibraryFolderBreadcrumbs: View {
                 .foregroundStyle(.secondary)
             }
         }
-        .font(.callout)
+        .font(AppTheme.Typography.callout)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("library.folderBreadcrumb"))
     }
@@ -130,7 +130,7 @@ struct MediaLibraryOfflineSources: View {
                 ForEach(roots) { root in
                     HStack(spacing: 10) {
                         Label("\(root.displayName) · \(root.volumeName)", systemImage: "externaldrive.badge.xmark")
-                            .font(.callout)
+                            .font(AppTheme.Typography.callout)
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineLimit(1)
                             .truncationMode(.middle)

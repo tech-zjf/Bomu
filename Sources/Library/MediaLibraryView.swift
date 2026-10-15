@@ -94,7 +94,7 @@ struct MediaLibraryView: View {
                 }
                 if model.isStorageAvailable, let error = model.errorMessage {
                     Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.callout)
+                        .font(AppTheme.Typography.callout)
                         .foregroundStyle(.orange)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 24)
@@ -157,7 +157,7 @@ struct MediaLibraryView: View {
             }
         case .library:
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.library", subtitle: "library.librarySubtitle")
                     filterControls
                     mediaGrid(filtered(model.availableItems))
@@ -168,7 +168,7 @@ struct MediaLibraryView: View {
             foldersContent
         case .favorites:
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.favorites", subtitle: "library.favoritesSubtitle")
                     if model.favorites.isEmpty {
                         emptyState(title: "library.noFavoritesTitle", message: "library.noFavoritesMessage")
@@ -180,7 +180,7 @@ struct MediaLibraryView: View {
             }
         case .search:
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.search", subtitle: "library.searchSubtitle")
                     searchField
                     if model.searchText.isEmpty {
@@ -210,7 +210,7 @@ struct MediaLibraryView: View {
             .textFieldStyle(.plain)
             .accessibilityLabel(Text("library.searchPrompt"))
         }
-        .font(.system(size: 14))
+        .font(AppTheme.Typography.body)
         .padding(.horizontal, 13)
         .padding(.vertical, 10)
         .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.field))
@@ -275,7 +275,7 @@ struct MediaLibraryView: View {
         (Text(title).foregroundColor(AppTheme.textSecondary)
          + Text(verbatim: "   ")
          + Text(selection).foregroundColor(AppTheme.textPrimary))
-        .font(.system(size: 12, weight: .medium))
+        .font(AppTheme.Typography.filterLabel)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
     }
@@ -287,7 +287,7 @@ struct MediaLibraryView: View {
     private var foldersContent: some View {
         NavigationStack(path: $folderPath) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.folders", subtitle: "library.foldersSubtitle")
                     if model.onlineRoots.isEmpty && model.offlineRoots.isEmpty {
                         emptyState(title: "library.noFoldersTitle", message: "library.noFoldersMessage")
@@ -324,7 +324,7 @@ struct MediaLibraryView: View {
         let childDirectories = model.childDirectories(in: directory)
         let mediaItems = model.mediaItems(in: directory)
         return ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                 MediaLibraryFolderBreadcrumbs(
                     root: model.roots.first { $0.id == directory.sourceRootID },
                     directory: directory,
@@ -349,7 +349,8 @@ struct MediaLibraryView: View {
                     emptyState(title: "library.folderEmptyTitle", message: "library.folderEmptyMessage")
                 } else if folderDensity == .grid {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 180, maximum: 260),
-                                                  spacing: AppTheme.Layout.gridGap)], spacing: 18) {
+                                                  spacing: AppTheme.Layout.gridGap)],
+                              spacing: AppTheme.Layout.gridGap) {
                         ForEach(childDirectories) { child in
                             NavigationLink(value: child) {
                                 MediaLibraryFolderTile(directory: child)
@@ -403,7 +404,7 @@ struct MediaLibraryView: View {
                     Int64(model.indexedCount),
                     Int64(model.discoveredCount)
                 ))
-                    .font(.callout)
+                    .font(AppTheme.Typography.callout)
                 Spacer()
                 Button("library.cancelScan", action: model.cancelScan)
                     .buttonStyle(.borderless)
@@ -411,11 +412,11 @@ struct MediaLibraryView: View {
             if !model.recentlyDiscoveredFiles.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("library.scanRecentlyFound")
-                        .font(.caption.weight(.semibold))
+                        .font(AppTheme.Typography.emphasizedCaption)
                         .foregroundStyle(.secondary)
                     ForEach(Array(model.recentlyDiscoveredFiles.enumerated()), id: \.offset) { entry in
                         Text(entry.element)
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
@@ -439,7 +440,7 @@ struct MediaLibraryView: View {
             Spacer()
             Button(action: chooseFolder) {
                 Label("library.addFolder", systemImage: "plus")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(AppTheme.Typography.controlLabel)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .foregroundStyle(.white)
@@ -464,7 +465,7 @@ struct MediaLibraryView: View {
                         .foregroundStyle(AppTheme.textSecondary)
                 } else if let trailingNote {
                     Text(trailingNote)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
             }
@@ -484,7 +485,7 @@ struct MediaLibraryView: View {
         if items.isEmpty {
             emptyState(title: "library.noMediaTitle", message: "library.noMediaMessage")
         } else {
-            LazyVGrid(columns: gridColumns(columnCount), spacing: 18) {
+            LazyVGrid(columns: gridColumns(columnCount), spacing: AppTheme.Layout.gridGap) {
                 ForEach(items) { item in
                     MediaLibraryCard(item: item, model: model, isVisible: isVisible,
                                      isPlayable: model.fileURL(for: item) != nil,
@@ -534,8 +535,8 @@ struct MediaLibraryView: View {
         HStack(spacing: 12) {
             Image(systemName: "play.rectangle.fill").font(.title2)
             VStack(alignment: .leading, spacing: 2) {
-                Text("library.nowPlaying").font(.caption).foregroundStyle(.secondary)
-                Text(title).font(.callout.weight(.medium)).lineLimit(1)
+                Text("library.nowPlaying").font(AppTheme.Typography.caption).foregroundStyle(.secondary)
+                Text(title).font(AppTheme.Typography.emphasizedCallout).lineLimit(1)
             }
             Spacer()
             Button(action: player.togglePause) {
