@@ -283,7 +283,7 @@ final class MPVIntegrationTests: XCTestCase {
 
     func testMPEG2ProgramStreamPausedAbsoluteSeekSettlesAtRequestedPosition() async throws {
         let url = try XCTUnwrap(Bundle(for: Self.self).url(
-            forResource: "50-mpeg2-pal-program-stream", withExtension: "mpg", subdirectory: "Fixtures"
+            forResource: "mpeg2-pal-program-stream", withExtension: "mpg", subdirectory: "Fixtures"
         ))
         let engine = MPVPlaybackEngine()
         let player = PlayerModel(engine: engine)

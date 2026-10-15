@@ -2,6 +2,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -49,6 +50,17 @@ class PrepareTestMediaTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'hash mismatch'):
                 prepare_test_media.ensure_samples(self.directory, {self.sample_name}, ['fixture-generator'])
         run.assert_not_called()
+
+    def test_native_test_preparation_does_not_generate_the_full_b11_suite(self):
+        with patch.object(prepare_test_media, 'ROOT', self.directory):
+            with patch.object(sys, 'argv', [str(SCRIPT)]):
+                with patch.object(prepare_test_media, 'ensure_samples') as ensure:
+                    prepare_test_media.main()
+
+        ensure.assert_called_once_with(
+            self.directory / '.build/fixtures', prepare_test_media.BASIC_SAMPLES,
+            [str(self.directory / 'scripts/generate-fixtures.sh')],
+        )
 
 
 if __name__ == '__main__':

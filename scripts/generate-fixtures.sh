@@ -19,6 +19,14 @@ ffmpeg -hide_banner -loglevel error -y -f lavfi -i 'testsrc2=size=640x360:rate=2
   -map 0:v:0 -map 1:a:0 -map 2:a:0 -c:v libx264 -preset fast -pix_fmt yuv420p \
   -c:a:0 aac -b:a:0 96k -c:a:1 alac -movflags +faststart \
   "$FIXTURES/mixed-audio-tracks.mp4"
+ffmpeg -hide_banner -loglevel error -y -filter_threads 2 \
+  -f lavfi -i 'testsrc2=size=720x576:rate=25' \
+  -f lavfi -i 'sine=frequency=440:sample_rate=48000' \
+  -map 0:v:0 -c:v mpeg2video -threads:v 2 \
+  -vf 'eq=saturation=0.45:brightness=-0.12' -pix_fmt yuv420p \
+  -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
+  -map 1:a:0 -c:a mp2 -ar 48000 -ac 2 -t 6 \
+  "$FIXTURES/mpeg2-pal-program-stream.mpg"
 printf 'Bomu intentionally invalid media fixture\n' > "$FIXTURES/corrupt.mp4"
 python3 - "$FIXTURES" <<'PY'
 import hashlib
@@ -30,7 +38,8 @@ from pathlib import Path
 root = Path(sys.argv[1])
 rows = []
 # Only label media produced by this script; never import arbitrary user files.
-for name in ['h264-sdr.mp4', 'h265-main10-sdr.mp4', 'mixed-audio-tracks.mp4', 'corrupt.mp4']:
+for name in ['h264-sdr.mp4', 'h265-main10-sdr.mp4', 'mixed-audio-tracks.mp4',
+             'mpeg2-pal-program-stream.mpg', 'corrupt.mp4']:
     path = root / name
     row = {
         'file': name,
@@ -47,5 +56,5 @@ for name in ['h264-sdr.mp4', 'h265-main10-sdr.mp4', 'mixed-audio-tracks.mp4', 'c
 version = subprocess.check_output(['ffmpeg', '-version'], text=True).splitlines()[0]
 manifest = {'schemaVersion': 1, 'generator': version, 'samples': rows}
 (root / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-print('Generated 3 licensed synthetic playback samples and 1 corruption fixture.')
+print('Generated 4 licensed synthetic playback samples and 1 corruption fixture.')
 PY

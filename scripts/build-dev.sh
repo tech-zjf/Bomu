@@ -25,7 +25,7 @@ python3 "$PROJECT_ROOT/scripts/toolchain.py"
 python3 "$PROJECT_ROOT/scripts/dependencies.py" check
 
 if [[ "$BUILD_ACTION" == "build-for-testing" ]]; then
-  python3 "$PROJECT_ROOT/scripts/prepare-test-media.py" --b11
+  python3 "$PROJECT_ROOT/scripts/prepare-test-media.py"
 fi
 
 exec xcodebuild \

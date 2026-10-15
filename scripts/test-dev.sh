@@ -20,7 +20,7 @@ elif [[ "${1:-}" == --native ]]; then
   SCHEME=Bomu
   shift
   python3 "$PROJECT_ROOT/scripts/dependencies.py" check
-  python3 "$PROJECT_ROOT/scripts/prepare-test-media.py" --b11
+  python3 "$PROJECT_ROOT/scripts/prepare-test-media.py"
   echo "Native integration tests reuse one application host window; no additional render-test window."
 else
   python3 "$PROJECT_ROOT/scripts/prepare-test-media.py"
