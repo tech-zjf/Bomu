@@ -150,14 +150,24 @@ schema 3 使用 AppKit 可见性变化通知，补足两次检查点之间的短
 
 为寻找不依赖私有接口的逐进程 GPU 证据，在屏幕 1 已打开的 Bomu 进程上运行 28.245 秒 Xcode 27 Metal System Trace，并在同一窗口重播 H.264 测试片。trace 有 8,322 个整机 GPU execution interval，但目标进程的 Metal command-buffer submission 表为空，GPU interval 也没有一行归因到 Bomu；因此这些系统级事件不能证明 Bomu 播放或停止后的 GPU 活跃度。Apple 将该追踪模板用于 Metal 工作负载，见 [Analyzing the performance of your Metal app](https://developer.apple.com/documentation/Xcode/Analyzing-the-performance-of-your-Metal-app)。当前播放器走 CGL/OpenGL，Metal trace 不能替代当前渲染路径的进程级测量。
 
-本机 `Power Profiler` 录制明确报错“not supported on macOS”，所得 trace 缺少 run data，未作为测量。系统 `powermetrics --show-process-gpu` 提示需要 superuser；无缓存凭据的 `sudo -n` 立即失败，没有输入或索取密码。故 A09 的 CPU 回落、零帧/绘制增长、短时 footprint 趋势和 CGL/render/core 释放已有证据，但 GPU 回落仍未知；原始零计数不解释为空闲，A09 保持进行中。临时 Instruments trace 含目标进程环境信息，只保存在本地忽略构建目录，摘要提取后删除。
+截至该次工具探测，本机 `Power Profiler` 录制报错“not supported on macOS”，所得 trace 缺少 run data，未作为测量。系统 `powermetrics --show-process-gpu` 提示需要 superuser；无缓存凭据的 `sudo -n` 立即失败，没有输入或索取密码。此时 CPU 回落、零帧/绘制增长、短时 footprint 趋势和 CGL/render/core 释放已有证据，但 GPU 回落尚无有效信号，原始零计数不解释为空闲。之后加入的 OpenGL elapsed fallback 和完整验收见下文。临时 Instruments trace 含目标进程环境信息，只保存在本地忽略构建目录，摘要提取后删除。
 
-2026-10-15 在锁定 Xcode 27 环境运行 `xcrun xctrace list templates`，按 GPU、OpenGL、graphics、energy、Core Animation 与 Metal 过滤，唯一匹配模板为 `Metal System Trace`，没有 OpenGL 专用的 Instruments 模板。Apple 归档版 OpenGL Profiler 用户指南标注该工具自 Xcode 6 起弃用；当前 Apple `GPUTimeMetric` 文档将其限定为 `intervalEntries`，不包含在 state entries 中。结合前述 Metal trace 无 Bomu OpenGL 归因、本机 `GL_TIMESTAMP` 不支持、`powermetrics` 需要管理员权限，当前没有找到适用于播放/停止即时检查点的公开逐进程 OpenGL GPU 采样源。此为工具边界记录，不豁免 GPU 回落验收；A09 仍进行中。参考：[Apple OpenGL Profiler 归档指南](https://developer.apple.com/library/archive/documentation/GraphicsImaging/Conceptual/OpenGLProfilerUserGuide/GettedStarted/GettingStarted.html)、[MetricKit GPUTimeMetric](https://developer.apple.com/documentation/metrickit/gputimemetric)。
+2026-10-15 在锁定 Xcode 27 环境运行 `xcrun xctrace list templates`，按 GPU、OpenGL、graphics、energy、Core Animation 与 Metal 过滤，唯一匹配模板为 `Metal System Trace`，没有 OpenGL 专用的 Instruments 模板。Apple 归档版 OpenGL Profiler 用户指南标注该工具自 Xcode 6 起弃用；当前 Apple `GPUTimeMetric` 文档将其限定为 `intervalEntries`，不包含在 state entries 中。以上探测没有找到公开的逐进程 GPU 利用率或功耗即时采样源；其结果不覆盖随后实现并通过实测的 render-call elapsed 查询。参考：[Apple OpenGL Profiler 归档指南](https://developer.apple.com/library/archive/documentation/GraphicsImaging/Conceptual/OpenGLProfilerUserGuide/GettedStarted/GettingStarted.html)、[MetricKit GPUTimeMetric](https://developer.apple.com/documentation/metrickit/gputimemetric)。
 
 ## 2026-10-15 A09 OpenGL GPU 区间测量实现
 
-`BomuBenchmark` target 单独启用 `BM_ENABLE_GPU_RENDER_TIMING`；正式 Bomu target 不创建计时查询。渲染适配层在每次 mpv OpenGL render 前后排入一对 `GL_TIMESTAMP` 查询，并使用 8 组查询槽，只有 `GL_QUERY_RESULT_AVAILABLE` 为真时才读取结果，不调用 `glFinish` 或同步等待。OpenGL timer-query 扩展定义了 timestamp 差的纳秒单位和异步查询结果；见 [Khronos ARB_timer_query 规范](https://registry.khronos.org/OpenGL/extensions/ARB/ARB_timer_query.txt)。
+`BomuBenchmark` target 单独启用 `BM_ENABLE_GPU_RENDER_TIMING`；正式 Bomu target 不创建计时查询。渲染适配层优先在每次 mpv OpenGL render 前后排入一对 `GL_TIMESTAMP` 查询；时间戳计数器不可用时退回 `GL_TIME_ELAPSED`。两种模式都使用 8 组查询槽，只有结果可用时才异步读取，不调用 `glFinish` 或等待 GPU。Khronos timer-query 规范定义纳秒单位及查询语义；见 [ARB_timer_query](https://registry.khronos.org/OpenGL/extensions/ARB/ARB_timer_query.txt)。
 
-选择时间戳是因为锁定的 mpv/libplacebo OpenGL 路径本身会使用非重入的 `GL_TIME_ELAPSED` 查询；复用同一查询目标可能破坏渲染库自己的计时。报告将该值称为“OpenGL GPU 渲染区间”，仅表示两个 GPU 时间戳之间完成的队列间隔，不把它扩大解释为完整 GPU 忙碌时间或整机功耗。播放阶段要求受支持的时间戳样本和区间确有增长；停止基线前等候已排队查询完成，然后断言停止区间内不再产生新查询或增长。
+`GL_TIME_ELAPSED` 不能与锁定的 mpv/libplacebo OpenGL 路径中的同目标查询嵌套。仅 benchmark target 通过 render API 的 OpenGL procedure 回调暂时抑制依赖库的 elapsed profiling 查询，并在 mpv render 调用外测量；产品 target 不启用该拦截。报告中的“OpenGL GPU render interval”仅代表指定 GL 命令区间完成耗时，不等于完整 GPU 忙碌时间、利用率或功耗。停止基线前等候已排队查询完成，然后断言停止区间内不再产生新查询或增长。
 
-本轮完成了实现、基准报告 schema 8 和汇总器接线。解锁后重新运行无窗口 CGL 能力探针成功，当前 Apple M5 驱动报告 OpenGL `4.1 Metal - 90.5`，存在 `GL_ARB_timer_query`，但 `GL_TIMESTAMP` 的 `GL_QUERY_COUNTER_BITS` 为 0；这意味着当前驱动不提供可用时间戳计数器。`GL_TIME_ELAPSED` 则报告 32 位计数器，但不能由基准在 `mpv_render_context_render` 外层再套一层：锁定的 mpv `ra_gl.c` 明确标出该目标不可重入，libplacebo 也自行开始/结束同一目标；外层查询会改变或截断依赖库的计时。此探针只验证离屏 CGL 能力，不是 Bomu 播放 GPU 样本。屏幕 1 的完整单窗口运行仍未得到受支持的 GPU 时间戳样本，另一次短测在可见窗口门禁前失败；因此 GPU 活跃度/停止回落仍未知，A09 不得签结。即使未来实测成功，时间戳区间也不覆盖硬件解码、其他进程的 GPU 工作、显示扫描或功耗。
+本轮完成了实现、基准报告 schema 9 和汇总器接线。无窗口 CGL 能力探针报告 OpenGL `4.1 Metal - 90.5`，支持 `GL_ARB_timer_query`；`GL_TIMESTAMP` 的 `GL_QUERY_COUNTER_BITS` 为 0，而 `GL_TIME_ELAPSED` 有 32 位计数器。探针只验证离屏 CGL 能力，不是播放样本；该阶段尚未完成依赖库查询的隔离，因此随后实现了仅供 benchmark 使用的 elapsed fallback。上述限制和新的完整播放证据见下节。
+
+## 2026-10-15 A09 本机基准验收
+
+2026-10-15 20:11（本机时间）完整运行 `./scripts/benchmark-dev.sh --playback`，报告保存在本地忽略目录 `.build/benchmarks/20261015-201150/`；source provenance 记录基准提交 `47e4135`。运行成功完成三种 SDR 样本的首帧测量、可见 H.264 播放、暂停、隐藏播放、停止、退出、同步片、100 次真实切文件与 100 次独立缩放。
+
+首帧窗口的任务级 energy counter 原始差值中位数为：H.264 1080p 106,159,780、HEVC Main10 1080p 125,147,746、HEVC Main10 4K 151,698,897（各 10/10 可读）。计数单位未公开，保留原值，不换算成焦耳或瓦特，也不跨设备比较。
+
+1080p 可见播放阶段 32/32 次采样可见，CPU 12.37%，OpenGL elapsed query 累计 573.545 ms / 243 个完成样本；停止阶段 CPU 0.16%，帧、绘制、快照和 OpenGL elapsed query 均无增量，退出时 core 与 render context 均释放。100 次切换的十个 footprint 检查点范围为 205.1–222.5 MiB，首末检查点窗口中位数由 211.0 变为 218.2 MiB；随后回落至 205.1 MiB，未见连续增长趋势。这是一次短时基准，不构成长时间无泄漏证明。
+
+本轮 OpenGL render interval 在播放时增加、停止后保持不变，完成 A09 所需的 render-path activity/fall-back 证据；Mach `gpuUtilisationCounterRaw` 仍为零，保持未知，不据此声明整个 GPU 空闲。render interval 不覆盖 VideoToolbox 解码、其他 GPU 客户端、显示扫描或硬件功耗。此前“本机没有可用 GPU 测量来源”的记录指逐进程总 GPU 使用率/功耗及 fallback 实现前的探测结果，不与本次有限范围的 OpenGL render 时间相矛盾。
