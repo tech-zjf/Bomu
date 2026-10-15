@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "product": "Bomu",
-  "status": "按用户反馈收敛桌面组件圆角；整体验收仍在进行",
+  "status": "按用户反馈收敛桌面组件圆角并记录相对原型的差异；整体验收仍在进行",
   "platform": "macOS 14+ arm64",
   "units": "pt for native layout",
   "colors": {
@@ -49,6 +49,11 @@
     "badge": 2,
     "emptyStateIcon": 10
   },
+  "visualDifferences": [
+    "原生应用使用 macOS 系统标题栏与交通灯，不复刻 HTML 原型的自绘标题栏。",
+    "原型封面、导航选中项、控件、空状态图标底形圆角分别为 14pt、12pt、12pt、20pt；原生版依用户反馈收敛为 4pt、2pt、4pt、10pt。颜色、主要排版尺寸与布局间距仍沿用本规范 token。",
+    "设计原型包含示例媒体画面和中文文案；原生应用只展示真实媒体信息，默认界面为英文。"
+  ],
   "player": {
     "centralButton": 88,
     "skipButton": 62,
