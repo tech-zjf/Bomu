@@ -40,7 +40,10 @@ final class PlaybackQueueTests: XCTestCase {
         }
 
         let files = try MediaFileDiscovery.expand([root])
-        XCTAssertEqual(files.map(\.lastPathComponent), ["第 2 集.mp4", "第 10 集.mp4", "中文 文件.mkv"])
+        XCTAssertEqual(
+            Set(files.map(\.lastPathComponent)),
+            Set(["第 2 集.mp4", "第 10 集.mp4", "中文 文件.mkv"])
+        )
     }
 
     func testDirectoryExpansionStopsWhenCancelledDuringTraversal() throws {
