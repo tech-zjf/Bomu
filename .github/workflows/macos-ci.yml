@@ -41,7 +41,17 @@ jobs:
         run: python3 scripts/dependencies.py bootstrap
 
       - name: Run Python and hostless Swift tests
-        run: ./scripts/test-dev.sh -quiet
+        run: ./scripts/test-dev.sh -quiet -resultBundlePath "$RUNNER_TEMP/BomuLogicTests.xcresult"
+
+      - name: Report hostless test results
+        if: ${{ always() }}
+        run: |
+          result_bundle="$RUNNER_TEMP/BomuLogicTests.xcresult"
+          if [[ ! -d "$result_bundle" ]]; then
+            echo "No XCTest result bundle was produced; the test step may have failed before xcodebuild ran."
+            exit 0
+          fi
+          xcrun xcresulttool get test-results summary --path "$result_bundle"
 
       - name: Build application
         run: ./scripts/build-dev.sh -quiet
