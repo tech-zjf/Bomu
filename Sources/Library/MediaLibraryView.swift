@@ -124,7 +124,8 @@ struct MediaLibraryView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppTheme.surface)
-        .frame(minWidth: 820, minHeight: 540)
+        .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
+               minHeight: AppTheme.Layout.minimumWindowHeight)
         .task { await model.refresh() }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder],
                       allowsMultipleSelection: false) { result in
