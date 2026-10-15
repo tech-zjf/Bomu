@@ -17,7 +17,8 @@ The app currently declares English as its supported language. The Simplified Chi
 | Home | `MediaLibraryView` and `MediaLibraryCard` | Two-column Continue Watching and three-column Recently Added sections; separate media artwork and details, with View All and source labels |
 | Library and Search | `MediaLibraryView` | Real indexed files, category and watched filters, and explicit empty/loading/error states |
 | Folder browser | `MediaLibraryFolderViews` | Real source roots and subdirectories, breadcrumbs, grid/list density, and preserved navigation state |
-| Playback | `PlayerScreen`, `PlaybackControls`, `VideoHostView` | One persistent video host with playback controls layered over the picture; media and control state come from the playback model |
+| Playback | `PlayerScreen`, `EmptyPlayerView`, `PlaybackControls`, `VideoHostView` | One persistent video host with playback controls layered over the picture; media and control state come from the playback model |
+| Startup failure | `StartupFailureView` in the application shell | The library and player stay unavailable after an unrecoverable startup failure; show the diagnostic and a clear quit-and-reopen action |
 | Settings | `SettingsView` | Playback, subtitles, local data, privacy, and update information in the native Settings scene |
 
 ## Visual tokens

@@ -72,7 +72,6 @@
 "library.markUnwatched" = "Mark as Unwatched";
 "library.unavailable" = "The media library database is unavailable. Check local storage and reopen the app.";
 "library.storageUnavailableTitle" = "Media Library Unavailable";
-"app.preview" = "Development preview · Local playback validation";
 "app.startupFailed" = "Bomu Could Not Start";
 "app.relaunchInstruction" = "Reopen the app after quitting.";
 "app.quit" = "Quit Bomu";
@@ -107,6 +106,7 @@
 "player.trackNumber" = "Track %d";
 "player.fullscreen" = "Full Screen";
 "player.loading" = "Opening…";
+"player.emptyPrompt" = "Choose a local video or audio file to begin.";
 "player.ended" = "Playback finished";
 "player.replay" = "Play Again";
 "player.timeUnknown" = "Unknown duration";

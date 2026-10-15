@@ -27,8 +27,9 @@ struct MainWindowView: View {
                 showSettings: showSettings
             )
             .opacity(isPlayerVisible ? 0 : 1)
-            .allowsHitTesting(!isPlayerVisible)
-            .accessibilityHidden(isPlayerVisible)
+            .allowsHitTesting(!isPlayerVisible && player.startupError == nil)
+            .accessibilityHidden(isPlayerVisible || player.startupError != nil)
+            .disabled(player.startupError != nil)
 
             PlayerScreen(
                 player: player,
@@ -37,8 +38,9 @@ struct MainWindowView: View {
                 onReturnToLibrary: returnToLibrary
             )
                 .opacity(isPlayerVisible ? 1 : 0)
-                .allowsHitTesting(isPlayerVisible)
-                .accessibilityHidden(!isPlayerVisible)
+                .allowsHitTesting(isPlayerVisible && player.startupError == nil)
+                .accessibilityHidden(!isPlayerVisible || player.startupError != nil)
+                .disabled(player.startupError != nil)
         }
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isDropTargeted) { providers in
             receiveDrop(providers)
@@ -64,6 +66,11 @@ struct MainWindowView: View {
                     .allowsHitTesting(false)
             }
         }
+        .overlay {
+            if let startupError = player.startupError {
+                StartupFailureView(message: startupError)
+            }
+        }
         .preferredColorScheme(.light)
         .onChange(of: player.state.request?.id) { _, requestID in
             if requestID != nil {
@@ -74,14 +81,8 @@ struct MainWindowView: View {
         .onChange(of: player.state.phase) { _, phase in
             if phase == .idle, isPlayerVisible { returnToLibrary() }
         }
-        .onChange(of: player.startupError) { _, error in
-            if error != nil { isPlayerVisible = true }
-        }
         .onChange(of: isPlayerVisible) { _, visible in
             if visible { nowPlaying.update() }
-        }
-        .onAppear {
-            if player.startupError != nil { isPlayerVisible = true }
         }
         .onDisappear {
             dropResolutionTask?.cancel()
@@ -217,5 +218,41 @@ private final class FileURLProviderRequest {
         self.continuation = nil
         progress?.cancel()
         continuation?.resume(returning: nil)
+    }
+}
+
+private struct StartupFailureView: View {
+    let message: String
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 28, weight: .light))
+                .frame(width: 62, height: 62)
+                .background(AppTheme.surface,
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.emptyStateIcon))
+                .accessibilityHidden(true)
+            Text("app.startupFailed")
+                .font(AppTheme.Typography.sectionTitle)
+            Text("app.relaunchInstruction")
+                .font(AppTheme.Typography.body)
+                .foregroundStyle(AppTheme.textSecondary)
+            Text(verbatim: message)
+                .font(AppTheme.Typography.diagnostic)
+                .multilineTextAlignment(.center)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 520)
+            Button("app.quit") { NSApp.terminate(nil) }
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.textPrimary)
+                .keyboardShortcut(.defaultAction)
+        }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .foregroundStyle(AppTheme.textPrimary)
+        .background(AppTheme.background)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .contain)
     }
 }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct StartView: View {
+struct EmptyPlayerView: View {
     let openMedia: () -> Void
 
     var body: some View {
@@ -16,7 +16,7 @@ struct StartView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(AppTheme.textPrimary)
                 .controlSize(.large)
-            Text("app.preview")
+            Text("player.emptyPrompt")
                 .font(AppTheme.Typography.metadata)
                 .foregroundStyle(AppTheme.textSecondary)
         }

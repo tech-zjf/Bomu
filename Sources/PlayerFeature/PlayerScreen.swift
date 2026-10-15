@@ -50,9 +50,9 @@ struct PlayerScreen: View {
     private var playerStage: some View {
         switch player.state.phase {
         case .idle:
-            StartView { OpenMediaPanel.present(for: player) }
+            EmptyPlayerView { OpenMediaPanel.present(for: player) }
                 .frame(maxWidth: .infinity, minHeight: 420)
-                    .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
         case .opening:
             videoFrame {
                 ProgressView("player.loading")

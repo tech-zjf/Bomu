@@ -63,7 +63,7 @@ SwiftUI 对视频宿主的更新不创建会话、切换内核或释放渲染器
 
 视觉事实源是 `player_plan/开发定稿/UI设计稿.html` 和同目录 `设计规范.json`。播放器窗口使用系统标题栏，视频内容区保持源宽高比；控制层依次提供顶部文件/打开/停止操作、中央前后 10 秒与播放/暂停、底部时间线/音量/全屏。静止 2.5 秒后隐藏控制；暂停、拖动、焦点或悬停时保留。按钮尺寸、间距、颜色、字体和减少透明度时的高对比回退使用设计 token，不另创一套视觉方向。
 
-原生结构映射为 `PlayerScreen` 按 `PlaybackState.Phase` 选择空闲、打开中、播放中、自然结束或失败界面；`VideoHostView` 始终占据黑色视频区域；播放中由 `PlaybackControls` 组成覆盖层；`StartView` 与失败操作只提交打开意图。`PlayerModel` 是状态事实源，视图不访问 mpv。播放中当前文件名来自 request URL，时间与音量来自原生快照；尚无真实数据时不伪造时长或媒体信息。
+原生结构映射为 `PlayerScreen` 按 `PlaybackState.Phase` 选择空闲、打开中、播放中、自然结束或失败界面；空闲页由 `EmptyPlayerView` 提供打开本地媒体的入口，启动失败由应用外壳覆盖显示 `StartupFailureView`，给出可复制的错误详情和退出重开的动作。`VideoHostView` 始终占据黑色视频区域；播放中由 `PlaybackControls` 组成覆盖层。`PlayerModel` 是状态事实源，视图不访问 mpv。播放中当前文件名来自 request URL，时间与音量来自原生快照；尚无真实数据时不伪造时长或媒体信息。
 
 | 窗口内容尺寸 | 设计用途 | 需核对的重点 |
 | --- | --- | --- |
