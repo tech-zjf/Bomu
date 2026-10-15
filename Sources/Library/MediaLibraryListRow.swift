@@ -24,19 +24,14 @@ struct MediaLibraryListRow: View {
                         .font(AppTheme.Typography.mediaTitle)
                         .lineLimit(1)
                         .foregroundStyle(AppTheme.textPrimary)
-                    if let technicalMetadata {
-                        Text(MediaTechnicalMetadataText.cardValue(
-                            metadata: technicalMetadata,
-                            isAudio: isAudio
-                        ))
-                        .font(AppTheme.Typography.metadata)
-                        .lineLimit(1)
-                        .foregroundStyle(AppTheme.textSecondary)
-                    } else {
-                        Text(ByteCountFormatStyle().format(item.byteCount))
-                            .font(AppTheme.Typography.metadata)
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
+                    Text(MediaTechnicalMetadataText.cardValueOrFileSize(
+                        metadata: technicalMetadata,
+                        byteCount: item.byteCount,
+                        isAudio: isAudio
+                    ))
+                    .font(AppTheme.Typography.metadata)
+                    .lineLimit(1)
+                    .foregroundStyle(AppTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())

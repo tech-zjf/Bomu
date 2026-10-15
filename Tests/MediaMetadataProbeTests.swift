@@ -13,8 +13,59 @@ final class MediaMetadataProbeTests: XCTestCase {
 
         XCTAssertEqual(MediaTechnicalMetadataText.cardValue(metadata: metadata, isAudio: false),
                        "0:15 · 960 × 540 · H.264")
+        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
+            metadata: metadata,
+            byteCount: 712_704,
+            isAudio: false
+        ), "0:15 · 960 × 540 · H.264")
         XCTAssertEqual(MediaTechnicalMetadataText.durationLabel(3_661), "1:01:01")
         XCTAssertNil(MediaTechnicalMetadataText.durationLabel(.infinity))
+    }
+
+    func testUnavailableMetadataFallsBackToActualFileSizeWithoutRepeatedUnknowns() {
+        let metadata = MediaTechnicalMetadata(
+            duration: nil,
+            width: nil,
+            height: nil,
+            videoCodec: nil,
+            audioTracks: nil
+        )
+        let item = MediaLibraryItem(
+            id: 1,
+            sourceRootID: 1,
+            volumeID: "test-volume",
+            relativePath: "mpeg2-pal-program-stream.mpg",
+            displayName: "mpeg2-pal-program-stream.mpg",
+            byteCount: 712_704,
+            contentRevision: "fixture",
+            isPresent: true,
+            isFavorite: false,
+            isWatched: false,
+            manualCategory: nil,
+            playbackPosition: 0,
+            lastPlayedAt: nil,
+            addedAt: Date(timeIntervalSince1970: 0)
+        )
+
+        XCTAssertNil(MediaTechnicalMetadataText.cardValue(metadata: metadata, isAudio: false))
+        let fileSize = ByteCountFormatStyle().format(712_704)
+        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
+            metadata: metadata,
+            byteCount: 712_704,
+            isAudio: false
+        ), fileSize)
+        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
+            metadata: nil,
+            byteCount: 712_704,
+            isAudio: false
+        ), fileSize)
+        XCTAssertNil(MediaTechnicalMetadataText.accessibilityValue(metadata: metadata, isAudio: false))
+        XCTAssertEqual(MediaTechnicalMetadataText.value(metadata: metadata, isAudio: false),
+                       String(localized: "library.metadata.unknown"))
+
+        let summary = MediaLibraryAccessibilitySummary.value(for: item, isSelected: false, metadata: metadata)
+        XCTAssertFalse(summary.contains(String(localized: "library.metadata.unknown")))
+        XCTAssertTrue(summary.contains(ByteCountFormatStyle().format(item.byteCount)))
     }
 
     func testReadsRealDurationResolutionAndTrackCodecsFromLocalMedia() async throws {

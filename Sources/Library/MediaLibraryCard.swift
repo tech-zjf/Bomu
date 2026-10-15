@@ -128,14 +128,14 @@ struct MediaLibraryCard: View {
                 if let category = item.manualCategory {
                     Text(category.title)
                 }
-                if item.manualCategory != nil, technicalMetadata != nil {
+                if item.manualCategory != nil {
                     Text(verbatim: "·")
                 }
-                if let technicalMetadata {
-                    Text(MediaTechnicalMetadataText.cardValue(metadata: technicalMetadata, isAudio: isAudio))
-                } else if item.manualCategory == nil {
-                    Text(ByteCountFormatStyle().format(item.byteCount))
-                }
+                Text(MediaTechnicalMetadataText.cardValueOrFileSize(
+                    metadata: technicalMetadata,
+                    byteCount: item.byteCount,
+                    isAudio: isAudio
+                ))
             }
         }
     }

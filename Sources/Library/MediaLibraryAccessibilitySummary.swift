@@ -27,11 +27,12 @@ enum MediaLibraryAccessibilitySummary {
                 MediaTechnicalMetadataText.durationLabel(item.playbackPosition) ?? "—"
             ))
         }
-        if let metadata {
-            details.append(MediaTechnicalMetadataText.value(
-                metadata: metadata,
-                isAudio: MediaFileType.isAudio(URL(filePath: item.relativePath))
-            ))
+        if let metadata,
+           let value = MediaTechnicalMetadataText.accessibilityValue(
+               metadata: metadata,
+               isAudio: MediaFileType.isAudio(URL(filePath: item.relativePath))
+           ) {
+            details.append(value)
         }
         details.append(ByteCountFormatStyle().format(item.byteCount))
         return details.joined(separator: ", ")
