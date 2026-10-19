@@ -13,7 +13,7 @@ struct SettingsView: View {
     @State private var privateFolders: [HistoryExcludedFolder] = []
     @State private var importPreparation = MediaLibraryImportPreparation()
     @State private var importStatus: String?
-    @State private var selectedSection = SettingsSection.playback
+    @State private var selectedSection = SettingsSection.appearance
 
     private enum SettingsSection: String, CaseIterable, Identifiable {
         case appearance
