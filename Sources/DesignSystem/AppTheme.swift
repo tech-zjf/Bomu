@@ -55,8 +55,12 @@ private struct OverlayScrollerProbe: NSViewRepresentable {
             var ancestor = superview
             while let view = ancestor {
                 if let scrollView = view as? NSScrollView {
-                    scrollView.scrollerStyle = .overlay
-                    scrollView.autohidesScrollers = true
+                    if scrollView.scrollerStyle != .overlay {
+                        scrollView.scrollerStyle = .overlay
+                    }
+                    if !scrollView.autohidesScrollers {
+                        scrollView.autohidesScrollers = true
+                    }
                     if scrollView.verticalScroller != nil,
                        !(scrollView.verticalScroller is BomuOverlayScroller) {
                         scrollView.verticalScroller = BomuOverlayScroller(
