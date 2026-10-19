@@ -38,6 +38,7 @@ private struct OverlayScrollerProbe: NSViewRepresentable {
             while let view = ancestor {
                 if let scrollView = view as? NSScrollView {
                     scrollView.scrollerStyle = .overlay
+                    scrollView.autohidesScrollers = true
                     return
                 }
                 ancestor = view.superview
