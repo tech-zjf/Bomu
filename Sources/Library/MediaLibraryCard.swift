@@ -92,6 +92,7 @@ struct MediaLibraryCard: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .focusable(true)
                 .accessibilityLabel(Text("library.playMedia"))
                 .padding(12)
             }
