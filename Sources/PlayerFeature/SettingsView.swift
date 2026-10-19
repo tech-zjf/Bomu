@@ -180,12 +180,6 @@ struct SettingsView: View {
                     }
                 }
             }
-            Section {
-                Label("settings.appearance.lightOnly", systemImage: "sun.max")
-                    .foregroundStyle(.secondary)
-            } header: {
-                Text("settings.appearance.section")
-            }
         }
         .formStyle(.grouped)
         .padding()
