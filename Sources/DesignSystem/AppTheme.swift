@@ -39,11 +39,45 @@ private struct OverlayScrollerProbe: NSViewRepresentable {
                 if let scrollView = view as? NSScrollView {
                     scrollView.scrollerStyle = .overlay
                     scrollView.autohidesScrollers = true
+                    if !(scrollView.verticalScroller is BomuOverlayScroller) {
+                        let scroller = BomuOverlayScroller(
+                            frame: NSRect(x: 0, y: 0, width: 8, height: 100)
+                        )
+                        scrollView.verticalScroller = scroller
+                    }
                     return
                 }
                 ancestor = view.superview
             }
         }
+    }
+}
+
+/// A slim, trackless thumb that keeps AppKit's native overlay fade and drag behavior.
+@MainActor
+private final class BomuOverlayScroller: NSScroller {
+    override class var isCompatibleWithOverlayScrollers: Bool { true }
+
+    override class func scrollerWidth(
+        for controlSize: NSControl.ControlSize,
+        scrollerStyle: NSScroller.Style
+    ) -> CGFloat {
+        scrollerStyle == .overlay
+            ? 8
+            : super.scrollerWidth(for: controlSize, scrollerStyle: scrollerStyle)
+    }
+
+    override func drawKnob() {
+        let thumb = rect(for: .knob).insetBy(dx: 2, dy: 2)
+        guard thumb.width > 0, thumb.height > 0 else { return }
+
+        let path = NSBezierPath(roundedRect: thumb, xRadius: thumb.width / 2, yRadius: thumb.width / 2)
+        NSColor.labelColor.withAlphaComponent(0.38).setFill()
+        path.fill()
+    }
+
+    override func drawKnobSlot(in slotRect: NSRect, highlight flag: Bool) {
+        // Keep the overlay thumb floating without a full-height track.
     }
 }
 
