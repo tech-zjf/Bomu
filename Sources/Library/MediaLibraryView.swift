@@ -146,9 +146,6 @@ struct MediaLibraryView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppTheme.surface)
-        // Keep scroll chrome stable while the library sits behind the player view.
-        // Scroll gestures remain available; indicators never change the content geometry.
-        .scrollIndicators(.hidden)
         .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
                minHeight: AppTheme.Layout.minimumWindowHeight)
         .task { await model.refresh() }
@@ -189,6 +186,7 @@ struct MediaLibraryView: View {
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+                .bomuOverlayScrollerStyle()
             }
         case .settings:
             SettingsView(player: player, preferences: preferences, records: records)
@@ -218,6 +216,7 @@ struct MediaLibraryView: View {
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+                .bomuOverlayScrollerStyle()
             }
         case .library:
             ScrollView {
@@ -228,6 +227,7 @@ struct MediaLibraryView: View {
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+                .bomuOverlayScrollerStyle()
             }
         case .folders:
             foldersContent
@@ -243,6 +243,7 @@ struct MediaLibraryView: View {
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+                .bomuOverlayScrollerStyle()
             }
         case .search:
             ScrollView {
@@ -262,6 +263,7 @@ struct MediaLibraryView: View {
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+                .bomuOverlayScrollerStyle()
             }
         }
     }
@@ -444,6 +446,7 @@ struct MediaLibraryView: View {
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
                 .scrollTargetLayout()
+                .bomuOverlayScrollerStyle()
             }
             .scrollPosition(id: $folderListScrollTarget, anchor: .top)
             .onAppear {
@@ -527,6 +530,7 @@ struct MediaLibraryView: View {
             }
             .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
             .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+            .bomuOverlayScrollerStyle()
         }
         .scrollPosition(id: $visibleScrollTarget, anchor: .top)
         .onAppear {

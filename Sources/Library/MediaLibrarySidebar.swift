@@ -41,8 +41,8 @@ struct MediaLibrarySidebar: View {
                 .padding(.horizontal, AppTheme.Layout.sidebarHorizontalInset)
                 .padding(.top, AppTheme.Layout.sidebarTopInset)
                 .padding(.bottom, 16)
+                .bomuOverlayScrollerStyle()
             }
-            .scrollIndicators(.hidden)
 
             VStack(alignment: .leading, spacing: AppTheme.Layout.sidebarSectionSpacing) {
                 Label("library.localOnly", systemImage: "lock.shield")

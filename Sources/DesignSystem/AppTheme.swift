@@ -1,4 +1,50 @@
+import AppKit
 import SwiftUI
+
+extension View {
+    func bomuOverlayScrollerStyle() -> some View {
+        background {
+            OverlayScrollerProbe()
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+        }
+    }
+}
+
+@MainActor
+private struct OverlayScrollerProbe: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        ProbeView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        (nsView as? ProbeView)?.applyStyleToEnclosingScrollView()
+    }
+
+    private final class ProbeView: NSView {
+        override func viewDidMoveToSuperview() {
+            super.viewDidMoveToSuperview()
+            applyStyleToEnclosingScrollView()
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            applyStyleToEnclosingScrollView()
+        }
+
+        func applyStyleToEnclosingScrollView() {
+            var ancestor = superview
+            while let view = ancestor {
+                if let scrollView = view as? NSScrollView {
+                    scrollView.scrollerStyle = .overlay
+                    return
+                }
+                ancestor = view.superview
+            }
+        }
+    }
+}
 
 // Native view tokens mirror player_plan/开发定稿/设计规范.json.
 enum AppTheme {

@@ -58,3 +58,12 @@
 现在恢复点作为 `PlaybackOpenOptions` 随打开请求传到 libmpv，通过 `loadfile` 的文件级 `start` 选项应用；播放快照只用于确认内核状态，不再负责补正起播位置。无宿主逻辑回归 99 项通过，正式 Debug 构建与 Xcode 静态分析通过。一次针对新原生恢复路径的 XCTest 在测试宿主进程启动后一直未能创建 XCTest worker；为释放桌面而中断后，result bundle 记录的是“Testing was canceled”，没有测试断言执行，因此不记作原生通过或产品失败。
 
 2026-10-15 的 Xcode 27 原生回归现已补上：`testRealPlaybackPauseSeekReplaceAndRelease` 确认从 5 秒恢复时首个原生快照误差在 0.4 秒内；`testSavedAudioTrackAndPositionRestoreInNewNativeSession` 确认新会话恢复保存的音轨与 1.2 秒进度。此前记录的 5.533 秒画面 / 9.233 秒界面差异仍需在正式 Bomu 窗口复核实际首帧；这两项 XCTest 不证明物理屏幕出光时间，A07 仍未结案。
+
+## 2026-10-19 当前 Debug 窗口复核
+
+- 使用 canonical `.build/DerivedData/Build/Products/Debug/Bomu.app`，仅一个普通窗口、同一显示器。由于旧媒体库源仍指向已不存在的 `Desktop/temp/Bomu/.build/fixtures`，本轮从当前仓库 `.build/media-suite` 选择现有授权样本；没有修改或复制源媒体。
+- `19-h264-pcm.mov`（manifest 中 960×540 H.264/PCM、6 秒）在当前 Debug 应用实际显示活动画面，随后到达正常结束页。活动帧的 3024×1768 像素截图中，播放器舞台边界约为 2944×1656 px（16:9）；舞台占满内容区，底部无媒体信息栏，页面没有可见滚动条。播放器内信息按钮打开后，文件名、目录、大小和格式可见。
+- `06-portrait.mp4`（manifest 中 720×1280 H.264/AAC、6 秒）实际显示彩条测试画面。舞台维持 16:9，竖屏内容在舞台内按高度铺满，宽度随源比例缩小，两侧留黑；没有把播放器舞台改成竖屏比例。两次结束页返回媒体库均成功，搜索条件和媒体条目仍可见；此前记录的“返回后进程不可用”未在本次复现，原因未确定。
+- 这是固定舞台和横/竖屏素材外观证据；本轮没有对声音或色彩做主观/校准判断，也没有验证其他窗口尺寸、续播或睡眠恢复。
+- 30 秒 `29-sync.mov` 的可见续播检查：从头播放后暂停于 13.3 秒；返回 Search 后该条显示 `Continue at 0:13`。完全退出并重新启动 canonical Debug app 后首页仍显示同一进度；选择“Continue from Saved Position”后播放器时间达到 17.65 秒，画面继续推进。该项证明保存和起播位置可见恢复，不测量实际出光首帧误差、声音或同步。播放器结束返回和应用重新启动均正常。
+- 当前 Xcode 27.1（27A9275）验收运行：`./scripts/test-dev.sh --direct-hostless` 通过 178 项 XCTest、0 失败，2 项仅 `--direct-storage` 执行的卷测试按设计跳过；Python 检查通过 148 项。`./scripts/test-dev.sh --native` 的 12 项原生 libmpv 集成测试全通过，含一窗口真实播放期间 960×640、1280×800、1440×900 三种 content size 共 100 次切换、保持播放/显示器身份与单一 render context，以及续播、音轨恢复和资源释放。`./scripts/test-dev.sh --direct-storage` 的 APFS 重挂载和满卷两项全通过；`./scripts/build-dev.sh --analyze` 静态分析通过。这些测试不替代每个尺寸下各产品页的截图视觉逐项审查，也不包含睡眠唤醒、校准颜色或可听声音判断。
