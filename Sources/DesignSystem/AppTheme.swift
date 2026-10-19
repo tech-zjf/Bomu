@@ -85,6 +85,7 @@ enum AppTheme {
         static let folderRowVerticalInset: CGFloat = 12
         static let mediaSummaryLineHeight: CGFloat = 14
         static let sidebarWidth: CGFloat = 176
+        static let settingsNavigationWidth: CGFloat = 164
         static let sidebarHorizontalInset: CGFloat = 13
         static let sidebarTopInset: CGFloat = 25
         static let sidebarBottomInset: CGFloat = 17

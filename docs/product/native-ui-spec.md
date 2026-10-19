@@ -32,6 +32,10 @@ An earlier player-layout revision used the full available width and allowed the 
 | Startup failure | `StartupFailureView` in the application shell | The library and player stay unavailable after an unrecoverable startup failure; show the diagnostic and a clear quit-and-reopen action |
 | Settings | `SettingsView` | Playback, subtitles, local data, and privacy settings use the native Settings scene. The Updates page shows the current version and explains that the pre-release build has no update service; active beta checks belong to C13. |
 
+### Settings navigation — 2026-10-19
+
+At the user's request, the Settings page replaces its horizontal tabs with a compact vertical section list inside the white content pane. The application-wide sidebar remains the primary navigation; the 164 pt Settings navigation rail is separated from the form area by a thin divider and does not introduce a second full-height gray panel. Section selection retains the existing five groups and their current state and actions. The rebuilt page was inspected in one ordinary window: the vertical hierarchy and selection state were visible, and Appearance and Storage both switched to their matching content. This is a deliberate update to the earlier horizontal-tab reference; the Settings page is not claimed to be pixel-identical to that reference. Exact-size and keyboard review remain part of overall acceptance.
+
 ## Visual tokens
 
 `AppTheme` is the single native source for shared visual values. Values below are points unless noted.
@@ -45,7 +49,7 @@ The 2026-10-16 token audit corrected the content canvas to white. The approved U
 | Separator / warm accent | `#E5EAF0` / `#EFB98F` |
 | Brand / page / section title | system serif 32 / system sans 27 / system sans 18 |
 | Media title / media metadata / page subtitle / body subtitle | system sans 13 semibold / 11 / 12 / 13 |
-| Sidebar width / content horizontal and vertical insets | 176 / 30 and 28 |
+| Sidebar width / Settings section navigation width / content horizontal and vertical insets | 176 / 164 / 30 and 28 |
 | Sidebar outer insets / row height / section gap | 25, 13, 17 / 40 / 5 |
 | Compact action / player toolbar target | 28 / 35 |
 | Folder row icon / vertical inset | 44 / 12 |

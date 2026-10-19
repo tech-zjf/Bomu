@@ -13,9 +13,9 @@ struct SettingsView: View {
     @State private var privateFolders: [HistoryExcludedFolder] = []
     @State private var importPreparation = MediaLibraryImportPreparation()
     @State private var importStatus: String?
-    @State private var selectedTab = SettingsTab.playback
+    @State private var selectedSection = SettingsSection.playback
 
-    private enum SettingsTab: String, CaseIterable, Identifiable {
+    private enum SettingsSection: String, CaseIterable, Identifiable {
         case appearance
         case playback
         case subtitles
@@ -32,59 +32,88 @@ struct SettingsView: View {
             case .about: "settings.about.tab"
             }
         }
+
+        var symbol: String {
+            switch self {
+            case .appearance: "sun.max"
+            case .playback: "play"
+            case .subtitles: "captions.bubble"
+            case .storage: "externaldrive"
+            case .about: "info.circle"
+            }
+        }
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text("library.nav.settings")
-                        .font(AppTheme.Typography.pageTitle)
-                        .foregroundStyle(AppTheme.textPrimary)
-                    Text("settings.pageSubtitle")
-                        .font(AppTheme.Typography.pageSubtitle)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-                .padding(.bottom, 20)
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 7) {
+                Text("library.nav.settings")
+                    .font(AppTheme.Typography.pageTitle)
+                    .foregroundStyle(AppTheme.textPrimary)
+                Text("settings.pageSubtitle")
+                    .font(AppTheme.Typography.pageSubtitle)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(.bottom, 24)
 
-                HStack(spacing: 5) {
-                    ForEach(SettingsTab.allCases) { tab in
+            HStack(alignment: .top, spacing: 0) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(SettingsSection.allCases) { section in
                         Button {
-                            selectedTab = tab
+                            selectedSection = section
                         } label: {
-                            Text(tab.title)
-                                .font(AppTheme.Typography.filterLabel)
-                                .foregroundStyle(selectedTab == tab ? AppTheme.textPrimary : AppTheme.textSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .overlay(alignment: .bottom) {
-                                    if selectedTab == tab {
-                                        AppTheme.textPrimary.frame(height: 2)
-                                    }
+                            Label {
+                                Text(section.title)
+                                    .font(selectedSection == section
+                                          ? AppTheme.Typography.sidebarSelected
+                                          : AppTheme.Typography.sidebarLabel)
+                                    .lineLimit(1)
+                            } icon: {
+                                Image(systemName: section.symbol)
+                                    .font(AppTheme.Typography.Symbol.sidebar)
+                                    .frame(width: AppTheme.Layout.sidebarIconWidth)
+                            }
+                            .foregroundStyle(selectedSection == section ? AppTheme.textPrimary : AppTheme.textSecondary)
+                            .frame(maxWidth: .infinity, minHeight: AppTheme.Layout.sidebarRowHeight, alignment: .leading)
+                            .padding(.horizontal, AppTheme.Layout.sidebarRowHorizontalInset)
+                            .background {
+                                if selectedSection == section {
+                                    RoundedRectangle(cornerRadius: AppTheme.Corners.selection)
+                                        .fill(AppTheme.mutedSurface)
                                 }
-                                .contentShape(Rectangle())
+                            }
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityAddTraits(selectedTab == tab ? .isSelected : [])
+                        .accessibilityAddTraits(selectedSection == section ? .isSelected : [])
                     }
                     Spacer(minLength: 0)
                 }
-                .overlay(alignment: .bottom) { AppTheme.separator.frame(height: 1) }
-            }
-            .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
-            .padding(.top, AppTheme.Layout.contentVerticalInset)
+                .frame(width: AppTheme.Layout.settingsNavigationWidth, alignment: .leading)
+                .padding(.trailing, 18)
 
-            Group {
-                switch selectedTab {
-                case .appearance: appearanceSettings
-                case .playback: playbackSettings
-                case .subtitles: subtitleSettings
-                case .storage: dataSettings
-                case .about: updateSettings
+                AppTheme.separator
+                    .frame(width: 1)
+                    .frame(maxHeight: .infinity)
+                    .padding(.trailing, 20)
+
+                Group {
+                    switch selectedSection {
+                    case .appearance: appearanceSettings
+                    case .playback: playbackSettings
+                    case .subtitles: subtitleSettings
+                    case .storage: dataSettings
+                    case .about: updateSettings
+                    }
                 }
+                .frame(maxWidth: 820, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+        .padding(.top, AppTheme.Layout.contentVerticalInset)
+        .padding(.bottom, AppTheme.Layout.contentVerticalInset)
         .background(AppTheme.surface)
         .alert("settings.clearHistory.confirmTitle", isPresented: $isConfirmingHistoryClear) {
             Button("common.cancel", role: .cancel) { }

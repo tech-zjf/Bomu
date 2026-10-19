@@ -4,6 +4,8 @@
 
 The audit covers the application shell, all five library destinations, folders, grid/list media, playback, recovery/ended states, Settings, and their menus and file panels. A shared visual role has one typography, spacing, shape, and state contract. It does not require a primary playback button, a compact menu, and a navigation row to have identical dimensions.
 
+On 2026-10-19, the Settings section chooser changed from horizontal tabs to a compact vertical list inside the white Settings pane, following the user's direction. The main application sidebar remains unchanged; the Settings list is separated from its form by a subtle vertical rule rather than a second gray sidebar. The rebuilt page was visually inspected in one ordinary window, including the Appearance and Storage content switches. Exact-size comparison and keyboard/VoiceOver review remain part of the pending application acceptance.
+
 `AppTheme` owns the shared values. Sidebar actions share one local button style; folder breadcrumbs share another. Native buttons and menus retain keyboard/accessibility semantics. Model state remains authoritative for selection, playback availability, and saved preferences; views do not introduce duplicate selection or playback state.
 
 | Role | Contract |
