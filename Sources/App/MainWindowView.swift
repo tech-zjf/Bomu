@@ -29,6 +29,7 @@ struct MainWindowView: View {
                 onPlayFromBeginning: playFromBeginning,
                 onShowPlayer: { navigation.showPlayer() },
             )
+            .scrollIndicators(navigation.isPlayerVisible ? .hidden : .automatic)
             .opacity(navigation.isPlayerVisible ? 0 : 1)
             .allowsHitTesting(!navigation.isPlayerVisible && player.startupError == nil)
             .accessibilityHidden(navigation.isPlayerVisible || player.startupError != nil)
