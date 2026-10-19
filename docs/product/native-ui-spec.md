@@ -94,7 +94,7 @@ Use the same tokens wherever components share a shape role. Keep folder rows, me
 
 ## Application-wide consistency
 
-The 2026-10-19 pass covers navigation, cards/lists, folder rows, playback controls and menus, error/ended pages, and all Settings tabs. Shared row hit areas, selection feedback, metadata sizing, seek availability, subtitle Off selection, and Settings slider layout were corrected. Detailed native evidence and remaining boundaries are in [interaction-consistency.md](interaction-consistency.md). Native form controls retain platform sizing instead of inheriting the media-card shape.
+The 2026-10-19 pass covers navigation, cards/lists, folder rows, playback controls and menus, error/ended pages, and all five Settings sections (now selected through vertical navigation). Shared row hit areas, selection feedback, metadata sizing, seek availability, subtitle Off selection, and Settings slider layout were corrected. Detailed native evidence and remaining boundaries are in [interaction-consistency.md](interaction-consistency.md). Native form controls retain platform sizing instead of inheriting the media-card shape.
 
 The subsequent application-wide pass also unified Search empty-state presentation and grid/list action-menu access, added adaptive folder breadcrumbs based on the actual navigation stack, constrained long folder headings, and disabled the hidden library/player layer's controls. These are implemented changes, with live keyboard and layout acceptance still pending; see the follow-up section of [interaction-consistency.md](interaction-consistency.md).
 

@@ -6,8 +6,8 @@
 "library.nav.search" = "Search";
 "library.nav.settings" = "Settings";
 "settings.pageSubtitle" = "Make Bomu work the way you like.";
-"settings.storage.tab" = "Storage";
-"settings.about.tab" = "About";
+"settings.storage.navigation" = "Storage";
+"settings.about.navigation" = "About";
 "library.section.yourMedia" = "Your Media";
 "library.section.locations" = "Locations";
 "library.viewAll" = "View All";
@@ -145,14 +145,14 @@
 "failure.engine.message" = "The playback operation could not be completed. Reopen the file; if the problem continues, stop playback and try again.";
 "failure.technicalDetails" = "Technical details";
 "player.retry" = "Retry";
-"settings.playback.tab" = "Playback";
+"settings.playback.navigation" = "Playback";
 "settings.playback.section" = "Playback defaults";
 "settings.playback.resume" = "Resume from the last position";
 "settings.playback.autoNext" = "Play the next queue item automatically";
 "settings.playback.defaultSpeed" = "Default playback speed";
 "settings.appearance.section" = "Appearance";
 "settings.appearance.lightOnly" = "The first version uses a light interface and does not follow system Dark Mode.";
-"settings.subtitles.tab" = "Subtitles";
+"settings.subtitles.navigation" = "Subtitles";
 "settings.subtitles.section" = "Subtitle defaults";
 "settings.subtitles.defaultDelay" = "Default subtitle offset";
 "settings.subtitles.earlier" = "Earlier";

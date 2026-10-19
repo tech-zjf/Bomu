@@ -50,7 +50,7 @@ The canonical English-only Debug app, version 0.0.1 (2), was rebuilt and relaunc
 | Player | Replay, pause at 7.933 s, retained controls, speed 1× checkmark, return with Continue at 0:07 and Play/Show Player bar; latest build paused at 7.033 s | Seek-disabled native stream, menu focus during auto-hide, full track matrix |
 | Subtitles | Latest build marks Off; loading a generated SRT changes selection to the external track and removes Off's checkmark; Off can be selected again | Multiple/duplicate subtitle tracks and rendered subtitle timing |
 | Recovery / ended | Corrupt fixture displays recovery actions and returns to Library; natural end displays Back to Library and Play Again | Additional engine/permission failure presentations |
-| Settings | All four tabs inspected; latest subtitle slider spans the form row; clear-library confirmation shown then cancelled; unavailable update action disabled | Import/export panel completion and VoiceOver; no destructive user-data action performed |
+| Settings | Four tab entries were inspected in the earlier pass; latest subtitle slider spans the form row; clear-library confirmation shown then cancelled; unavailable update action disabled | Import/export panel completion and VoiceOver; no destructive user-data action performed |
 
 The full hostless run at 12:10 passed 143 Python checks and 144 XCTest cases, including active-checkpoint export and failure recovery. Debug build and static analysis passed. Styling was checked in the real app rather than with tests that match source strings. The final compact-list layout was rebuilt and verified in the canonical app. Test favorite state was undone, the grid restored, playback stopped, and the owned app quit. The generated subtitle fixture was removed after use.
 
@@ -76,7 +76,7 @@ The system adapter now publishes macOS playback state as well as metadata, stops
 
 ## Application-wide follow-up — 2026-10-19
 
-The follow-up inspected the shell, sidebar, Home, Library, Folders, Favorites, Search, media grid/list actions, playback controls and terminal states, and all four Settings tabs. Shared typography and corners remain in `AppTheme`; native forms, menus and dialogs keep their platform roles rather than being restyled as media cards.
+The follow-up inspected the shell, sidebar, Home, Library, Folders, Favorites, Search, media grid/list actions, playback controls and terminal states, and four Settings tabs in the layout at that time. Shared typography and corners remain in `AppTheme`; native forms, menus and dialogs keep their platform roles rather than being restyled as media cards.
 
 - The inactive library/player layer now disables its controls in addition to hiding pointer and accessibility interaction. Both views and the playback session retain their identities. This closes the missing keyboard-interaction boundary; live focus traversal is still pending.
 - Grid and list rows share the visible `MediaLibraryActionsMenu`, including its 28 pt target and accessible name. List users can reach watched/category/resume/start-over actions without discovering a context menu; the favorite shortcut and context menu remain available.
@@ -125,7 +125,7 @@ The player toolbar now matches the reference's per-control 35 pt glass surfaces,
 
 ## Toolbar, overlays and contextual commands — 2026-10-19
 
-The additional source pass covered the shell and navigation, Home/Library/Favorites/Search cards, folder grid/list and breadcrumbs, active/opening/ended/failed playback, notices, all Settings tabs, and file-panel cancellation. Previously verified native behavior is listed above; this pass does not claim a fresh desktop walkthrough while Screen 1 is locked.
+The additional source pass covered the shell and navigation, Home/Library/Favorites/Search cards, folder grid/list and breadcrumbs, active/opening/ended/failed playback, notices, all Settings sections, and file-panel cancellation. Previously verified native behavior is listed above; this pass does not claim a fresh desktop walkthrough while Screen 1 is locked.
 
 - Player toolbar buttons and menu labels now share `PlayerToolbarIcon`: one 35 pt target, symbol typography and hit shape. Menu entry points use the same borderless, indicator-free presentation, including the queue on ended/error screens. The native menu contents remain native. Menus participate in the existing focus state that keeps controls visible; keyboard focus and menu tracking still require native verification.
 - The ended screen uses one local button style for Return and Replay, with the same font, height, padding, corners, pressed/disabled feedback and complete hit shape. Primary/secondary colors express action priority without changing geometry.

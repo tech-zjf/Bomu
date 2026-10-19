@@ -19,31 +19,49 @@ private struct OverlayScrollerProbe: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        (nsView as? ProbeView)?.applyStyleToEnclosingScrollView()
+        guard let probeView = nsView as? ProbeView else { return }
+        probeView.scheduleEnclosingScrollViewStyling()
     }
 
     private final class ProbeView: NSView {
+        private var styleUpdateScheduled = false
+
         override func viewDidMoveToSuperview() {
             super.viewDidMoveToSuperview()
-            applyStyleToEnclosingScrollView()
+            scheduleEnclosingScrollViewStyling()
         }
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            applyStyleToEnclosingScrollView()
+            scheduleEnclosingScrollViewStyling()
         }
 
-        func applyStyleToEnclosingScrollView() {
+        override func layout() {
+            super.layout()
+            scheduleEnclosingScrollViewStyling()
+        }
+
+        func scheduleEnclosingScrollViewStyling() {
+            guard !styleUpdateScheduled else { return }
+            styleUpdateScheduled = true
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.styleUpdateScheduled = false
+                self.applyStyleToEnclosingScrollView()
+            }
+        }
+
+        private func applyStyleToEnclosingScrollView() {
             var ancestor = superview
             while let view = ancestor {
                 if let scrollView = view as? NSScrollView {
                     scrollView.scrollerStyle = .overlay
                     scrollView.autohidesScrollers = true
-                    if !(scrollView.verticalScroller is BomuOverlayScroller) {
-                        let scroller = BomuOverlayScroller(
+                    if scrollView.verticalScroller != nil,
+                       !(scrollView.verticalScroller is BomuOverlayScroller) {
+                        scrollView.verticalScroller = BomuOverlayScroller(
                             frame: NSRect(x: 0, y: 0, width: 8, height: 100)
                         )
-                        scrollView.verticalScroller = scroller
                     }
                     return
                 }
@@ -68,8 +86,16 @@ private final class BomuOverlayScroller: NSScroller {
     }
 
     override func drawKnob() {
-        let thumb = rect(for: .knob).insetBy(dx: 2, dy: 2)
-        guard thumb.width > 0, thumb.height > 0 else { return }
+        let knob = rect(for: .knob)
+        let thumbHeight = knob.height - 4
+        guard thumbHeight > 0 else { return }
+
+        let thumb = NSRect(
+            x: bounds.midX - 2,
+            y: knob.minY + 2,
+            width: 4,
+            height: thumbHeight
+        )
 
         let path = NSBezierPath(roundedRect: thumb, xRadius: thumb.width / 2, yRadius: thumb.width / 2)
         NSColor.labelColor.withAlphaComponent(0.38).setFill()

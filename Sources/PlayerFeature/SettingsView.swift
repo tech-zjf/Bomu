@@ -26,10 +26,10 @@ struct SettingsView: View {
         var title: LocalizedStringKey {
             switch self {
             case .appearance: "settings.appearance.section"
-            case .playback: "settings.playback.tab"
-            case .subtitles: "settings.subtitles.tab"
-            case .storage: "settings.storage.tab"
-            case .about: "settings.about.tab"
+            case .playback: "settings.playback.navigation"
+            case .subtitles: "settings.subtitles.navigation"
+            case .storage: "settings.storage.navigation"
+            case .about: "settings.about.navigation"
             }
         }
 
@@ -209,6 +209,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .bomuOverlayScrollerStyle()
         }
         .formStyle(.grouped)
         .padding()
@@ -220,6 +221,7 @@ struct SettingsView: View {
                 Label("settings.appearance.lightOnly", systemImage: "sun.max")
                     .foregroundStyle(.secondary)
             }
+            .bomuOverlayScrollerStyle()
         }
         .formStyle(.grouped)
         .padding()
@@ -248,6 +250,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .bomuOverlayScrollerStyle()
         }
         .formStyle(.grouped)
         .padding()
@@ -269,6 +272,7 @@ struct SettingsView: View {
                         .textSelection(.enabled)
                 }
             }
+            .bomuOverlayScrollerStyle()
             Section("settings.privacy.section") {
                 Text("settings.privacy.explanation").foregroundStyle(.secondary)
                 ForEach(privateFolders) { folder in
@@ -367,6 +371,7 @@ struct SettingsView: View {
                 Button("settings.updates.check") { }
                     .disabled(true)
             }
+            .bomuOverlayScrollerStyle()
         }
         .formStyle(.grouped)
         .padding()
