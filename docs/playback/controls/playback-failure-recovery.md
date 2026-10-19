@@ -4,6 +4,8 @@
 
 The failure view explains the likely cause and offers retry for media-related failures, file selection for every failure, and stop to return to the idle state. Retry creates a new request through the same player owner and preserves the failed request's resume intent. A one-time “continue” or “start from beginning” choice therefore remains authoritative even when the global resume preference differs. Stale native events from the prior attempt cannot replace the current failure or playback state.
 
+When a stored library entry points to a file that has been moved or removed, history lookup reports a typed missing-media condition. `PlayerModel` still submits the request to the playback engine but does not display a playback-history alert; the native adapter's reachability classification then drives the user-facing `Video not found` state. A real existing stale record was opened in the canonical Debug app on 2026-10-19 and went directly to that screen. The fixed 16:9 player stage, actions, and file footer remained visible without a scrollbar in the checked window; the test does not establish exact pixel parity at every supported size.
+
 `unsupportedOrDamaged` intentionally combines damage and unsupported encoding: libmpv reports these cases through the same loading errors in the current adapter contract. The interface describes both possibilities and offers the same recovery actions instead of claiming a distinction the native API did not provide. For these libmpv failures, the UI also preserves a bounded technical detail that can be selected and copied. Missing-file and permission failures keep localized, path-free messages and do not expose native details.
 
 ## Verification
