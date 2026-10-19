@@ -6,6 +6,8 @@ The task ledger was reconciled with the current source on 2026-10-15. Existing p
 
 ## Verified baseline
 
+- Keyboard walkthrough (2026-10-19): temporarily enabled macOS Full Keyboard Access and verified Tab/Shift-Tab navigation on Search (query field, result actions), Library (filters, media card actions and More actions menu), Settings Playback (navigation, all five tabs, switches and speed control), and the ended-player actions. Enter/Space activated Play Again. Folders did not advance focus beyond Home in this pass; file panels and remaining settings/player-control states are unverified. VoiceOver was briefly enabled but no reliable spoken/cursor traversal evidence was obtained, so it remains open. Restored Full Keyboard Access to its original off state and verified the setting. See [v0.0 acceptance todo](v0.0-acceptance-todo.md).
+
 - UI 尺寸与设置页续核（2026-10-19）：在同一规范 Debug 窗口完成 1280×800 pt 与 1440×900 pt 的 Search 全宽/对齐复核；Library 三列网格在大窗口按主内容区完整展开，先前小窗口截图造成的“只占左半”观感不是布局缺陷。960×640 pt 下 About 内容仍完整。1280×800 pt 下 Appearance、Playback、Subtitles、Storage、About 五个标签均已可见核对，存储页面仅检查未触发任何清理/导入操作。显示器缩放已恢复为 1512×982 默认值。当前范围未覆盖三种尺寸下所有页面/滚动/错误态的逐像素比较、完整键盘与 VoiceOver 浏览、截图归档及全套真实播放门槛；详见 [v0.0 acceptance todo](v0.0-acceptance-todo.md)。
 
 - 架构抽查（2026-10-19）：应用生命周期集中拥有单一播放会话并顺序关闭播放器、媒体库与同步资源；PlayerModel 通过 PlaybackEngine 窄契约驱动播放；PlaybackHistoryStore 以 actor 持有 SQLite；UI 未发现直接依赖数据库类型或 mpv 指针。唯一的 `@unchecked Sendable` 位于 AVFoundation 缩略图回调桥接，注释明确说明锁覆盖生成器调用、continuation 与完成态，且 continuation 在解锁后恢复。此为抽样架构复核，不等于 v0.0 需求验收或完整逐像素审计。
