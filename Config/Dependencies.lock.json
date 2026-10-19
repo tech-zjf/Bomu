@@ -67,8 +67,8 @@
     ]
   },
   "toolchain": {
-    "xcode": "27.0",
-    "xcodeBuild": "27A266a",
+    "xcode": "27.1",
+    "xcodeBuild": "27A9275",
     "swift": "6.4",
     "swiftBuild": "swiftlang-6.4.0.34.1 clang-2100.3.34.1",
     "swiftLanguageVersion": "6.0",

@@ -165,7 +165,7 @@ private struct PlayerPageLayout: Layout {
         let width = proposal.width ?? 0
         let footerHeight = measuredFooterHeight(in: width, subviews: subviews)
         let stageWidth = stageWidth(for: width, footerHeight: footerHeight)
-        let contentHeight = stageWidth * 9 / 16 + footerHeight
+        let contentHeight = stageWidth * 9 / 16 + footerHeight + 2 * stageInset
         return CGSize(width: width, height: min(availableHeight, max(0, contentHeight)))
     }
 
@@ -175,7 +175,7 @@ private struct PlayerPageLayout: Layout {
         let stageHeight = stageWidth * 9 / 16
         let stageFrame = CGRect(
             x: bounds.minX + (bounds.width - stageWidth) / 2,
-            y: bounds.minY,
+            y: bounds.minY + stageInset,
             width: stageWidth,
             height: stageHeight
         )
@@ -185,7 +185,7 @@ private struct PlayerPageLayout: Layout {
                         proposal: ProposedViewSize(stageFrame.size))
         }
         if subviews.count > 1 {
-            subviews[1].place(at: CGPoint(x: bounds.minX, y: stageFrame.maxY), anchor: .topLeading,
+            subviews[1].place(at: CGPoint(x: bounds.minX, y: stageFrame.maxY + stageInset), anchor: .topLeading,
                               proposal: ProposedViewSize(width: bounds.width, height: footerHeight))
         }
     }
@@ -197,7 +197,7 @@ private struct PlayerPageLayout: Layout {
 
     private func stageWidth(for width: CGFloat, footerHeight: CGFloat) -> CGFloat {
         let widthLimit = max(0, width - 2 * stageInset)
-        let heightLimit = max(0, availableHeight - footerHeight) * 16 / 9
+        let heightLimit = max(0, availableHeight - footerHeight - 2 * stageInset) * 16 / 9
         return min(widthLimit, heightLimit)
     }
 }
