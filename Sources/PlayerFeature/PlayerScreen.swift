@@ -11,31 +11,12 @@ struct PlayerScreen: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let stageWidth = max(0, geometry.size.width - 2 * AppTheme.Layout.playerStageInset)
-
             ScrollView {
-                VStack(spacing: 0) {
+                PlayerPageLayout(availableHeight: geometry.size.height,
+                                 stageInset: AppTheme.Layout.playerStageInset) {
                     playerStage
-                        .frame(width: stageWidth, height: stageWidth * 9 / 16)
-                        .frame(maxWidth: .infinity)
-
-                    if let request = player.state.request {
-                        PlayerMediaDetails(url: request.url)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
-                            .padding(.top, AppTheme.Layout.playerDetailsTopInset)
-                            .padding(.bottom, AppTheme.Layout.playerDetailsBottomInset)
-                    }
-                    if let failure = player.state.commandFailure {
-                        PlaybackCommandFailureNotice(failure: failure) {
-                            player.dismissCommandFailure()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
-                    }
+                    playerFooter
                 }
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: geometry.size.height, alignment: .top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -108,6 +89,26 @@ struct PlayerScreen: View {
         }
     }
 
+    @ViewBuilder
+    private var playerFooter: some View {
+        VStack(spacing: 0) {
+            if let request = player.state.request {
+                PlayerMediaDetails(url: request.url)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
+                    .padding(.top, AppTheme.Layout.playerDetailsTopInset)
+                    .padding(.bottom, AppTheme.Layout.playerDetailsBottomInset)
+            }
+            if let failure = player.state.commandFailure {
+                PlaybackCommandFailureNotice(failure: failure) {
+                    player.dismissCommandFailure()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
+            }
+        }
+    }
+
     private func videoFrame<Overlay: View>(@ViewBuilder overlay: () -> Overlay) -> some View {
         ZStack {
             AppTheme.playerFallback
@@ -155,6 +156,51 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, minHeight: 420, maxHeight: .infinity)
         .foregroundStyle(.white)
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
+    }
+}
+
+private struct PlayerPageLayout: Layout {
+    let availableHeight: CGFloat
+    let stageInset: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        let footerHeight = measuredFooterHeight(in: width, subviews: subviews)
+        let stageWidth = stageWidth(for: width, footerHeight: footerHeight)
+        let contentHeight = stageWidth * 9 / 16 + footerHeight
+        return CGSize(width: width, height: max(availableHeight, contentHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let footerHeight = measuredFooterHeight(in: bounds.width, subviews: subviews)
+        let stageWidth = stageWidth(for: bounds.width, footerHeight: footerHeight)
+        let stageHeight = stageWidth * 9 / 16
+        let stageFrame = CGRect(
+            x: bounds.minX + (bounds.width - stageWidth) / 2,
+            y: bounds.minY,
+            width: stageWidth,
+            height: stageHeight
+        )
+
+        if let stage = subviews.first {
+            stage.place(at: stageFrame.origin, anchor: .topLeading,
+                        proposal: ProposedViewSize(stageFrame.size))
+        }
+        if subviews.count > 1 {
+            subviews[1].place(at: CGPoint(x: bounds.minX, y: stageFrame.maxY), anchor: .topLeading,
+                              proposal: ProposedViewSize(width: bounds.width, height: footerHeight))
+        }
+    }
+
+    private func measuredFooterHeight(in width: CGFloat, subviews: Subviews) -> CGFloat {
+        guard subviews.count > 1 else { return 0 }
+        return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+    }
+
+    private func stageWidth(for width: CGFloat, footerHeight: CGFloat) -> CGFloat {
+        let widthLimit = max(0, width - 2 * stageInset)
+        let heightLimit = max(0, availableHeight - footerHeight) * 16 / 9
+        return min(widthLimit, heightLimit)
     }
 }
 
