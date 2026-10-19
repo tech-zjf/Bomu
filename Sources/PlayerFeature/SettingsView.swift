@@ -86,7 +86,6 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppTheme.surface)
-        .frame(minWidth: AppTheme.Layout.minimumWindowWidth, minHeight: AppTheme.Layout.minimumWindowHeight)
         .alert("settings.clearHistory.confirmTitle", isPresented: $isConfirmingHistoryClear) {
             Button("common.cancel", role: .cancel) { }
             Button("settings.clearHistory.action", role: .destructive) {
