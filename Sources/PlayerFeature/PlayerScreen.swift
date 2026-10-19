@@ -52,7 +52,7 @@ struct PlayerScreen: View {
         switch player.state.phase {
         case .idle:
             EmptyPlayerView { OpenMediaPanel.present(for: player) }
-                .frame(maxWidth: .infinity, minHeight: 420)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
         case .opening:
             videoFrame {
@@ -152,7 +152,7 @@ struct PlayerScreen: View {
         }
         .font(AppTheme.Typography.controlBody)
         .padding(30)
-        .frame(maxWidth: .infinity, minHeight: 420)
+        .frame(maxWidth: .infinity, minHeight: 420, maxHeight: .infinity)
         .foregroundStyle(.white)
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
     }
