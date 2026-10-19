@@ -20,7 +20,7 @@ final class PlaybackQueueTests: XCTestCase {
         XCTAssertNil(queue.select(queue.items.count))
     }
 
-    func testDirectoryExpansionSkipsHiddenPackageAndUnsupportedFiles() throws {
+    func testDirectoryExpansionUsesSharedMediaTypesAndSkipsUnsupportedFiles() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let nested = root.appending(path: "子目录")
         let package = root.appending(path: "影片.app")
@@ -32,7 +32,11 @@ final class PlaybackQueueTests: XCTestCase {
             root.appending(path: "第 10 集.mp4"),
             root.appending(path: "第 2 集.mp4"),
             root.appending(path: "说明.txt"),
+            root.appending(path: "bonus.divx"),
+            root.appending(path: "archive.mxf"),
+            root.appending(path: "audio.dts"),
             nested.appending(path: "中文 文件.mkv"),
+            nested.appending(path: "audio.m4b"),
             package.appending(path: "嵌套.mov"),
             root.appending(path: ".隐藏.mp4")
         ] {
@@ -42,7 +46,8 @@ final class PlaybackQueueTests: XCTestCase {
         let files = try MediaFileDiscovery.expand([root])
         XCTAssertEqual(
             Set(files.map(\.lastPathComponent)),
-            Set(["第 2 集.mp4", "第 10 集.mp4", "中文 文件.mkv"])
+            Set(["第 2 集.mp4", "第 10 集.mp4", "中文 文件.mkv", "bonus.divx",
+                 "archive.mxf", "audio.dts", "audio.m4b"])
         )
     }
 

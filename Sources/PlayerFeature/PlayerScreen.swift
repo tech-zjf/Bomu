@@ -7,34 +7,35 @@ struct PlayerScreen: View {
     let nowPlaying: NowPlayingController
     let onReturnToLibrary: () -> Void
 
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     var body: some View {
         GeometryReader { geometry in
-            let horizontalInset: CGFloat = 24
-            let detailsHeight: CGFloat = player.state.request == nil ? 0 : 74
-            let availableVideoHeight = max(1, geometry.size.height - horizontalInset - detailsHeight)
-            let availableVideoWidth = max(1, geometry.size.width - horizontalInset)
-            let videoWidth = min(availableVideoWidth, availableVideoHeight * 16 / 9)
-            let videoHeight = videoWidth * 9 / 16
+            let stageWidth = max(0, geometry.size.width - 2 * AppTheme.Layout.playerStageInset)
 
             ScrollView {
                 VStack(spacing: 0) {
                     playerStage
-                        .frame(width: videoWidth, height: videoHeight)
+                        .frame(width: stageWidth, height: stageWidth * 9 / 16)
+                        .frame(maxWidth: .infinity)
+
                     if let request = player.state.request {
                         PlayerMediaDetails(url: request.url)
-                            .padding(.horizontal, 12)
-                            .padding(.top, 15)
-                            .padding(.bottom, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
+                            .padding(.top, AppTheme.Layout.playerDetailsTopInset)
+                            .padding(.bottom, AppTheme.Layout.playerDetailsBottomInset)
                     }
                     if let failure = player.state.commandFailure {
                         PlaybackCommandFailureNotice(failure: failure) {
                             player.dismissCommandFailure()
                         }
-                        .frame(width: videoWidth)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(12)
+                .frame(minHeight: geometry.size.height, alignment: .top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -52,22 +53,30 @@ struct PlayerScreen: View {
         case .idle:
             EmptyPlayerView { OpenMediaPanel.present(for: player) }
                 .frame(maxWidth: .infinity, minHeight: 420)
-                .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
         case .opening:
             videoFrame {
-                ProgressView("player.loading")
-                    .controlSize(.large)
-                    .padding(.horizontal, AppTheme.Layout.playerHorizontalInset)
-                    .padding(.vertical, 16)
-                    .background(AppTheme.playerControlBackground,
-                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
-                    .foregroundStyle(.white)
+                VStack(spacing: 14) {
+                    ProgressView("player.loading")
+                        .controlSize(.large)
+                    Button("common.cancel") { player.stop() }
+                        .buttonStyle(.bordered)
+                        .font(AppTheme.Typography.controlBody)
+                }
+                .padding(.horizontal, AppTheme.Layout.playerHorizontalInset)
+                .padding(.vertical, 16)
+                .background(AppTheme.playerControlBackground(reduceTransparency: reduceTransparency),
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                .foregroundStyle(.white)
+                .environment(\.colorScheme, .dark)
             }
         case .ready:
             videoFrame {
                 PlaybackControls(player: player, onReturnToLibrary: onReturnToLibrary) {
                     videoView.window?.toggleFullScreen(nil)
                 }
+                // A file owns its scrub/focus/idle state; the video host keeps its identity.
+                .id(player.state.request?.id)
             }
         case .ended:
             videoFrame {
@@ -77,37 +86,22 @@ struct PlayerScreen: View {
                     HStack(spacing: 10) {
                         Button(action: onReturnToLibrary) {
                             Label("library.backToLibrary", systemImage: "chevron.left")
-                                .font(AppTheme.Typography.controlLabel)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                                .background(
-                                    .white.opacity(0.14),
-                                    in: RoundedRectangle(cornerRadius: AppTheme.Corners.control)
-                                )
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: AppTheme.Corners.control)
-                                        .stroke(.white.opacity(0.22), lineWidth: 1)
-                                }
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PlayerCompletionButtonStyle())
+                        if player.queue.items.count > 1 {
+                            PlaybackQueueMenu(player: player)
+                                .foregroundStyle(.white)
+                        }
                         Button { player.replay() } label: {
                             Label("player.replay", systemImage: "play.fill")
-                                .font(AppTheme.Typography.controlEmphasis)
-                                .foregroundStyle(AppTheme.textPrimary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                                .background(
-                                    .white,
-                                    in: RoundedRectangle(cornerRadius: AppTheme.Corners.control)
-                                )
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PlayerCompletionButtonStyle(isPrimary: true))
                     }
                 }
                 .padding(20)
                 .foregroundStyle(.white)
-                .background(AppTheme.playerControlBackground, in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                .background(AppTheme.playerControlBackground(reduceTransparency: reduceTransparency),
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
             }
         case .failed(let failure):
             errorFrame(failure)
@@ -128,7 +122,7 @@ struct PlayerScreen: View {
     private func errorFrame(_ failure: PlaybackFailure) -> some View {
         VStack(spacing: 15) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 30, weight: .light))
+                .font(AppTheme.Typography.Symbol.playbackFailure)
                 .accessibilityHidden(true)
             Text(failure.title).font(AppTheme.Typography.headline)
             Text(failure.explanation)
@@ -152,6 +146,9 @@ struct PlayerScreen: View {
             }
             .buttonStyle(.bordered)
             .tint(.white)
+            if player.queue.items.count > 1 {
+                PlaybackQueueMenu(player: player)
+            }
         }
         .font(AppTheme.Typography.controlBody)
         .padding(30)
@@ -187,13 +184,18 @@ private struct PlaybackCommandFailureNotice: View {
                 }
             }
             Spacer(minLength: 8)
-            Button("common.dismiss", action: dismiss)
+            Button(action: dismiss) {
+                Text("common.dismiss")
+                    .font(AppTheme.Typography.controlBody)
+                    .frame(minHeight: AppTheme.Layout.compactControlSize)
+                    .contentShape(Rectangle())
+            }
                 .buttonStyle(.plain)
                 .foregroundStyle(AppTheme.textSecondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.background)
+        .background(AppTheme.mutedSurface)
         .accessibilityElement(children: .contain)
     }
 }
@@ -240,5 +242,29 @@ private struct PlayerMediaDetails: View {
                 RoundedRectangle(cornerRadius: AppTheme.Corners.badge)
                     .stroke(AppTheme.separator, lineWidth: 1)
             }
+    }
+}
+
+private struct PlayerCompletionButtonStyle: ButtonStyle {
+    var isPrimary = false
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(AppTheme.Typography.controlLabel)
+            .lineLimit(1)
+            .padding(.horizontal, 14)
+            .frame(minHeight: AppTheme.Layout.toolbarControlSize)
+            .foregroundStyle(isPrimary ? AppTheme.textPrimary : .white)
+            .background(isPrimary ? .white : .white.opacity(0.14),
+                        in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+            .overlay {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.control)
+                    .stroke(.white.opacity(0.22), lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+            .opacity(isEnabled ? 1 : 0.45)
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }

@@ -9,6 +9,64 @@ enum MediaWatchedFilter: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum MediaLibraryUndoKind: Equatable {
+    case favoriteAdded
+    case favoriteRemoved
+    case markedWatched
+    case markedUnwatched
+}
+
+struct MediaLibraryUndoNotice: Equatable, Identifiable {
+    let id: UUID
+    let kind: MediaLibraryUndoKind
+}
+
+private enum MediaLibraryPreference {
+    case favorite
+    case watched
+
+    func toggle(in store: PlaybackHistoryStore, mediaFileID: Int64) async throws -> Bool {
+        switch self {
+        case .favorite:
+            return try await store.toggleFavorite(for: mediaFileID)
+        case .watched:
+            return try await store.toggleWatched(for: mediaFileID)
+        }
+    }
+
+    func undoAction(mediaFileID: Int64, previousValue: Bool) -> MediaLibraryUndoAction {
+        switch self {
+        case .favorite:
+            return .favorite(mediaFileID: mediaFileID, value: previousValue)
+        case .watched:
+            return .watched(mediaFileID: mediaFileID, value: previousValue)
+        }
+    }
+
+    func undoKind(newValue: Bool) -> MediaLibraryUndoKind {
+        switch self {
+        case .favorite:
+            return newValue ? .favoriteAdded : .favoriteRemoved
+        case .watched:
+            return newValue ? .markedWatched : .markedUnwatched
+        }
+    }
+}
+
+private enum MediaLibraryUndoAction {
+    case favorite(mediaFileID: Int64, value: Bool)
+    case watched(mediaFileID: Int64, value: Bool)
+
+    func restore(in store: PlaybackHistoryStore) async throws {
+        switch self {
+        case .favorite(let mediaFileID, let value):
+            try await store.setFavorite(value, for: mediaFileID)
+        case .watched(let mediaFileID, let value):
+            try await store.setWatched(value, for: mediaFileID)
+        }
+    }
+}
+
 enum MediaCategoryFilter: Hashable, Identifiable, CaseIterable {
     case all
     case unclassified
@@ -34,12 +92,13 @@ final class MediaLibraryModel {
     private(set) var itemsByRoot: [Int64: [MediaLibraryItem]] = [:]
     private(set) var directoriesByRoot: [Int64: [MediaLibraryDirectory]] = [:]
     private(set) var isLoading = false
-    private(set) var isScanning = false
+    private(set) var isReplacingRecords = false
     private(set) var discoveredCount = 0
     private(set) var indexedCount = 0
     private(set) var recentlyDiscoveredFiles: [String] = []
     private(set) var errorMessage: String?
     private(set) var selectedItemID: Int64?
+    private(set) var undoNotice: MediaLibraryUndoNotice?
     var searchText = ""
 
     @ObservationIgnored private let store: PlaybackHistoryStore?
@@ -47,13 +106,22 @@ final class MediaLibraryModel {
     @ObservationIgnored private let metadataProbe: MediaMetadataProbe?
     @ObservationIgnored private let scanner: (any MediaLibraryScanning)?
     @ObservationIgnored private var scanTask: Task<Void, Never>?
-    @ObservationIgnored private var activeScanID: UUID?
-    @ObservationIgnored private var mountedVolumes: [String: URL] = [:]
+    private var activeScanID: UUID?
+    private var mountedVolumes: [String: URL] = [:]
+    @ObservationIgnored private let mountedVolumeSnapshot: () -> [String: URL]
     @ObservationIgnored private var refreshGeneration = 0
+    @ObservationIgnored private var preferenceMutationGeneration: UInt64 = 0
+    @ObservationIgnored private var preferenceMutationTask: Task<Void, Never>?
+    @ObservationIgnored private var pendingUndo: MediaLibraryUndoAction?
+    @ObservationIgnored private var undoExpiryTask: Task<Void, Never>?
+    @ObservationIgnored private var isShuttingDown = false
+    @ObservationIgnored private var shutdownTask: Task<Void, Never>?
 
     init(store: PlaybackHistoryStore?, thumbnailCache: MediaThumbnailCache?,
          metadataProbe: MediaMetadataProbe? = nil, scanner: (any MediaLibraryScanning)? = nil,
-         startupError: String? = nil) {
+         startupError: String? = nil,
+         mountedVolumeSnapshot: @escaping () -> [String: URL] = MountedMediaVolumes.current) {
+        self.mountedVolumeSnapshot = mountedVolumeSnapshot
         self.store = store
         self.thumbnailCache = thumbnailCache
         self.metadataProbe = metadataProbe
@@ -68,23 +136,45 @@ final class MediaLibraryModel {
     }
 
     var isStorageAvailable: Bool { store != nil }
+    var isScanning: Bool { activeScanID != nil }
+    var hasSearchQuery: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     var onlineRoots: [MediaSourceRoot] { roots.filter(\.isOnline) }
     var offlineRoots: [MediaSourceRoot] { roots.filter { !$0.isOnline } }
-    var availableItems: [MediaLibraryItem] { visible(items) }
-    var favorites: [MediaLibraryItem] { availableItems.filter(\.isFavorite) }
-    var watchedItems: [MediaLibraryItem] { availableItems.filter(\.isWatched) }
+    var browsableItems: [MediaLibraryItem] { items.filter(\.isPresent) }
+    var favorites: [MediaLibraryItem] { browsableItems.filter(\.isFavorite) }
+    var watchedItems: [MediaLibraryItem] { browsableItems.filter(\.isWatched) }
     var continueWatching: [MediaLibraryItem] {
-        availableItems.filter { $0.playbackPosition > 0 && !$0.isWatched }
+        browsableItems.filter {
+            $0.playbackPosition > 0 && !$0.isWatched && !$0.hasPlaybackHistoryConflict
+        }
             .sorted { ($0.lastPlayedAt ?? .distantPast) > ($1.lastPlayedAt ?? .distantPast) }
     }
-    var recentlyAdded: [MediaLibraryItem] { availableItems.sorted { $0.addedAt > $1.addedAt } }
+    var recentlyAdded: [MediaLibraryItem] { browsableItems.sorted { $0.addedAt > $1.addedAt } }
     var searchResults: [MediaLibraryItem] {
-        Self.matchingItems(in: availableItems, query: searchText)
+        let sourceRootNames = Dictionary(uniqueKeysWithValues: roots.map { ($0.id, $0.displayName) })
+        return Self.matchingItems(in: browsableItems, query: searchText,
+                                  sourceRootNames: sourceRootNames)
     }
 
-    nonisolated static func matchingItems(in items: [MediaLibraryItem], query: String) -> [MediaLibraryItem] {
-        guard !query.isEmpty else { return items }
-        return items.filter { $0.displayName.localizedStandardContains(query) }
+    nonisolated static func matchingItems(
+        in items: [MediaLibraryItem],
+        query: String,
+        sourceRootNames: [Int64: String] = [:]
+    ) -> [MediaLibraryItem] {
+        let searchTerm = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !searchTerm.isEmpty else { return items }
+
+        return items.filter { item in
+            if item.displayName.localizedStandardContains(searchTerm) { return true }
+            if sourceRootNames[item.sourceRootID]?.localizedStandardContains(searchTerm) == true {
+                return true
+            }
+            return item.relativePath.split(separator: "/").dropLast().contains {
+                String($0).localizedStandardContains(searchTerm)
+            }
+        }
     }
 
     nonisolated static func deduplicatingItems(_ items: [MediaLibraryItem]) -> [MediaLibraryItem] {
@@ -132,6 +222,7 @@ final class MediaLibraryModel {
 
     @discardableResult
     func refresh() async -> Bool {
+        guard !isShuttingDown, !isReplacingRecords else { return false }
         guard let store else {
             if errorMessage == nil { errorMessage = String(localized: "library.unavailable") }
             return false
@@ -142,22 +233,14 @@ final class MediaLibraryModel {
         defer {
             if refreshGeneration == generation { isLoading = false }
         }
-        let volumes = FileManager.default.mountedVolumeURLs(
-            includingResourceValuesForKeys: [.volumeUUIDStringKey], options: []
-        ) ?? []
-        var mounted: [String: URL] = [:]
-        for volume in volumes {
-            guard let values = try? volume.resourceValues(forKeys: [.volumeUUIDStringKey]),
-                  let id = values.volumeUUIDString, !id.isEmpty else { continue }
-            mounted[id] = volume
-        }
-        mountedVolumes = mounted
+        let mounted = mountedVolumeSnapshot()
         do {
             let snapshot = try await store.librarySnapshot(mountedVolumeIDs: Set(mounted.keys))
             guard refreshGeneration == generation else { return false }
             let loadedItems = snapshot.roots.flatMap { snapshot.itemsByRoot[$0.id] ?? [] }
             let uniqueItems = Self.deduplicatingItems(loadedItems)
             let uniqueItemIDs = Set(uniqueItems.map(\.id))
+            mountedVolumes = mounted
             roots = snapshot.roots
             itemsByRoot = snapshot.itemsByRoot
             directoriesByRoot = snapshot.directoriesByRoot
@@ -175,6 +258,7 @@ final class MediaLibraryModel {
     }
 
     func addFolder(_ folder: URL) {
+        guard !isShuttingDown, !isReplacingRecords else { return }
         guard store != nil, let scanner = self.scanner else {
             errorMessage = String(localized: "library.unavailable")
             return
@@ -183,101 +267,224 @@ final class MediaLibraryModel {
         previousScan?.cancel()
         let scanID = UUID()
         activeScanID = scanID
+        discoveredCount = 0
+        indexedCount = 0
+        recentlyDiscoveredFiles = []
+        errorMessage = nil
         scanTask = Task { [weak self] in
-            await previousScan?.value
-            guard let self, !Task.isCancelled, self.activeScanID == scanID else { return }
-            self.isScanning = true
-            self.discoveredCount = 0
-            self.indexedCount = 0
-            self.recentlyDiscoveredFiles = []
-            self.errorMessage = nil
+            guard let self else {
+                await previousScan?.value
+                return
+            }
+            // Accepted intent owns cleanup even when cancelled before its scanner starts.
             defer {
                 if self.activeScanID == scanID {
-                    self.isScanning = false
                     self.scanTask = nil
                     self.activeScanID = nil
                     self.recentlyDiscoveredFiles = []
                 }
             }
-            do {
-                for try await event in scanner.scan(folder: folder, includingSubfolders: true) {
-                    try Task.checkCancellation()
-                    guard self.activeScanID == scanID else { throw CancellationError() }
-                    switch event {
-                    case .discovered(let candidate):
-                        self.discoveredCount += 1
-                        self.recentlyDiscoveredFiles.append(candidate.displayName)
-                        if self.recentlyDiscoveredFiles.count > 5 {
-                            self.recentlyDiscoveredFiles.removeFirst(
-                                self.recentlyDiscoveredFiles.count - 5
-                            )
+            await previousScan?.value
+            guard self.activeScanID == scanID else { return }
+            var scanError: Error?
+            var skippedReason: String?
+            if !Task.isCancelled {
+                let scan = scanner.scan(folder: folder, includingSubfolders: true)
+                do {
+                    for try await event in scan.events {
+                        try Task.checkCancellation()
+                        guard self.activeScanID == scanID else { throw CancellationError() }
+                        switch event {
+                        case .discovered(let candidate):
+                            self.discoveredCount += 1
+                            self.recentlyDiscoveredFiles.append(candidate.displayName)
+                            if self.recentlyDiscoveredFiles.count > 5 {
+                                self.recentlyDiscoveredFiles.removeFirst(
+                                    self.recentlyDiscoveredFiles.count - 5
+                                )
+                            }
+                        case .indexed:
+                            self.indexedCount += 1
+                        case .skipped(_, let reason):
+                            skippedReason = reason
+                            self.errorMessage = reason
+                        case .completed:
+                            break
                         }
-                    case .indexed:
-                        self.indexedCount += 1
-                    case .skipped(_, let reason):
-                        self.errorMessage = reason
-                    case .completed:
-                        break
                     }
+                } catch {
+                    scanError = error
                 }
-                guard !Task.isCancelled, self.activeScanID == scanID else { return }
-                await self.refresh()
-            } catch is CancellationError {
-                if self.activeScanID == scanID { await self.refresh() }
-            } catch {
-                guard self.activeScanID == scanID else { return }
-                if case PlaybackHistoryError.scanAlreadyRunning = error {
+                await scan.cancelAndWait()
+            }
+            guard self.activeScanID == scanID else { return }
+            /** 用户取消扫描后仍需展示已提交的条目；刷新任务不继承已取消状态，并被持有到结束。 */
+            let refresh = Task { await self.refresh() }
+            _ = await refresh.value
+            guard self.activeScanID == scanID else { return }
+            if let scanError, !(scanError is CancellationError) {
+                if case PlaybackHistoryError.scanAlreadyRunning = scanError {
                     self.errorMessage = String(localized: "library.scanAlreadyRunning")
                 } else {
-                    self.errorMessage = error.localizedDescription
+                    self.errorMessage = scanError.localizedDescription
                 }
-                await self.refresh()
+            } else if let skippedReason {
+                self.errorMessage = skippedReason
             }
         }
     }
 
     func cancelScan() { scanTask?.cancel() }
 
+    /** 记录替换期间拒绝新写入，并等待已接受的操作结束；调用方必须在成功或失败后恢复。 */
+    func suspendRecordWrites() async {
+        isReplacingRecords = true
+        refreshGeneration += 1
+        isLoading = false
+        clearUndoNotice()
+        let scan = scanTask
+        let mutations = preferenceMutationTask
+        scan?.cancel()
+        await scan?.value
+        await mutations?.value
+        clearUndoNotice()
+    }
+
+    func resumeRecordWrites() async {
+        isReplacingRecords = false
+        await refresh()
+    }
+
+    func shutdown() async {
+        if let shutdownTask {
+            await shutdownTask.value
+            return
+        }
+        isShuttingDown = true
+        refreshGeneration += 1
+        isLoading = false
+        clearUndoNotice()
+        let scan = scanTask
+        let mutations = preferenceMutationTask
+        scan?.cancel()
+        let shutdown = Task<Void, Never> {
+            await scan?.value
+            await mutations?.value
+        }
+        shutdownTask = shutdown
+        await shutdown.value
+    }
+
     func report(_ error: Error) { errorMessage = error.localizedDescription }
+
+    /// Waits for already accepted preference changes without cancelling an active scan.
+    func waitForPendingPreferences() async {
+        await preferenceMutationTask?.value
+    }
 
     func select(_ item: MediaLibraryItem) {
         selectedItemID = item.id
     }
 
-    func toggleFavorite(_ item: MediaLibraryItem) {
-        guard let store else { return }
-        Task {
-            do {
-                try await store.toggleFavorite(for: item.id)
-                await refresh()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
+    func toggleFavorite(_ item: MediaLibraryItem) async {
+        await toggle(.favorite, for: item.id)
     }
 
-    func toggleWatched(_ item: MediaLibraryItem) {
-        guard let store else { return }
-        Task {
+    func toggleWatched(_ item: MediaLibraryItem) async {
+        await toggle(.watched, for: item.id)
+    }
+
+    func undoLastPreferenceChange() async {
+        guard !isShuttingDown, !isReplacingRecords, let store, let pendingUndo else { return }
+        preferenceMutationGeneration &+= 1
+        let generation = preferenceMutationGeneration
+        clearUndoNotice()
+        let previousMutation = preferenceMutationTask
+        let task = Task { [weak self] in
+            await previousMutation?.value
+            guard let self else { return }
             do {
-                try await store.toggleWatched(for: item.id)
-                await refresh()
+                try await pendingUndo.restore(in: store)
+                guard self.preferenceMutationGeneration == generation else { return }
+                await self.refresh()
             } catch {
-                errorMessage = error.localizedDescription
+                guard self.preferenceMutationGeneration == generation else { return }
+                self.errorMessage = error.localizedDescription
             }
         }
+        preferenceMutationTask = task
+        await task.value
+    }
+
+    func dismissUndoNotice() {
+        clearUndoNotice()
     }
 
     func setCategory(_ category: MediaManualCategory?, for item: MediaLibraryItem) {
-        guard let store else { return }
-        Task {
+        guard !isShuttingDown, !isReplacingRecords, let store else { return }
+        let previousMutation = preferenceMutationTask
+        preferenceMutationTask = Task { [weak self] in
+            await previousMutation?.value
+            guard let self else { return }
             do {
                 try await store.setManualCategory(category, for: item.id)
-                await refresh()
+                await self.refresh()
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func toggle(_ preference: MediaLibraryPreference, for mediaFileID: Int64) async {
+        guard !isShuttingDown, !isReplacingRecords, let store else { return }
+        preferenceMutationGeneration &+= 1
+        let generation = preferenceMutationGeneration
+        clearUndoNotice()
+        let previousMutation = preferenceMutationTask
+        let task = Task { [weak self] in
+            await previousMutation?.value
+            guard let self else { return }
+            do {
+                let newValue = try await preference.toggle(in: store, mediaFileID: mediaFileID)
+                guard self.preferenceMutationGeneration == generation else { return }
+                await self.refresh()
+                guard !self.isShuttingDown, !self.isReplacingRecords, self.preferenceMutationGeneration == generation else { return }
+                let notice = MediaLibraryUndoNotice(
+                    id: UUID(),
+                    kind: preference.undoKind(newValue: newValue)
+                )
+                self.pendingUndo = preference.undoAction(mediaFileID: mediaFileID, previousValue: !newValue)
+                self.presentUndoNotice(notice)
+            } catch {
+                guard self.preferenceMutationGeneration == generation else { return }
+                self.errorMessage = error.localizedDescription
+            }
+        }
+        preferenceMutationTask = task
+        await task.value
+    }
+
+    private func presentUndoNotice(_ notice: MediaLibraryUndoNotice) {
+        undoExpiryTask?.cancel()
+        undoNotice = notice
+        undoExpiryTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(5))
+            } catch {
+                return
+            }
+            guard let self, self.undoNotice?.id == notice.id else { return }
+            self.pendingUndo = nil
+            self.undoNotice = nil
+            self.undoExpiryTask = nil
+        }
+    }
+
+    private func clearUndoNotice() {
+        undoExpiryTask?.cancel()
+        undoExpiryTask = nil
+        pendingUndo = nil
+        undoNotice = nil
     }
 
     func fileURL(for item: MediaLibraryItem) -> URL? {
@@ -288,7 +495,7 @@ final class MediaLibraryModel {
     func items(in rootID: Int64) -> [MediaLibraryItem] { itemsByRoot[rootID] ?? [] }
 
     func childDirectories(in directory: MediaLibraryDirectory) -> [MediaLibraryDirectory] {
-        guard let root = roots.first(where: { $0.id == directory.sourceRootID }), root.isOnline else { return [] }
+        guard let root = roots.first(where: { $0.id == directory.sourceRootID }) else { return [] }
         var children: [String: MediaLibraryDirectory] = [:]
         for child in directoriesByRoot[directory.sourceRootID] ?? [] where child.relativePath != directory.relativePath {
             guard let remainder = Self.path(child.relativePath, below: directory.relativePath) else { continue }
@@ -319,22 +526,25 @@ final class MediaLibraryModel {
     }
 
     func thumbnailURL(for item: MediaLibraryItem) async -> URL? {
-        guard let thumbnailCache, let sourceURL = fileURL(for: item), !MediaFileType.isAudio(sourceURL) else {
-            return nil
+        guard let thumbnailCache, !MediaFileType.isAudio(URL(filePath: item.relativePath)) else { return nil }
+        if let cached = await thumbnailCache.cachedThumbnail(mediaFileID: item.id,
+                                                             contentRevision: item.contentRevision) {
+            return cached
         }
+        guard let sourceURL = fileURL(for: item) else { return nil }
         return try? await thumbnailCache.thumbnail(mediaFileID: item.id,
                                                    contentRevision: item.contentRevision,
                                                    sourceURL: sourceURL)
     }
 
     func metadata(for item: MediaLibraryItem) async -> MediaTechnicalMetadata? {
-        guard let metadataProbe, let sourceURL = fileURL(for: item) else { return nil }
+        guard let metadataProbe else { return nil }
+        guard let sourceURL = fileURL(for: item) else {
+            return await metadataProbe.cachedMetadata(mediaFileID: item.id,
+                contentRevision: item.contentRevision)
+        }
         return await metadataProbe.metadata(mediaFileID: item.id,
             contentRevision: item.contentRevision, sourceURL: sourceURL)
-    }
-
-    private func visible(_ items: [MediaLibraryItem]) -> [MediaLibraryItem] {
-        items.filter { $0.isPresent && mountedVolumes[$0.volumeID] != nil }
     }
 
     private static func path(_ path: String, below parent: String) -> String? {

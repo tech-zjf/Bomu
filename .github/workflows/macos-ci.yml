@@ -40,6 +40,9 @@ jobs:
       - name: Bootstrap and verify pinned runtime
         run: python3 scripts/dependencies.py bootstrap
 
+      - name: Audit current license and provenance records
+        run: python3 scripts/license_audit.py check
+
       - name: Run Python and hostless Swift tests
         run: ./scripts/test-dev.sh -quiet -resultBundlePath "$RUNNER_TEMP/BomuLogicTests.xcresult"
 
@@ -55,6 +58,9 @@ jobs:
 
       - name: Build application
         run: ./scripts/build-dev.sh -quiet
+
+      - name: Compile playback benchmark without launching it
+        run: ./scripts/build-dev.sh --benchmark -quiet
 
       - name: Analyze application
         run: ./scripts/build-dev.sh --analyze -quiet

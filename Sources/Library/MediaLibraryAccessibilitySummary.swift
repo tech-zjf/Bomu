@@ -12,8 +12,9 @@ extension MediaManualCategory {
 
 enum MediaLibraryAccessibilitySummary {
     static func value(for item: MediaLibraryItem, isSelected: Bool,
-                      metadata: MediaTechnicalMetadata?) -> String {
+                      metadata: MediaTechnicalMetadata?, isOffline: Bool = false) -> String {
         var details: [String] = []
+        if isOffline { details.append(String(localized: "library.sourceOffline")) }
         if isSelected {
             details.append(String(localized: "library.selection.selected"))
         }
@@ -21,7 +22,9 @@ enum MediaLibraryAccessibilitySummary {
         if let category = item.manualCategory {
             details.append(category.accessibilityTitle)
         }
-        if item.playbackPosition > 0 {
+        if item.hasPlaybackHistoryConflict {
+            details.append(String(localized: "library.historyConflict"))
+        } else if item.playbackPosition > 0 {
             details.append(String.localizedStringWithFormat(
                 NSLocalizedString("library.continueAt", comment: ""),
                 MediaTechnicalMetadataText.durationLabel(item.playbackPosition) ?? "—"

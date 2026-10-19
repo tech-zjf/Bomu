@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Report exactly which window cycles and continuous-playback intervals completed."""
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -59,6 +60,41 @@ def uninterrupted(visibility):
             and all(change['isVisible'] for change in visibility['changes']))
 
 
+def validate_b11(report):
+    samples = report['mediaSamples']
+    if any(sample['sample']['expected'].get('outcome') != 'play'
+           or not sample['sample']['expected'].get('video')
+           or not sample['sample']['expected'].get('audio') for sample in samples):
+        raise SystemExit('B11 requires 60 audiovisual cases, not rejection or audio-only cases.')
+    switches = report.get('fileSwitches', [])
+    rounds = report['rounds']
+    if (report['requestedCycles'] != 100 or len(switches) != 100 or len(rounds) != 100
+            or [row.get('cycle') for row in rounds] != list(range(1, 101))):
+        raise SystemExit('B11 requires 100 completed file switches and pause/resume cycles.')
+    request_ids = [row.get('requestID') for row in switches]
+    if (any(not isinstance(value, int) or isinstance(value, bool) or value <= 0 for value in request_ids)
+            or len(set(request_ids)) != 100):
+        raise SystemExit('B11 file switches must identify 100 distinct playback requests.')
+    for index, row in enumerate(switches):
+        if row.get('index') != index + 1 or row.get('file') != samples[index % 60]['sample']['file']:
+            raise SystemExit('B11 file-switch order differs from its media matrix.')
+    soak = report['soak']
+    if len(soak) < 2:
+        raise SystemExit('B11 requires a measured 1,800-second playback interval.')
+    requested = report.get('requestedSoakSeconds', 0)
+    elapsed = soak[-1]['process']['uptime'] - soak[0]['process']['uptime']
+    advance = soak[-1]['positionSeconds'] - soak[0]['positionSeconds']
+    visibility = report['soakVisibility']
+    observed = visibility['endedAtSeconds'] - visibility['startedAtSeconds']
+    if (not all(isinstance(value, (int, float)) and math.isfinite(value)
+                for value in (requested, elapsed, advance, observed))
+            or requested < 1800 or elapsed < 1800 or observed < 1800 or advance < 1798):
+        raise SystemExit('B11 requires a measured 1,800-second playback interval with advancing media time.')
+    if any(report['shutdown'].get(key) is not False
+           for key in ('coreAlive', 'renderContextAlive', 'graphicsContextAlive')):
+        raise SystemExit('B11 native resources were not confirmed released.')
+
+
 def main():
     root = Path(sys.argv[1])
     report = json.loads((root / 'window-lifecycle.json').read_text())
@@ -79,7 +115,7 @@ def main():
     if report.get('minimizeRestoreProbeSkippedReason'):
         measurement = measurement.replace('one minimize/restore probe, then',
             'minimize/restore probe skipped for this run, then')
-    if scenario in {'single-window', 'media-suite'}:
+    if scenario in {'single-window', 'media-suite', 'b11-suite'}:
         actions = 'Each cycle: acknowledged pause/resume through PlayerModel and a new video frame after resume. '
         actions += 'Window geometry is unchanged by the driver; no automatic fullscreen or display migration.'
     elif scenario == 'display-transitions':
@@ -88,7 +124,7 @@ def main():
     else:
         raise SystemExit(f'Unknown window scenario: {scenario}')
     requested_display = report.get('requestedInitialDisplayID')
-    if scenario in {'single-window', 'media-suite'} and requested_display is not None:
+    if scenario in {'single-window', 'media-suite', 'b11-suite'} and requested_display is not None:
         checkpoints = [row['checkpoint'] for row in report['rounds']] + report['soak']
         observed_displays = {item['displayID'] for item in checkpoints + report.get('mediaSamples', [])}
         if observed_displays != {requested_display}:
@@ -109,14 +145,17 @@ def main():
                     or probe.get('restored', {}).get('videoFrameCount', 0) <= probe.get('hidden', {}).get('videoFrameCount', 0)):
                 raise SystemExit('The minimize/restore probe lacks native notifications or frame recovery.')
             actions += ' The same window was then minimized/restored once; native callbacks retained the hidden interval and new video frames resumed.'
-    if scenario == 'media-suite':
+    if scenario in {'media-suite', 'b11-suite'}:
+        expected_count = 60 if scenario == 'b11-suite' else 30
         samples = report.get('mediaSamples', [])
-        if (len(samples) != 30 or any(not item['passed'] for item in samples)
-                or len({item['sample']['file'] for item in samples}) != 30
+        if (len(samples) != expected_count or any(not item['passed'] for item in samples)
+                or len({item['sample']['file'] for item in samples}) != expected_count
                 or len({item['windowNumber'] for item in samples}) != 1
                 or len({item['displayID'] for item in samples}) != 1
                 or not uninterrupted(report.get('mediaVisibility'))):
-            raise SystemExit('The media suite lacks 30 passing cases in one continuously visible window.')
+            raise SystemExit(f'The media suite lacks {expected_count} passing cases in one continuously visible window.')
+    if scenario == 'b11-suite':
+        validate_b11(report)
     rounds, soak = report['rounds'], report['soak']
     lines = ['# Window lifecycle benchmark', '', measurement, '',
              f'Completed {scenario} cycles: {len(rounds)}/{report["requestedCycles"]}.', actions,
@@ -127,13 +166,22 @@ def main():
         lines.append(f'| {screen["name"]} | {screen["isBuiltIn"]} | '
                      f'{screen["widthPoints"]:g} × {screen["heightPoints"]:g} | '
                      f'{screen["backingScale"]:g} | {screen["maximumFramesPerSecond"]} |')
-    if scenario == 'media-suite':
+    if scenario in {'media-suite', 'b11-suite'}:
         lines += ['', '| Media | Coverage | Expected / observed |', '| --- | --- | --- |']
         for item in report['mediaSamples']:
             sample = item['sample']
             lines.append(f'| {sample["file"]} | {sample["coverage"]} | {sample["expected"]["outcome"]} / passed |')
         lines += ['', 'Audio was muted: decoded sample rate, channel count and active audio output were checked; '
                   'this does not verify listening quality. Media properties were checked against the decoded/probed fixture manifest.']
+    if scenario == 'b11-suite':
+        sleep_wake = report.get('systemSleepWake') or {}
+        lines += ['', 'Completed file switches: 100/100, with distinct requests in matrix order.',
+                  'The 30-minute interval uses a source-aligned flash/pulse fixture; '
+                  'physical speaker/display synchronization remains unverified.',
+                  f'System sleep/wake notifications: {sleep_wake.get("sleepNotifications", "not recorded")} / '
+                  f'{sleep_wake.get("wakeNotifications", "not recorded")}. '
+                  'Notification counts do not prove post-wake audio/video recovery. '
+                  'Dedicated sleep/wake recovery acceptance remains open.']
     lines += ['', '| Cycle | Elapsed s | Display ID | Backing scale | Footprint MiB | Frames | Core / render creations |',
               '| ---: | ---: | ---: | ---: | ---: | ---: | --- |']
     for row in rounds:

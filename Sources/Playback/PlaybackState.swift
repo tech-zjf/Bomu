@@ -159,6 +159,12 @@ enum PlaybackEvent: Equatable, Sendable {
 
 /// The current request is authoritative. Late events from replaced files have no effect.
 struct PlaybackState: Equatable, Sendable {
+    enum Activity: Equatable, Sendable {
+        case opening
+        case seeking
+        case buffering
+    }
+
     enum Phase: Equatable, Sendable {
         case idle
         case opening
@@ -171,6 +177,19 @@ struct PlaybackState: Equatable, Sendable {
     private(set) var phase: Phase = .idle
     private(set) var snapshot: PlaybackSnapshot?
     private(set) var commandFailure: PlaybackCommandFailure?
+
+    /// Presentation derives waiting from the current request; it never changes pause intent.
+    var activity: Activity? {
+        switch phase {
+        case .opening: return .opening
+        case .ready:
+            guard let snapshot else { return .opening }
+            if snapshot.isSeeking { return .seeking }
+            if snapshot.isBuffering { return .buffering }
+            return nil
+        case .idle, .ended, .failed: return nil
+        }
+    }
 
     mutating func open(_ request: PlaybackRequest) {
         self.request = request
@@ -190,28 +209,37 @@ struct PlaybackState: Equatable, Sendable {
         commandFailure = nil
     }
 
-    mutating func receive(_ event: PlaybackEvent) {
+    /// Returns whether the event was accepted for the current request.
+    @discardableResult
+    mutating func receive(_ event: PlaybackEvent) -> Bool {
         switch event {
         case .loaded(let id):
-            guard request?.id == id, phase == .opening else { return }
+            guard request?.id == id, phase == .opening else { return false }
             phase = .ready
             commandFailure = nil
+            return true
         case .snapshot(let value):
-            guard request?.id == value.requestID, phase == .ready else { return }
+            guard request?.id == value.requestID, phase == .ready else { return false }
             // Once a newer command is observed, an older command's snapshot cannot roll it back.
-            if let snapshot, value.pauseCommandID < snapshot.pauseCommandID { return }
+            if let snapshot, value.pauseCommandID < snapshot.pauseCommandID { return false }
             snapshot = value
+            return true
         case .ended(let id):
-            guard request?.id == id, phase == .ready else { return }
+            guard request?.id == id, phase == .ready else { return false }
             phase = .ended
+            return true
         case .failed(let id, let failure):
-            guard request?.id == id else { return }
+            // File failure is valid while opening or ready. Ended and failed are
+            // terminal for this request; late native events cannot replace them.
+            guard request?.id == id, phase == .opening || phase == .ready else { return false }
             phase = .failed(failure)
             snapshot = nil
             commandFailure = nil
+            return true
         case .commandFailed(let id, let failure):
-            guard request?.id == id, phase == .ready else { return }
+            guard request?.id == id, phase == .ready else { return false }
             commandFailure = failure
+            return true
         }
     }
 }

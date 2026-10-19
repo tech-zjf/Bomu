@@ -102,7 +102,10 @@ enum MediaSuiteBenchmark {
             let before = await engine.diagnostics()
             result.before = before
             player.open(directory.appendingPathComponent(sample.file))
-            result.requestID = player.state.request?.id
+            guard let requestID = player.state.request?.id else {
+                throw BenchmarkError.failed("Media check did not create a playback request")
+            }
+            result.requestID = requestID
             switch sample.expected.outcome {
             case .reject:
                 try await waitUntil("invalid-media rejection") {
@@ -139,7 +142,7 @@ enum MediaSuiteBenchmark {
                 try await waitUntil("native pause") { player.state.snapshot?.isPaused == true }
                 let target = duration / 2
                 result.seekTargetSeconds = target
-                player.seek(to: target)
+                player.seek(to: target, requestID: requestID)
                 try await waitUntil("paused absolute seek") {
                     guard let snapshot = player.state.snapshot else { return false }
                     return snapshot.isPaused && !snapshot.isSeeking && abs(snapshot.position - target) < 0.2

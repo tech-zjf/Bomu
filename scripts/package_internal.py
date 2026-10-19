@@ -20,6 +20,39 @@ def macho_files(app):
     return [path for path in candidates if 'Mach-O' in output(['file', '-b', str(path)])]
 
 
+def version_key(version):
+    parts = tuple(int(part) for part in version.split('.'))
+    if not parts or len(parts) > 3:
+        raise ValueError(f'Invalid macOS version: {version}')
+    return parts + (0,) * (3 - len(parts))
+
+
+def verify_macos_deployment_target(load_commands, supported_target):
+    versions = []
+    blocks = re.split(r'(?=^Load command \d+$)', load_commands, flags=re.MULTILINE)
+    for block in blocks:
+        if re.search(r'^\s*cmd LC_BUILD_VERSION\s*$', block, re.MULTILINE):
+            platform = re.search(r'^\s*platform (\S+)\s*$', block, re.MULTILINE)
+            minimum = re.search(r'^\s*minos (\S+)\s*$', block, re.MULTILINE)
+            if platform is None or platform.group(1) not in {'1', 'MACOS'}:
+                raise ValueError('Mach-O does not target macOS.')
+            if minimum is None:
+                raise ValueError('Mach-O is missing its minimum OS version.')
+            versions.append(minimum.group(1))
+        elif re.search(r'^\s*cmd LC_VERSION_MIN_MACOSX\s*$', block, re.MULTILINE):
+            minimum = re.search(r'^\s*version (\S+)\s*$', block, re.MULTILINE)
+            if minimum is None:
+                raise ValueError('Mach-O is missing its minimum macOS version.')
+            versions.append(minimum.group(1))
+
+    if not versions:
+        raise ValueError('Mach-O has no macOS deployment version load command.')
+    minimum = max(versions, key=version_key)
+    if version_key(minimum) > version_key(supported_target):
+        raise ValueError(f'Mach-O requires macOS {minimum}, above the declared minimum {supported_target}.')
+    return minimum
+
+
 def rpaths(binary):
     lines = output(['otool', '-l', str(binary)]).splitlines()
     result = []
@@ -90,6 +123,11 @@ def verify_runtime(app):
 
     binaries = macho_files(contents)
     for binary in binaries:
+        try:
+            deployment = output(['otool', '-l', '-arch', 'arm64', str(binary)])
+            verify_macos_deployment_target(deployment, LOCK['toolchain']['deploymentTarget'])
+        except (subprocess.CalledProcessError, ValueError) as error:
+            errors.append(f'{binary.relative_to(app)} -> minimum OS check failed: {error}')
         dependencies = output(['otool', '-arch', 'arm64', '-L', str(binary)]).splitlines()[1:]
         for line in dependencies:
             dependency = line.strip().split(' (compatibility version ', 1)[0]
@@ -113,7 +151,8 @@ def verify_runtime(app):
                 errors.append(f'{binary.relative_to(app)} -> unresolved bundled dependency {dependency}')
     if errors:
         raise SystemExit('Runtime dependency closure failed:\n' + '\n'.join(errors))
-    print(f'Runtime closure verified: {len(expected)} locked dylibs, {len(binaries)} Mach-O images')
+    print(f'Runtime closure verified: {len(expected)} locked dylibs, {len(binaries)} Mach-O images, '
+          f'macOS {LOCK["toolchain"]["deploymentTarget"]} minimum')
 
 
 def main():

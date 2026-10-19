@@ -28,7 +28,7 @@ mpv 0.41.0 的 [`demux_seek_lavf`](https://github.com/mpv-player/mpv/blob/v0.41.
 
 ## 实测结果
 
-实验目录为 `.build/seek-candidates/20261013-221627/`。完整报告、逐次日志、源码、构建与运行库在本机保留；带源文件、媒体与原始报告哈希的精简证据见 [seek-validation-2026-10-13.json](seek-validation-2026-10-13.json)。
+实验目录曾为 `.build/seek-candidates/20261013-221627/`。其中完整报告、逐次日志、源码、构建与运行库属于可重建的本地实验产物，已于 2026-10-16 因磁盘空间不足清理；本文件及 [seek-validation-2026-10-13.json](seek-validation-2026-10-13.json) 保留结果、来源和报告哈希。需要复现时按 [SeekProbe](../../../Tools/SeekProbe/README.md) 重新生成。
 
 | 用例 / 目标 | 固定内核暂停后的实际位置 | 候选暂停后的实际位置 | 候选新帧：定位前 → 暂停定位 → 恢复 |
 | --- | --- | --- | --- |

@@ -12,17 +12,12 @@ final class MediaMetadataProbeTests: XCTestCase {
         )
 
         XCTAssertEqual(MediaTechnicalMetadataText.cardValue(metadata: metadata, isAudio: false),
-                       "0:15 · 960 × 540 · H.264")
-        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
-            metadata: metadata,
-            byteCount: 712_704,
-            isAudio: false
-        ), "0:15 · 960 × 540 · H.264")
+                       "0:15 · 960 × 540 · H.264 · \(String(localized: "library.metadata.oneAudioTrack")) · AAC")
         XCTAssertEqual(MediaTechnicalMetadataText.durationLabel(3_661), "1:01:01")
         XCTAssertNil(MediaTechnicalMetadataText.durationLabel(.infinity))
     }
 
-    func testUnavailableMetadataFallsBackToActualFileSizeWithoutRepeatedUnknowns() {
+    func testUnavailableMetadataShowsUnknownWhileFileSizeRemainsAvailable() {
         let metadata = MediaTechnicalMetadata(
             duration: nil,
             width: nil,
@@ -41,6 +36,7 @@ final class MediaMetadataProbeTests: XCTestCase {
             isPresent: true,
             isFavorite: false,
             isWatched: false,
+            hasPlaybackHistoryConflict: false,
             manualCategory: nil,
             playbackPosition: 0,
             lastPlayedAt: nil,
@@ -48,24 +44,37 @@ final class MediaMetadataProbeTests: XCTestCase {
         )
 
         XCTAssertNil(MediaTechnicalMetadataText.cardValue(metadata: metadata, isAudio: false))
-        let fileSize = ByteCountFormatStyle().format(712_704)
-        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
-            metadata: metadata,
-            byteCount: 712_704,
-            isAudio: false
-        ), fileSize)
-        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrFileSize(
-            metadata: nil,
-            byteCount: 712_704,
-            isAudio: false
-        ), fileSize)
+        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrUnknown(metadata: metadata, isAudio: false),
+                       String(localized: "library.metadata.unknown"))
+        XCTAssertEqual(MediaTechnicalMetadataText.cardValueOrUnknown(metadata: nil, isAudio: false),
+                       String(localized: "library.metadata.unknown"))
+        let fileSize = ByteCountFormatStyle().format(item.byteCount)
         XCTAssertNil(MediaTechnicalMetadataText.accessibilityValue(metadata: metadata, isAudio: false))
         XCTAssertEqual(MediaTechnicalMetadataText.value(metadata: metadata, isAudio: false),
                        String(localized: "library.metadata.unknown"))
 
         let summary = MediaLibraryAccessibilitySummary.value(for: item, isSelected: false, metadata: metadata)
         XCTAssertFalse(summary.contains(String(localized: "library.metadata.unknown")))
-        XCTAssertTrue(summary.contains(ByteCountFormatStyle().format(item.byteCount)))
+        XCTAssertTrue(summary.contains(fileSize))
+    }
+
+    func testMetadataLoadStateSeparatesLoadingFromUnavailableResults() {
+        let unknown = MediaTechnicalMetadata(
+            duration: nil, width: nil, height: nil, videoCodec: nil, audioTracks: nil
+        )
+
+        XCTAssertEqual(
+            MediaTechnicalMetadataLoadState.loading.cardValue(isAudio: false),
+            String(localized: "library.metadata.loading")
+        )
+        XCTAssertEqual(
+            MediaTechnicalMetadataLoadState.resolved(nil).cardValue(isAudio: false),
+            String(localized: "library.metadata.unknown")
+        )
+        XCTAssertEqual(
+            MediaTechnicalMetadataLoadState.resolved(unknown).cardValue(isAudio: false),
+            String(localized: "library.metadata.unknown")
+        )
     }
 
     func testReadsRealDurationResolutionAndTrackCodecsFromLocalMedia() async throws {
@@ -83,6 +92,12 @@ final class MediaMetadataProbeTests: XCTestCase {
         XCTAssertEqual(metadata.videoCodec, "H.264")
         XCTAssertEqual(metadata.audioTracks, [MediaAudioTrackMetadata(codec: "AAC")])
         XCTAssertEqual(metadata.duration ?? 0, 15, accuracy: 0.1)
+        XCTAssertTrue(try XCTUnwrap(MediaTechnicalMetadataText.cardValue(
+            metadata: metadata, isAudio: false
+        )).contains(String(localized: "library.metadata.oneAudioTrack")))
+        XCTAssertTrue(try XCTUnwrap(MediaTechnicalMetadataText.cardValue(
+            metadata: metadata, isAudio: false
+        )).contains("AAC"))
     }
 
     func testPreservesEachAudioTrackCodecFromMixedCodecMedia() async throws {
@@ -99,6 +114,26 @@ final class MediaMetadataProbeTests: XCTestCase {
             MediaAudioTrackMetadata(codec: "AAC"),
             MediaAudioTrackMetadata(codec: "ALAC"),
         ])
+    }
+
+    func testReadsRealHEVCMain10MetadataFromLocalMedia() async throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let media = projectRoot.appending(path: ".build/fixtures/h265-main10-sdr.mp4")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: media.path), "The licensed synthetic HEVC fixture is generated by test-dev.sh")
+        let probe = MediaMetadataProbe()
+
+        let metadata = await probe.metadata(mediaFileID: 4, contentRevision: "hevc-main10", sourceURL: media)
+
+        XCTAssertEqual(metadata.width, 640)
+        XCTAssertEqual(metadata.height, 360)
+        XCTAssertEqual(metadata.videoCodec, "HEVC")
+        XCTAssertEqual(metadata.audioTracks, [MediaAudioTrackMetadata(codec: "AAC")])
+        XCTAssertEqual(metadata.duration ?? 0, 15, accuracy: 0.1)
+        let cardValue = try XCTUnwrap(MediaTechnicalMetadataText.cardValue(metadata: metadata, isAudio: false))
+        XCTAssertTrue(cardValue.contains("HEVC"))
+        XCTAssertTrue(cardValue.contains("AAC"))
     }
 
     func testUnreadableFileReturnsUnknownInsteadOfInventedMetadata() async throws {
@@ -133,7 +168,10 @@ final class MediaMetadataProbeTests: XCTestCase {
 
         let first = await probe.metadata(mediaFileID: 1, contentRevision: "r1", sourceURL: firstURL)
         _ = await probe.metadata(mediaFileID: 2, contentRevision: "r1", sourceURL: secondURL)
-        _ = await probe.metadata(mediaFileID: 1, contentRevision: "r1", sourceURL: firstURL)
+        let cached = await probe.cachedMetadata(mediaFileID: 1, contentRevision: "r1")
+        XCTAssertEqual(cached, first)
+        let changedRevision = await probe.cachedMetadata(mediaFileID: 1, contentRevision: "r2")
+        XCTAssertNil(changedRevision, "A revised file must not inherit facts from an earlier revision")
         _ = await probe.metadata(mediaFileID: 3, contentRevision: "r1", sourceURL: fixture)
 
         try Data("unreadable replacement".utf8).write(to: secondURL)

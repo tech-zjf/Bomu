@@ -14,9 +14,11 @@ struct PlaybackHistory: Equatable, Sendable {
 /// Identifies a file on one mounted volume and detects likely content changes with sparse samples.
 struct MediaFileIdentity: Equatable, Sendable {
     let volumeID: String
-    let resourceID: String
+    let fileNumber: String
+    var resourceID: String { "inode:\(fileNumber)" }
     let contentRevision: String
     let contentFingerprint: String
+    let legacyContentFingerprint: String?
     let relativePath: String
     let volumeName: String
     let byteCount: Int64
@@ -54,6 +56,7 @@ enum PlaybackHistoryError: LocalizedError {
     case invalidPosition
     case invalidVolume
     case identityUnavailable(String, underlying: String)
+    case ambiguousMediaIdentity
     case missingSourceRoot
     case unknownScan(String)
     case missingMediaFile(Int64)
@@ -69,6 +72,8 @@ enum PlaybackHistoryError: LocalizedError {
             "Playback volume must be between 0 and 100."
         case .identityUnavailable(let path, let underlying):
             "Unable to identify media file at \(path): \(underlying)"
+        case .ambiguousMediaIdentity:
+            String(localized: "error.mediaIdentityConflict")
         case .missingSourceRoot:
             "The selected media folder could not be recorded."
         case .unknownScan(let scanID):

@@ -13,6 +13,8 @@ Bomu-authored source and documentation are licensed under the [MIT License](LICE
 - macOS 14 or later
 - Apple silicon (arm64)
 - The exact Xcode, Swift, and SDK versions recorded in [`Config/Dependencies.lock.json`](Config/Dependencies.lock.json)
+- Python 3 for the build and verification scripts
+- FFmpeg and ffprobe on `PATH` to generate test fixtures; the app itself uses its bundled runtime
 
 ## Build and test
 
@@ -28,6 +30,13 @@ Run Python and hostless Swift tests without opening the player, then run static 
 ```sh
 ./scripts/test-dev.sh --direct-hostless
 ./scripts/build-dev.sh --analyze
+```
+
+CI also audits the current third-party license/provenance records and the built app's runtime closure:
+
+```sh
+python3 scripts/license_audit.py check
+python3 scripts/package_internal.py .build/DerivedData/Build/Products/Debug/Bomu.app
 ```
 
 Native playback tests use `./scripts/test-dev.sh --native` and open one app-host window. The internal DMG produced by `./scripts/package-internal-dev.sh` is an ad-hoc signed development artifact, not a release build. Signing, notarization, and clean-machine installation have not passed release acceptance.

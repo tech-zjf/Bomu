@@ -35,14 +35,21 @@ actor MediaMetadataProbe {
         self.maximumCachedEntries = min(2_048, max(1, maximumCachedEntries))
     }
 
-    func metadata(mediaFileID: Int64, contentRevision: String, sourceURL: URL) async -> MediaTechnicalMetadata {
+    /// Retains known facts while a source is offline without opening the source file.
+    func cachedMetadata(mediaFileID: Int64, contentRevision: String) -> MediaTechnicalMetadata? {
         let key = CacheKey(mediaFileID: mediaFileID, contentRevision: contentRevision)
-        if var cached = cache[key] {
-            accessCounter &+= 1
-            cached.lastAccess = accessCounter
-            cache[key] = cached
-            return cached.metadata
+        guard var cached = cache[key] else { return nil }
+        accessCounter &+= 1
+        cached.lastAccess = accessCounter
+        cache[key] = cached
+        return cached.metadata
+    }
+
+    func metadata(mediaFileID: Int64, contentRevision: String, sourceURL: URL) async -> MediaTechnicalMetadata {
+        if let cached = cachedMetadata(mediaFileID: mediaFileID, contentRevision: contentRevision) {
+            return cached
         }
+        let key = CacheKey(mediaFileID: mediaFileID, contentRevision: contentRevision)
         guard (try? sourceURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
               FileManager.default.fileExists(atPath: sourceURL.path),
               (try? await permits.acquire()) != nil else {

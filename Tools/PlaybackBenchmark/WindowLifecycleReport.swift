@@ -15,7 +15,7 @@ enum WindowScenario: String, Encodable {
         case .mediaSuite:
             "30 licensed media cases through the production PlayerScreen/PlayerModel in one stationary ordinary window held at floating level and one native session; then pause/resume, minimize/restore and uninterrupted muted playback"
         case .b11Suite:
-            "60 licensed audiovisual cases, 100 acknowledged same-window file switches and 30-minute synchronized audiovisual playback through one production PlayerScreen/PlayerModel and one native session; muted automation with audio output verified"
+            "60 licensed audiovisual cases, 100 acknowledged same-window file switches and 30-minute playback of a source-aligned audiovisual fixture through one production PlayerScreen/PlayerModel and one native session; muted automation with audio output verified"
         case .replacementBurst:
             "Production PlayerScreen/PlayerModel in one stationary ordinary window; cancel queued opens and issue rapid replacements, then verify the final MPEG-TS seek and recovery in the same native session"
         case .displayTransitions:

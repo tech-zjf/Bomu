@@ -7,7 +7,7 @@
 - Resume position and automatic queue advance can each be turned off independently.
 - Appearance stays light in this release, matching the agreed baseline.
 
-The Data tab clears the local playback-history table after explicit confirmation. The active file is marked as excluded from subsequent periodic saves so its row does not reappear immediately after clearing. Original media is never touched.
+After explicit confirmation, the Data tab clears both current and deferred legacy playback-history tables in one transaction, then refreshes Continue Watching through the application-owned record-operation coordinator. Favorites, categories, source indexes, and privacy rules are preserved; a failed delete rolls back both history tables and remains retryable. The active file is marked as excluded from subsequent periodic saves so its row does not reappear immediately after clearing. Original media is never touched.
 
 The Updates tab displays the installed version and states that update service is not available in this development build. Its action remains disabled until the signed update channel is implemented; no dormant preference pretends that checks are running.
 
@@ -16,5 +16,7 @@ The settings are presented through the native macOS Settings scene and standard 
 ## Verification
 
 - App Debug build and app-host test-target compilation pass with the pinned Xcode 27.0 toolchain.
-- The hostless logic target passes 24 tests, including preference persistence and value validation, applying defaults on media load, disabling automatic queue advance, and ensuring cleared history stays cleared for the current session.
+- The hostless logic target covers preference persistence and value validation, applying defaults on media load, disabling automatic queue advance, and ensuring cleared history stays cleared for the current session.
 - Manual inspection of the Settings scene, VoiceOver, and keyboard navigation is pending Screen 1 availability.
+
+History clearing, data reset, and archive restore are coordinated by `MediaLibraryRecordOperations`; see [data management](../library/data-management.md) for scan/write draining, failure recovery, and exit ownership. Settings submits confirmed intents and shows a busy indicator while those operations run.

@@ -11,27 +11,42 @@ struct MediaLibraryListRow: View {
     let onToggleFavorite: () -> Void
 
     @State private var thumbnailURL: URL?
-    @State private var technicalMetadata: MediaTechnicalMetadata?
+    @State private var metadataState: MediaTechnicalMetadataLoadState = .loading
+
+    private var technicalMetadata: MediaTechnicalMetadata? { metadataState.metadata }
 
     var body: some View {
         HStack(spacing: 13) {
-            MediaLibraryThumbnail(url: thumbnailURL, isAudio: isAudio)
-                .frame(width: 90)
-
             Button { model.select(item) } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.displayName)
-                        .font(AppTheme.Typography.mediaTitle)
-                        .lineLimit(1)
-                        .foregroundStyle(AppTheme.textPrimary)
-                    Text(MediaTechnicalMetadataText.cardValueOrFileSize(
-                        metadata: technicalMetadata,
-                        byteCount: item.byteCount,
-                        isAudio: isAudio
-                    ))
-                    .font(AppTheme.Typography.metadata)
-                    .lineLimit(1)
-                    .foregroundStyle(AppTheme.textSecondary)
+                HStack(spacing: 13) {
+                    MediaLibraryThumbnail(url: thumbnailURL, isAudio: isAudio)
+                        .frame(width: 90)
+                        .overlay(alignment: .topTrailing) {
+                            if !isPlayable {
+                                Image(systemName: "externaldrive.badge.xmark")
+                                    .font(AppTheme.Typography.Symbol.compactAction)
+                                    .foregroundStyle(AppTheme.textPrimary)
+                                    .padding(4)
+                                    .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.badge))
+                                    .padding(4)
+                                    .accessibilityHidden(true)
+                            }
+                        }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.displayName)
+                            .font(AppTheme.Typography.mediaTitle)
+                            .lineLimit(1)
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Text(metadataState.cardValue(isAudio: isAudio))
+                            .font(AppTheme.Typography.mediaMetadata)
+                            .lineLimit(1)
+                            .frame(height: AppTheme.Layout.mediaSummaryLineHeight, alignment: .topLeading)
+                            .foregroundStyle(AppTheme.textSecondary)
+                        Text(ByteCountFormatStyle().format(item.byteCount))
+                            .font(AppTheme.Typography.mediaMetadata)
+                            .lineLimit(1)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
@@ -50,8 +65,9 @@ struct MediaLibraryListRow: View {
                 onPlay(item)
             } label: {
                 Image(systemName: "play.fill")
+                    .font(AppTheme.Typography.Symbol.mediaPlay)
                     .foregroundStyle(AppTheme.textPrimary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: AppTheme.Layout.compactControlSize, height: AppTheme.Layout.compactControlSize)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -60,55 +76,45 @@ struct MediaLibraryListRow: View {
 
             Button(action: onToggleFavorite) {
                 Image(systemName: item.isFavorite ? "heart.fill" : "heart")
+                    .font(AppTheme.Typography.Symbol.compactAction)
                     .foregroundStyle(item.isFavorite ? .pink : AppTheme.textSecondary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: AppTheme.Layout.compactControlSize, height: AppTheme.Layout.compactControlSize)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(item.isFavorite ? "library.removeFavorite" : "library.addFavorite"))
+
+            MediaLibraryActionsMenu(item: item, isPlayable: isPlayable, model: model,
+                                    onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning)
         }
         .padding(.vertical, 10)
+        .contentShape(Rectangle())
+        .onTapGesture { model.select(item) }
+        .background(model.selectedItemID == item.id ? AppTheme.mutedSurface : .clear)
         .overlay(alignment: .bottom) { AppTheme.separator.frame(height: 1) }
         .accessibilityElement(children: .contain)
-        .task(id: "\(item.relativePath)-\(item.contentRevision)-\(isVisible)") {
+        .task(id: "thumbnail-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
             guard isVisible else {
                 thumbnailURL = nil
-                technicalMetadata = nil
                 return
             }
-            async let thumbnail = model.thumbnailURL(for: item)
-            async let metadata = model.metadata(for: item)
-            let loadedThumbnail = await thumbnail
-            let loadedMetadata = await metadata
+            let loadedThumbnail = await model.thumbnailURL(for: item)
             guard !Task.isCancelled else { return }
             thumbnailURL = loadedThumbnail
-            technicalMetadata = loadedMetadata
+        }
+        .task(id: "metadata-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
+            guard isVisible else {
+                metadataState = .loading
+                return
+            }
+            metadataState = .loading
+            let loadedMetadata = await model.metadata(for: item)
+            guard !Task.isCancelled else { return }
+            metadataState = .resolved(loadedMetadata)
         }
         .contextMenu {
-            if item.playbackPosition > 0 {
-                Button("library.continuePlayback", systemImage: "play.fill") {
-                    model.select(item)
-                    onContinue(item)
-                }
-            }
-            Button("library.playFromBeginning", systemImage: "backward.end.fill") {
-                model.select(item)
-                onPlayFromBeginning(item)
-            }
-            Divider()
-            Button(item.isWatched ? "library.markUnwatched" : "library.markWatched",
-                   systemImage: item.isWatched ? "eye.slash" : "eye") {
-                model.toggleWatched(item)
-            }
-            Menu("library.category") {
-                ForEach(MediaManualCategory.allCases) { category in
-                    Button(category.title) { model.setCategory(category, for: item) }
-                }
-                if item.manualCategory != nil {
-                    Divider()
-                    Button("library.category.clear") { model.setCategory(nil, for: item) }
-                }
-            }
+            MediaLibraryItemActions(item: item, isPlayable: isPlayable, model: model,
+                                    onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning)
         }
     }
 
@@ -120,7 +126,8 @@ struct MediaLibraryListRow: View {
         MediaLibraryAccessibilitySummary.value(
             for: item,
             isSelected: model.selectedItemID == item.id,
-            metadata: technicalMetadata
+            metadata: technicalMetadata,
+            isOffline: !isPlayable
         )
     }
 }

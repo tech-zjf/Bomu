@@ -5,19 +5,55 @@
 ## 通用准备
 
 - 使用当前待验收的正式 Debug 构建，并记录构建号、macOS 版本和显示器配置。
-- 准备已授权的 H.264/AAC 与 H.265/HEVC 本地视频、带两个音轨或字幕轨道的视频、可控文件夹树、损坏/不可访问样本，以及一段明确标记同步事件的视频。
+- 使用 A04 的 CC0 合成素材，不使用个人录像、商业视频或其他未授权文件。优先核验并解开本地素材包：
+  ```sh
+  python3 scripts/media_fixtures.py --package-manifest docs/playback/media-suite/media-manifest-2026-10-13.json --repository-root .
+  mkdir -p .build/acceptance
+  tar -xzf .build/Bomu-A04-media-suite.tar.gz -C .build/acceptance
+  ```
+  包不存在时，在 `.build/` 下重建同一 A04 样本集并验证 manifest：
+  ```sh
+  python3 scripts/generate-media-suite.py --suite a04 --output .build/acceptance/media-suite
+  python3 scripts/media_fixtures.py .build/acceptance/media-suite
+  ```
+- 按下面的固定映射选样；目录扫描任务使用拷贝到 `.build/acceptance/source/` 的合成样本。所有 `.build/` 内容均为可再生成的本地测试数据，不提交 Git。
 - 对需要持久化的任务，先记录媒体库状态；验收后检查来源文件字节未改变。
 - 每次记录步骤结果、实际观察、失败恢复情况和构建标识；不能观察的项目标记“未验证”，不能推定通过。
+
+### 样本映射
+
+| 用途 | 固定样本 | 验证边界 |
+| --- | --- | --- |
+| Finder 打开、定位和画幅 | `08-中文 宽银幕.mp4` | 文件名含中文与空格，画幅为 21:9；`01-baseline-480p.mp4` 用作普通 H.264/AAC 对照 |
+| H.265、音轨与同步 | `14-hevc-main10.mp4`、`28-two-audio-tracks.mkv`、`29-sync.mov` | 同步片的源内闪光/脉冲偏差已写入 manifest；它不替代真实显示器与扬声器的人工同步验收 |
+| 恢复与错误 | `01-baseline-480p.mp4`、`16-invalid.mp4`、`30-truncated.mp4` | 有效样本应在错误样本之后继续播放；两个故障样本应可理解地拒绝 |
+| 可控文件夹树 | `01-baseline-480p.mp4`、`08-中文 宽银幕.mp4`、`28-two-audio-tracks.mkv` | 复制到临时树的根目录、一级和二级目录；另建空目录及 `README.txt` 非媒体文件 |
+
+A04 素材来源、预期媒体参数与 CC0-1.0 许可记录在[精简 manifest](../playback/media-suite/media-manifest-2026-10-13.json)；实际播放矩阵与已知缺口见[验证记录](../playback/media-suite/validation.md)。
+
+创建目录扫描样本树时，为每次验收生成新的本地目录并使用固定层级：
+
+```sh
+sourceRoot=".build/acceptance/source-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$sourceRoot/Season 01/Disc 01" "$sourceRoot/Empty"
+cp .build/acceptance/media-suite/01-baseline-480p.mp4 "$sourceRoot/"
+cp ".build/acceptance/media-suite/08-中文 宽银幕.mp4" "$sourceRoot/Season 01/"
+cp .build/acceptance/media-suite/28-two-audio-tracks.mkv "$sourceRoot/Season 01/Disc 01/"
+printf 'Non-media acceptance fixture\n' > "$sourceRoot/README.txt"
+printf 'Add this source in Bomu: %s\n' "$sourceRoot"
+```
+
+搜索任务依据定稿的 R07，必须分别检索标题、原文件名和文件夹名。`MediaLibraryModel.matchingItems` 现在覆盖原文件名、来源根目录及任意层级的父目录名，并有模型回归；Screen 1 单窗口中按来源名 `fixtures` 搜索已显示 5 个结果，嵌套目录和原文件名的 UI 查询仍待手工验收。当前数据模型没有独立的媒体标题字段，标题应代表内嵌标签还是不带扩展名的文件名尚未确定；该字段验收保持开放。10,000 条数据库 XCTest 不代替交互验收，也不弱化定稿预期。
 
 ## 1. 从 Finder 打开并完成一次播放
 
 **覆盖：** R01、R02、R03、R04。
 
-1. 在 Finder 双击带空格或中文文件名的本地 H.264 视频；确认 Bomu 使用当前主窗口打开它。
+1. 在 Finder 双击 `08-中文 宽银幕.mp4`；确认 Bomu 使用当前主窗口打开它，再用 `01-baseline-480p.mp4` 检查常规 H.264/AAC。
 2. 播放、暂停、前进和后退 10 秒，再拖动时间线到一个明确时间点并释放。
-3. 调整音量和倍速；若素材有多个音轨或字幕轨，切换到另一轨道，并核对无轨素材显示真实的无轨状态。
+3. 调整音量和倍速；用 `28-two-audio-tracks.mkv` 切换另一音轨，并用 `23-silent.mp4` 核对无音轨状态。
 4. 暂停后退出 Bomu，再重新打开同一个文件并选择继续。
-5. 重新播放到自然结束；另一次手动停止，核对手动停止不触发自动下一项或已看完成状态。
+5. 重新播放到自然结束；另一次手动停止，核对手动停止不触发自动下一项或已看完成状态。音画检查使用 `29-sync.mov`，并单独记录人工听看结论。
 
 **通过标准：** 画面比例正确、声音连续、操作结果与显示状态一致；定位精度符合定稿；暂停/退出后恢复到保存位置；自然结束与手动停止的行为不同。同步素材的闪光和短音需真实听看确认。
 
@@ -25,7 +61,7 @@
 
 **覆盖：** R05、R06、R09。
 
-1. 在媒体库添加一个包含根目录文件、两层子目录、空目录和非媒体文件的本地来源，并启用包含子目录。
+1. 将固定映射中的样本复制到可控目录树，再在媒体库添加该来源并启用包含子目录。目录树需包含根目录文件、两层子目录、空目录和非媒体文件。
 2. 扫描过程中确认文件逐步出现、进度持续更新；取消一次扫描，再完整扫描一次。
 3. 进入来源、子目录和空目录，再用面包屑返回；在网格和列表之间切换。
 4. 记录滚动位置后切换到另一个媒体库页面再返回；临时卸载/断开来源，确认离线提示；恢复来源后刷新。
@@ -47,7 +83,7 @@
 
 **覆盖：** R06、R07、R08。
 
-1. 在 1 万条规模的索引数据中分别用原文件名、标题和文件夹名搜索一个已知目标。
+1. 在媒体库中分别用原文件名、标题和文件夹名搜索一个已知目标；另由 `MediaLibraryScannerTests.testDatabaseBackedTenThousandItemLibraryRefreshAndSearch` 验证 10,000 条 SQLite 索引的刷新与搜索，不把后端性能测试当作 UI 手工验收。
 2. 收藏目标，再切换到收藏页；取消收藏后确认目标消失。
 3. 从媒体库上下文菜单分别选择“从上次位置继续”和“从头播放”。
 4. 搜索一个不存在的关键词，再清空搜索；对未分类项目核对页面不伪造类型。
@@ -59,7 +95,7 @@
 **覆盖：** R09、R10、R11。
 
 1. 将一个测试子目录设为不记播放历史；播放其文件并退出，确认之后没有该文件的检查点。
-2. 分别打开缺失、权限拒绝和损坏/不支持样本，记录具体错误类别与可用恢复动作；恢复权限/文件后重试。
+2. 分别打开缺失文件、权限拒绝路径、`16-invalid.mp4` 与 `30-truncated.mp4`，记录具体错误类别与可用恢复动作；恢复权限/文件后重试。
 3. 导出媒体库 JSON，核对其中包含来源和逻辑 ID、收藏/观看/分类、播放进度及设置，但不包含媒体字节。
 4. 修改一条目标记录后导入该归档；先核对预览中的匹配/跳过/替换计数，再确认导入并核验恢复结果。
 5. 确认原视频文件的校验值在任务前后相同。

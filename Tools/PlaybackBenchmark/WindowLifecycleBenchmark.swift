@@ -247,7 +247,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 report.systemSleepWake = SystemSleepWakeMeasurement(
                     sleepNotifications: sleepNotificationCount, wakeNotifications: wakeNotificationCount,
                     recoveryEvidence: sleepNotificationCount > 0 && wakeNotificationCount > 0
-                        ? "A real system sleep/wake occurred during playback; the subsequent continuous-playback checkpoints are the recovery evidence."
+                        ? "Sleep and wake notifications were observed. Their counts alone do not establish post-wake audio/video recovery; dedicated recovery acceptance remains required."
                         : "No real system sleep/wake occurred during this run; sleep recovery remains unverified.")
             }
             player.stop()
@@ -392,7 +392,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         }
         player.togglePause()
         try await waitUntil("final TS paused") { player.state.snapshot?.isPaused == true }
-        player.seek(to: duration * 0.6)
+        player.seek(to: duration * 0.6, requestID: finalRequestID)
         try await waitUntil("final TS seek recovery") {
             guard let snapshot = player.state.snapshot else { return false }
             return snapshot.requestID == finalRequestID && snapshot.isPaused && !snapshot.isSeeking

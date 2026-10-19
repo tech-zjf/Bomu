@@ -5,33 +5,98 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     let player: PlayerModel
     @Bindable var preferences: PlaybackPreferences
-    let library: MediaLibraryModel
+    let records: MediaLibraryRecordOperations
     @State private var isConfirmingHistoryClear = false
     @State private var isConfirmingLibraryClear = false
     @State private var isChoosingPrivateFolder = false
     @State private var isChoosingArchive = false
     @State private var privateFolders: [HistoryExcludedFolder] = []
-    @State private var pendingArchiveData: Data?
-    @State private var importPreview: MediaLibraryImportPreview?
-    @State private var isConfirmingArchiveImport = false
+    @State private var importPreparation = MediaLibraryImportPreparation()
     @State private var importStatus: String?
+    @State private var selectedTab = SettingsTab.playback
+
+    private enum SettingsTab: String, CaseIterable, Identifiable {
+        case appearance
+        case playback
+        case subtitles
+        case storage
+        case about
+
+        var id: String { rawValue }
+        var title: LocalizedStringKey {
+            switch self {
+            case .appearance: "settings.appearance.section"
+            case .playback: "settings.playback.tab"
+            case .subtitles: "settings.subtitles.tab"
+            case .storage: "settings.storage.tab"
+            case .about: "settings.about.tab"
+            }
+        }
+    }
 
     var body: some View {
-        TabView {
-            playbackSettings
-                .tabItem { Label("settings.playback.tab", systemImage: "play.circle") }
-            subtitleSettings
-                .tabItem { Label("settings.subtitles.tab", systemImage: "captions.bubble") }
-            dataSettings
-                .tabItem { Label("settings.data.tab", systemImage: "externaldrive") }
-            updateSettings
-                .tabItem { Label("settings.updates.tab", systemImage: "arrow.triangle.2.circlepath") }
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("library.nav.settings")
+                        .font(AppTheme.Typography.pageTitle)
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text("settings.pageSubtitle")
+                        .font(AppTheme.Typography.pageSubtitle)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                .padding(.bottom, 20)
+
+                HStack(spacing: 5) {
+                    ForEach(SettingsTab.allCases) { tab in
+                        Button {
+                            selectedTab = tab
+                        } label: {
+                            Text(tab.title)
+                                .font(AppTheme.Typography.filterLabel)
+                                .foregroundStyle(selectedTab == tab ? AppTheme.textPrimary : AppTheme.textSecondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .overlay(alignment: .bottom) {
+                                    if selectedTab == tab {
+                                        AppTheme.textPrimary.frame(height: 2)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(selectedTab == tab ? .isSelected : [])
+                    }
+                    Spacer(minLength: 0)
+                }
+                .overlay(alignment: .bottom) { AppTheme.separator.frame(height: 1) }
+            }
+            .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+            .padding(.top, AppTheme.Layout.contentVerticalInset)
+
+            Group {
+                switch selectedTab {
+                case .appearance: appearanceSettings
+                case .playback: playbackSettings
+                case .subtitles: subtitleSettings
+                case .storage: dataSettings
+                case .about: updateSettings
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(minWidth: 520, minHeight: 340)
+        .background(AppTheme.surface)
+        .frame(minWidth: AppTheme.Layout.minimumWindowWidth, minHeight: AppTheme.Layout.minimumWindowHeight)
         .alert("settings.clearHistory.confirmTitle", isPresented: $isConfirmingHistoryClear) {
             Button("common.cancel", role: .cancel) { }
             Button("settings.clearHistory.action", role: .destructive) {
-                Task { await player.clearPlaybackHistory() }
+                Task {
+                    do {
+                        try await records.clearHistory()
+                    } catch {
+                        player.reportHistoryClearError(error)
+                    }
+                }
             }
         } message: {
             Text("settings.clearHistory.confirmMessage")
@@ -41,8 +106,7 @@ struct SettingsView: View {
             Button("settings.clearLibrary.action", role: .destructive) {
                 Task {
                     do {
-                        try await player.clearLibraryRecords()
-                        await library.refresh()
+                        try await records.clearRecords()
                         await reloadPrivateFolders()
                     } catch {
                         player.reportDataManagementError(error)
@@ -52,32 +116,34 @@ struct SettingsView: View {
         } message: {
             Text("settings.clearLibrary.confirmMessage")
         }
-        .confirmationDialog("settings.import.confirmTitle", isPresented: $isConfirmingArchiveImport,
-                            titleVisibility: .visible) {
-            Button("settings.import.apply", role: .destructive) {
-                guard let pendingArchiveData else { return }
-                Task {
-                    do {
-                        let result = try await player.importLibraryArchive(pendingArchiveData)
-                        await library.refresh()
-                        importStatus = String.localizedStringWithFormat(
-                            NSLocalizedString("settings.import.success", comment: ""),
-                            result.importedFileCount, result.unmatchedFileCount
-                        )
-                        self.pendingArchiveData = nil
-                        importPreview = nil
-                    } catch {
-                        player.reportDataManagementError(error)
+        .confirmationDialog("settings.import.confirmTitle", isPresented: Binding(
+            get: { importPreparation.prepared != nil },
+            set: { if !$0 { importPreparation.cancel() } }
+        ), titleVisibility: .visible) {
+            if let prepared = importPreparation.prepared {
+                Button("settings.import.apply", role: .destructive) {
+                    // Capture the prepared archive before the dialog dismisses its state.
+                    let data = prepared.data
+                    importPreparation.cancel()
+                    Task {
+                        do {
+                            let result = try await records.importArchive(data)
+                            await reloadPrivateFolders()
+                            importStatus = String.localizedStringWithFormat(
+                                NSLocalizedString("settings.import.success", comment: ""),
+                                result.importedFileCount, result.unmatchedFileCount
+                            )
+                        } catch {
+                            player.reportDataManagementError(error)
+                        }
                     }
                 }
             }
         } message: {
-            if let importPreview {
+            if let preview = importPreparation.prepared?.preview {
                 Text(String.localizedStringWithFormat(
                     NSLocalizedString("settings.import.confirmMessage", comment: ""),
-                    importPreview.matchedFileCount,
-                    importPreview.unmatchedFileCount,
-                    importPreview.replacedRecordCount
+                    preview.matchedFileCount, preview.unmatchedFileCount, preview.replacedRecordCount
                 ))
             }
         }
@@ -87,7 +153,7 @@ struct SettingsView: View {
                 do {
                     let urls = try result.get()
                     if let folder = urls.first {
-                        try await player.setHistoryExcludedFolder(folder, excluded: true)
+                        try await records.excludeHistory(in: folder)
                         await reloadPrivateFolders()
                     }
                 } catch {
@@ -97,6 +163,10 @@ struct SettingsView: View {
             }
         }
         .task { await reloadPrivateFolders() }
+        .onDisappear { importPreparation.cancel() }
+        .onChange(of: records.isWorking) { _, isWorking in
+            if isWorking { importPreparation.cancel() }
+        }
     }
 
     private var playbackSettings: some View {
@@ -122,6 +192,17 @@ struct SettingsView: View {
         .padding()
     }
 
+    private var appearanceSettings: some View {
+        Form {
+            Section("settings.appearance.section") {
+                Label("settings.appearance.lightOnly", systemImage: "sun.max")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
     private var subtitleSettings: some View {
         Form {
             Section("settings.subtitles.section") {
@@ -134,6 +215,7 @@ struct SettingsView: View {
                         Text("settings.seconds")
                     }
                     Slider(value: $preferences.defaultSubtitleDelay, in: -30...30, step: 0.5)
+                        .labelsHidden()
                         .accessibilityLabel(Text("settings.subtitles.defaultDelay"))
                         HStack {
                             Text("settings.subtitles.earlier")
@@ -171,19 +253,25 @@ struct SettingsView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(folder.displayName)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .help(folder.displayName)
                             Text("\(folder.volumeName) · \(folder.relativePath)")
                                 .font(AppTheme.Typography.caption).foregroundStyle(.secondary).lineLimit(1)
+                                .truncationMode(.middle)
+                                .help("\(folder.volumeName) · \(folder.relativePath)")
                         }
                         Spacer()
                         Button("settings.privacy.remove") {
                             Task {
                                 do {
-                                    try await player.removeHistoryExcludedFolder(folder)
+                                    try await records.removeHistoryExclusion(folder)
                                     await reloadPrivateFolders()
                                 } catch { player.reportDataManagementError(error) }
                             }
                         }
                         .buttonStyle(.borderless)
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                 }
                 Button("settings.privacy.addFolder", systemImage: "folder.badge.minus") {
@@ -192,13 +280,15 @@ struct SettingsView: View {
                 .disabled(!player.hasMediaLibraryStore)
             }
             Section("settings.clearLibrary.section") {
-                Text("settings.clearLibrary.description").foregroundStyle(.secondary)
+                if records.isWorking { ProgressView("settings.data.working") }
+                Text("settings.data.archiveDescription").foregroundStyle(.secondary)
                 Button("settings.data.export", systemImage: "square.and.arrow.up") {
                     exportLibraryData()
                 }
                 .disabled(!player.hasMediaLibraryStore)
                 Button("settings.data.import", systemImage: "square.and.arrow.down") {
                     importStatus = nil
+                    importPreparation.cancel()
                     isChoosingArchive = true
                 }
                 .disabled(!player.hasMediaLibraryStore)
@@ -206,6 +296,18 @@ struct SettingsView: View {
                     isConfirmingLibraryClear = true
                 }
                 .disabled(!player.hasMediaLibraryStore)
+                switch importPreparation.phase {
+                case .reading:
+                    HStack {
+                        ProgressView("settings.import.reading")
+                        Spacer()
+                        Button("common.cancel") { importPreparation.cancel() }
+                    }
+                case .failed(let message):
+                    Text(message).foregroundStyle(.red).textSelection(.enabled)
+                case .idle, .ready:
+                    EmptyView()
+                }
                 if let importStatus {
                     Text(importStatus).foregroundStyle(.secondary)
                 }
@@ -222,24 +324,14 @@ struct SettingsView: View {
         .padding()
         .fileImporter(isPresented: $isChoosingArchive, allowedContentTypes: [.json],
                       allowsMultipleSelection: false) { result in
-            Task {
-                do {
-                    guard let url = try result.get().first else { return }
-                    let hasScopedAccess = url.startAccessingSecurityScopedResource()
-                    defer {
-                        if hasScopedAccess { url.stopAccessingSecurityScopedResource() }
-                    }
-                    let data = try await Task.detached(priority: .userInitiated) {
-                        try MediaLibraryArchive.read(from: url)
-                    }.value
-                    let preview = try await player.previewLibraryArchive(data)
-                    pendingArchiveData = data
-                    importPreview = preview
-                    isConfirmingArchiveImport = true
-                } catch {
-                    if (error as? CocoaError)?.code == .userCancelled { return }
-                    player.reportDataManagementError(error)
+            do {
+                guard let url = try result.get().first else { return }
+                importPreparation.prepare(from: url) { data in
+                    try await player.previewLibraryArchive(data)
                 }
+            } catch {
+                if (error as? CocoaError)?.code == .userCancelled { return }
+                player.reportDataManagementError(error)
             }
         }
     }
@@ -274,8 +366,7 @@ struct SettingsView: View {
         guard panel.runModal() == .OK, let destination = panel.url else { return }
         Task {
             do {
-                let data = try await player.exportLibraryArchive()
-                try data.write(to: destination, options: .atomic)
+                try await records.exportArchive(to: destination)
             } catch {
                 player.reportDataManagementError(error)
             }

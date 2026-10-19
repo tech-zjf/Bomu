@@ -7,11 +7,13 @@ struct MainWindowView: View {
     let library: MediaLibraryModel
     let videoView: NSView
     let nowPlaying: NowPlayingController
+    let preferences: PlaybackPreferences
+    let records: MediaLibraryRecordOperations
 
-    @State private var isPlayerVisible = false
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    @State private var navigation = MainWindowNavigation()
     @State private var isDropTargeted = false
-    @State private var isReturningToLibrary = false
-    @State private var libraryNeedsRefresh = false
     @State private var dropResolutionTask: Task<Void, Never>?
 
     var body: some View {
@@ -19,17 +21,18 @@ struct MainWindowView: View {
             MediaLibraryView(
                 model: library,
                 player: player,
-                isVisible: !isPlayerVisible,
+                preferences: preferences,
+                records: records,
+                isVisible: !navigation.isPlayerVisible,
                 onPlay: open,
                 onContinue: continuePlayback,
                 onPlayFromBeginning: playFromBeginning,
-                onShowPlayer: { isPlayerVisible = true },
-                showSettings: showSettings
+                onShowPlayer: { navigation.showPlayer() },
             )
-            .opacity(isPlayerVisible ? 0 : 1)
-            .allowsHitTesting(!isPlayerVisible && player.startupError == nil)
-            .accessibilityHidden(isPlayerVisible || player.startupError != nil)
-            .disabled(player.startupError != nil)
+            .opacity(navigation.isPlayerVisible ? 0 : 1)
+            .allowsHitTesting(!navigation.isPlayerVisible && player.startupError == nil)
+            .accessibilityHidden(navigation.isPlayerVisible || player.startupError != nil)
+            .disabled(navigation.isPlayerVisible || player.startupError != nil)
 
             PlayerScreen(
                 player: player,
@@ -37,10 +40,10 @@ struct MainWindowView: View {
                 nowPlaying: nowPlaying,
                 onReturnToLibrary: returnToLibrary
             )
-                .opacity(isPlayerVisible ? 1 : 0)
-                .allowsHitTesting(isPlayerVisible && player.startupError == nil)
-                .accessibilityHidden(!isPlayerVisible || player.startupError != nil)
-                .disabled(player.startupError != nil)
+                .opacity(navigation.isPlayerVisible ? 1 : 0)
+                .allowsHitTesting(navigation.isPlayerVisible && player.startupError == nil)
+                .accessibilityHidden(!navigation.isPlayerVisible || player.startupError != nil)
+                .disabled(!navigation.isPlayerVisible || player.startupError != nil)
         }
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isDropTargeted) { providers in
             receiveDrop(providers)
@@ -49,17 +52,17 @@ struct MainWindowView: View {
         .overlay {
             if isDropTargeted {
                 RoundedRectangle(cornerRadius: AppTheme.Corners.dropTargetOverlay)
-                    .stroke(isPlayerVisible ? .white : AppTheme.textPrimary,
+                    .stroke(navigation.isPlayerVisible ? .white : AppTheme.textPrimary,
                             style: StrokeStyle(lineWidth: 3, dash: [10, 7]))
                     .padding(12)
                     .overlay {
                         Text("open.dropHere")
                             .font(AppTheme.Typography.headline)
-                            .foregroundStyle(isPlayerVisible ? .white : AppTheme.textPrimary)
+                            .foregroundStyle(navigation.isPlayerVisible ? .white : AppTheme.textPrimary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .background(
-                                isPlayerVisible ? Color.black.opacity(0.72) : Color.white.opacity(0.94),
+                                dropPromptBackground,
                                 in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface)
                             )
                     }
@@ -72,19 +75,19 @@ struct MainWindowView: View {
             }
         }
         .preferredColorScheme(.light)
-        .onChange(of: player.state.request?.id) { _, requestID in
+        .onChange(of: player.state.request?.id, initial: true) { _, requestID in
             if requestID != nil {
-                libraryNeedsRefresh = true
-                isPlayerVisible = true
+                navigation.showPlayer()
             }
         }
         .onChange(of: player.state.phase) { _, phase in
-            if phase == .idle, isPlayerVisible { returnToLibrary() }
+            if phase == .idle { returnToLibrary() }
         }
-        .onChange(of: isPlayerVisible) { _, visible in
+        .onChange(of: navigation.isPlayerVisible) { _, visible in
             if visible { nowPlaying.update() }
         }
         .onDisappear {
+            navigation.cancelPendingReturn()
             dropResolutionTask?.cancel()
             dropResolutionTask = nil
         }
@@ -111,46 +114,39 @@ struct MainWindowView: View {
     private func open(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
         player.open(url)
-        isPlayerVisible = true
+        navigation.showPlayer()
     }
 
     private func continuePlayback(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
         player.continuePlayback(url)
-        isPlayerVisible = true
+        navigation.showPlayer()
     }
 
     private func playFromBeginning(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
         player.playFromBeginning(url)
-        isPlayerVisible = true
+        navigation.showPlayer()
     }
 
     private func returnToLibrary() {
-        guard !isReturningToLibrary else { return }
-        isReturningToLibrary = true
-        let requestID = player.state.request?.id
-        Task { @MainActor in
-            var didRefresh = !libraryNeedsRefresh
-            if libraryNeedsRefresh { didRefresh = await library.refresh() }
-            guard player.state.request?.id == requestID else {
-                isReturningToLibrary = false
-                return
-            }
-            if didRefresh { libraryNeedsRefresh = false }
+        navigation.showLibrary {
+            try? await player.checkpointPlaybackHistory()
+            guard !Task.isCancelled else { return }
+            _ = await library.refresh()
+            guard !Task.isCancelled else { return }
             nowPlaying.update()
-            isPlayerVisible = false
-            isReturningToLibrary = false
         }
+    }
+
+    private var dropPromptBackground: Color {
+        if reduceTransparency { return navigation.isPlayerVisible ? .black : .white }
+        return navigation.isPlayerVisible ? Color.black.opacity(0.72) : Color.white.opacity(0.94)
     }
 
     private func open(_ url: URL) {
         player.open(url)
-        isPlayerVisible = true
-    }
-
-    private func showSettings() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        navigation.showPlayer()
     }
 
     private func receiveDrop(_ providers: [NSItemProvider]) {
@@ -175,7 +171,7 @@ struct MainWindowView: View {
 
 /// Coordinates NSItemProvider's callback and Progress with Swift task cancellation.
 @MainActor
-private final class FileURLProviderRequest {
+final class FileURLProviderRequest {
     private var continuation: CheckedContinuation<URL?, Never>?
     private var progress: Progress?
     private var isFinished = false
@@ -227,7 +223,7 @@ private struct StartupFailureView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 28, weight: .light))
+                .font(AppTheme.Typography.Symbol.startupFailure)
                 .frame(width: 62, height: 62)
                 .background(AppTheme.surface,
                             in: RoundedRectangle(cornerRadius: AppTheme.Corners.emptyStateIcon))
@@ -251,7 +247,7 @@ private struct StartupFailureView: View {
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .foregroundStyle(AppTheme.textPrimary)
-        .background(AppTheme.background)
+        .background(AppTheme.mutedSurface)
         .contentShape(Rectangle())
         .accessibilityElement(children: .contain)
     }

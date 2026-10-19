@@ -5,6 +5,9 @@
 "library.nav.favorites" = "Favorites";
 "library.nav.search" = "Search";
 "library.nav.settings" = "Settings";
+"settings.pageSubtitle" = "Make Bomu work the way you like.";
+"settings.storage.tab" = "Storage";
+"settings.about.tab" = "About";
 "library.section.yourMedia" = "Your Media";
 "library.section.locations" = "Locations";
 "library.viewAll" = "View All";
@@ -16,13 +19,14 @@
 "library.librarySubtitle" = "Browse media added on this Mac.";
 "library.foldersSubtitle" = "Manage locations on this Mac and external disks.";
 "library.favoritesSubtitle" = "Your favorite local media.";
-"library.searchSubtitle" = "Find local media by file name.";
-"library.searchPrompt" = "Search file names";
+"library.searchSubtitle" = "Find local media by file or folder name.";
+"library.searchPrompt" = "Search files and folders";
 "library.searchEmptyTitle" = "Search your local media";
-"library.searchEmptyMessage" = "Enter a file name or part of one.";
+"library.searchEmptyMessage" = "Enter a file or folder name.";
 "library.continueWatching" = "Continue Watching";
+"library.historyConflict" = "Saved progress unavailable";
 "library.recentlyAdded" = "Recently Added";
-"library.emptyContinue" = "Videos you have played will appear here.";
+"library.emptyContinue" = "Videos with saved progress will appear here.";
 "library.emptyRecent" = "Add a folder to see recently added media here.";
 "library.noFoldersTitle" = "No media folders yet";
 "library.noFoldersMessage" = "Add a local folder to start your library. Original videos stay in place.";
@@ -31,11 +35,14 @@
 "library.noFavoritesTitle" = "No favorites yet";
 "library.noFavoritesMessage" = "Select the heart on a media card to save it here.";
 "library.noSearchResultsTitle" = "No matching files";
-"library.noSearchResultsMessage" = "Check the file name or try a shorter search.";
+"library.noSearchResultsMessage" = "Check the file or folder name or try a shorter search.";
+"library.noFilterResultsTitle" = "No media matches these filters";
+"library.noFilterResultsMessage" = "Try another category or viewing status, or clear the filters.";
+"library.clearFilters" = "Clear Filters";
 "library.sourceOnline" = "Available";
 "library.sourceOffline" = "Offline";
 "library.offlineTitle" = "Offline Locations";
-"library.offlineMessage" = "Media and viewing history return when the disk is reconnected.";
+"library.offlineMessage" = "Saved media stays visible. Reconnect the disk to play.";
 "library.scanProgress" = "Scanning · Indexed %lld of %lld media files found";
 "library.scanRecentlyFound" = "Recently found";
 "library.cancelScan" = "Cancel Scan";
@@ -56,6 +63,7 @@
 "library.metadata.noAudio" = "No audio";
 "library.metadata.audioTracks" = "%d audio tracks";
 "library.metadata.unknown" = "Unknown";
+"library.metadata.loading" = "Reading media…";
 "library.categoryFilter" = "Category";
 "library.watchedFilter" = "Viewing status";
 "library.filter.allCategories" = "All categories";
@@ -70,6 +78,10 @@
 "library.category.clear" = "Clear Category";
 "library.markWatched" = "Mark as Watched";
 "library.markUnwatched" = "Mark as Unwatched";
+"library.undo.favoriteAdded" = "Added to Favorites";
+"library.undo.favoriteRemoved" = "Removed from Favorites";
+"library.undo.markedWatched" = "Marked as Watched";
+"library.undo.markedUnwatched" = "Marked as Unwatched";
 "library.unavailable" = "The media library database is unavailable. Check local storage and reopen the app.";
 "library.storageUnavailableTitle" = "Media Library Unavailable";
 "app.startupFailed" = "Bomu Could Not Start";
@@ -104,6 +116,7 @@
 "player.commandFailure.subtitle.title" = "Couldn't load subtitles";
 "player.commandFailure.subtitle.message" = "The selected subtitle could not be loaded. Video playback continues; check the file and try again.";
 "player.trackNumber" = "Track %d";
+"player.track.external" = "External";
 "player.fullscreen" = "Full Screen";
 "player.loading" = "Opening…";
 "player.emptyPrompt" = "Choose a local video or audio file to begin.";
@@ -152,14 +165,14 @@
 "settings.privacy.addFolder" = "Do Not Remember a Folder";
 "settings.privacy.remove" = "Allow History";
 "settings.clearLibrary.section" = "Media library data";
-"settings.clearLibrary.description" = "Remove indexed files, sources, favorites, categories, and saved playback history from this Mac.";
+"settings.data.archiveDescription" = "Export or import sources, favorites, categories, and viewing history. Clearing the library removes these records from this Mac.";
 "settings.clearLibrary.action" = "Clear Media Library Data";
 "settings.clearLibrary.confirmTitle" = "Clear all media library data?";
 "settings.clearLibrary.confirmMessage" = "This removes local indexes, preferences, and playback history. Original media files and private-folder rules are not changed.";
 "settings.data.import" = "Import Media Library Data";
 "settings.import.confirmTitle" = "Apply this media library archive?";
 "settings.import.apply" = "Import Matched Records";
-"settings.import.confirmMessage" = "%d files match this Mac. %d files will be skipped. Existing data for %d matched files will be replaced. Playback settings and source folders will also be restored.";
+"settings.import.confirmMessage" = "%d files match this Mac. %d files will be skipped. Existing data for %d matched files will be replaced. Playback settings, source folders, and private-folder rules will also be restored. Existing viewing history in private folders will be removed.";
 "settings.import.success" = "Imported %d files. Skipped %d files that could not be matched.";
 "settings.data.export" = "Export Media Library Data";
 "settings.data.section" = "Local data";
@@ -175,10 +188,14 @@
 "settings.updates.currentVersion" = "Current version";
 "settings.updates.unavailable" = "The current development build is not connected to an update service. Stable and beta updates will be available in a later version.";
 "settings.updates.check" = "Check for Updates";
-"persistence.errorTitle" = "Could not save playback data";
+"persistence.errorTitle" = "Playback history unavailable";
+"persistence.restoreFailed" = "Your saved progress could not be read. This file will play from the beginning.";
+"persistence.saveFailed" = "Your progress could not be saved. Playback can continue, but recent progress may not be available when you reopen this file.";
+"persistence.identityConflict" = "Multiple saved records match this file. Existing records were preserved, so playback will start from the beginning and progress will not be saved.";
 "common.cancel" = "Cancel";
 "common.ok" = "OK";
 "common.dismiss" = "Dismiss";
+"common.undo" = "Undo";
 
 "library.metadata.oneAudioTrack" = "1 audio track";
 
@@ -189,3 +206,16 @@
 "library.remaining" = "Remaining %@";
 
 "library.moreActions" = "More actions";
+
+"settings.data.working" = "Updating media library records…";
+
+"settings.import.reading" = "Reading media library backup…";
+
+"library.backToHome" = "Back to Home";
+"library.continueSubtitle" = "Resume your unfinished media.";
+"library.emptyContinueMessage" = "Start playing a file to pick it up here later.";
+
+"player.seeking" = "Seeking…";
+"player.buffering" = "Buffering…";
+
+"error.mediaIdentityConflict" = "Multiple library records identify this file. Existing records were preserved.";

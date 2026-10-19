@@ -6,26 +6,26 @@ struct MediaLibrarySourceFolderRow: View {
     var body: some View {
         HStack(spacing: 13) {
             Image(systemName: "folder.fill")
-                .font(.system(size: 21, weight: .regular))
+                .font(AppTheme.Typography.Symbol.folderRow)
                 .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: 46, height: 44)
-                .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
+                .frame(width: AppTheme.Layout.folderListIconSize, height: AppTheme.Layout.folderListIconSize)
+                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
             VStack(alignment: .leading, spacing: 4) {
-                Text(root.displayName).font(AppTheme.Typography.mediaTitle)
+                Text(root.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
                 Text("\(root.volumeName) · \(root.relativePath)")
                     .font(AppTheme.Typography.metadata)
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(1)
             }
             Spacer()
-            Text("library.sourceOnline")
+            Text(root.isOnline ? "library.sourceOnline" : "library.sourceOffline")
                 .font(AppTheme.Typography.compactBadge)
                 .foregroundStyle(AppTheme.textSecondary)
             Image(systemName: "chevron.right")
-                .font(.system(size: 10, weight: .semibold))
+                .font(AppTheme.Typography.Symbol.folderDisclosure)
                 .foregroundStyle(AppTheme.textSecondary.opacity(0.7))
         }
-        .padding(.vertical, 13)
+        .padding(.vertical, AppTheme.Layout.folderRowVerticalInset)
         .overlay(alignment: .bottom) { AppTheme.separator.frame(height: 1) }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -33,52 +33,74 @@ struct MediaLibrarySourceFolderRow: View {
 }
 
 struct MediaLibraryFolderBreadcrumbs: View {
-    let root: MediaSourceRoot?
     let directory: MediaLibraryDirectory
     @Binding var path: [MediaLibraryDirectory]
 
     var body: some View {
-        let ancestors = directory.ancestors(relativeTo: root)
-        let parentDirectories = Array(ancestors.dropLast())
-
-        return HStack(spacing: 8) {
-            Button {
-                path = []
-            } label: {
-                Label("library.nav.folders", systemImage: "chevron.left")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                foldersButton
+                ForEach(parentDirectories) { ancestor in
+                    separator
+                    Button(ancestor.displayName) { navigate(to: ancestor) }
+                        .buttonStyle(BreadcrumbButtonStyle())
+                        .help(ancestor.displayName)
+                }
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: true, vertical: false)
 
-            if let root {
-                if directory.relativePath != root.relativePath {
-                    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
-                    let rootDirectory = MediaLibraryDirectory(sourceRootID: root.id,
-                        relativePath: root.relativePath, displayName: root.displayName)
-                    Button(root.displayName) {
-                        if let prefix = rootDirectory.navigationPathPrefix(in: path) {
-                            path = prefix
+            HStack(spacing: 8) {
+                foldersButton
+                if !parentDirectories.isEmpty {
+                    separator
+                    Menu {
+                        ForEach(parentDirectories) { ancestor in
+                            Button(ancestor.displayName) { navigate(to: ancestor) }
                         }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(AppTheme.Typography.Symbol.mediaActions)
+                            .frame(width: AppTheme.Layout.compactControlSize,
+                                   height: AppTheme.Layout.compactControlSize)
+                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .accessibilityLabel(Text("library.folderBreadcrumb"))
+                    .help(Text("library.folderBreadcrumb"))
                 }
-            }
-
-            ForEach(parentDirectories) { ancestor in
-                Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
-                Button(ancestor.displayName) {
-                    if let prefix = ancestor.navigationPathPrefix(in: path) {
-                        path = prefix
-                    }
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
             }
         }
-        .font(AppTheme.Typography.callout)
+        .foregroundStyle(AppTheme.textSecondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("library.folderBreadcrumb"))
+    }
+
+    // Render only actual destinations in the current stack; both layouts use the same path.
+    private var parentDirectories: [MediaLibraryDirectory] {
+        guard let currentPath = directory.navigationPathPrefix(in: path) else { return [] }
+        return Array(currentPath.dropLast())
+    }
+
+    private var foldersButton: some View {
+        Button { path = [] } label: {
+            Label("library.nav.folders", systemImage: "chevron.left")
+        }
+        .buttonStyle(BreadcrumbButtonStyle())
+    }
+
+    private var separator: some View {
+        Image(systemName: "chevron.right")
+            .font(AppTheme.Typography.Symbol.folderBreadcrumb)
+            .foregroundStyle(.tertiary)
+            .accessibilityHidden(true)
+    }
+
+    private func navigate(to ancestor: MediaLibraryDirectory) {
+        if let prefix = ancestor.navigationPathPrefix(in: path) {
+            path = prefix
+        }
     }
 }
 
@@ -88,10 +110,10 @@ struct MediaLibraryFolderTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Image(systemName: "folder.fill")
-                .font(.system(size: 25, weight: .regular))
+                .font(AppTheme.Typography.Symbol.folderTile)
                 .foregroundStyle(AppTheme.textPrimary)
                 .frame(maxWidth: .infinity, minHeight: 82)
-                .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
+                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
             Text(directory.displayName)
                 .font(AppTheme.Typography.mediaTitle)
                 .lineLimit(1)
@@ -106,16 +128,19 @@ struct MediaLibraryFolderRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "folder.fill")
+                .font(AppTheme.Typography.Symbol.folderRow)
                 .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: 34, height: 34)
-                .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
-            Text(directory.displayName).font(AppTheme.Typography.mediaTitle)
+                .frame(width: AppTheme.Layout.folderListIconSize, height: AppTheme.Layout.folderListIconSize)
+                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
+            Text(directory.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
             Spacer()
-            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+            Image(systemName: "chevron.right")
+                .font(AppTheme.Typography.Symbol.folderDisclosure)
+                .foregroundStyle(AppTheme.textSecondary.opacity(0.7))
         }
-        .padding(.vertical, 9)
+        .padding(.vertical, AppTheme.Layout.folderRowVerticalInset)
         .contentShape(Rectangle())
-        .overlay(alignment: .bottom) { Rectangle().fill(.black.opacity(0.06)).frame(height: 1) }
+        .overlay(alignment: .bottom) { AppTheme.separator.frame(height: 1) }
     }
 }
 
@@ -150,5 +175,17 @@ struct MediaLibraryOfflineSources: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+private struct BreadcrumbButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(AppTheme.Typography.controlBody)
+            .lineLimit(1)
+            .padding(.horizontal, 3)
+            .frame(minHeight: AppTheme.Layout.compactControlSize)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }

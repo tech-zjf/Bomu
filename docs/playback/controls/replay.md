@@ -8,4 +8,4 @@
 
 ## 验证
 
-`PlayerModelTests.testReplayStartsAtBeginningEvenWhenResumePreferenceIsEnabled` 预置 42 秒历史位置和双文件队列，先确认普通打开会应用续播位置，再模拟播放结束并触发重播，断言第二次播放不再请求该历史位置且队列内容/索引未变。该用例与全量逻辑测试在无应用宿主下执行；最新全量结果为 126 项 Python、79 项 XCTest，失败与跳过均为 0。
+`PlayerModelTests.testReplayStartsAtBeginningEvenWhenResumePreferenceIsEnabled` 预置 42 秒历史位置和双文件队列，先确认普通打开会应用续播位置，再模拟播放结束并触发重播，断言第二次播放不再请求该历史位置且队列内容/索引未变。该用例与全量逻辑测试在无应用宿主下执行；2026-10-15 当前无宿主全量回归为 139 项 Python、106 项 XCTest，失败与跳过均为 0。

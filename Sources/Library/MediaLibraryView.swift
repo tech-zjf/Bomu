@@ -30,6 +30,20 @@ enum LibraryDestination: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
+private enum LibraryPage: Equatable {
+    case destination(LibraryDestination)
+    case continueWatching
+    case settings
+
+    var sidebarSelection: LibraryDestination {
+        switch self {
+        case .destination(let destination): destination
+        case .continueWatching: .home
+        case .settings: .home
+        }
+    }
+}
+
 private enum FolderBrowserDensity: String, CaseIterable {
     case grid
     case list
@@ -59,14 +73,15 @@ private extension MediaWatchedFilter {
 struct MediaLibraryView: View {
     let model: MediaLibraryModel
     let player: PlayerModel
+    let preferences: PlaybackPreferences
+    let records: MediaLibraryRecordOperations
     let isVisible: Bool
     let onPlay: (MediaLibraryItem) -> Void
     let onContinue: (MediaLibraryItem) -> Void
     let onPlayFromBeginning: (MediaLibraryItem) -> Void
     let onShowPlayer: () -> Void
-    let showSettings: () -> Void
 
-    @State private var destination: LibraryDestination? = .home
+    @State private var page: LibraryPage = .destination(.home)
     @State private var isChoosingFolder = false
     @State private var folderPath: [MediaLibraryDirectory] = []
     @State private var folderDensity = FolderBrowserDensity.grid
@@ -79,15 +94,18 @@ struct MediaLibraryView: View {
     var body: some View {
         HStack(spacing: 0) {
             MediaLibrarySidebar(
-                selection: destination,
+                selection: page.sidebarSelection,
                 onlineRoots: model.onlineRoots,
                 offlineRoots: model.offlineRoots,
                 isStorageAvailable: model.isStorageAvailable,
-                onSelect: { destination = $0 },
+                onSelect: { page = .destination($0) },
                 onOpen: open,
                 onChooseFolder: chooseFolder,
-                onShowSettings: showSettings
+                onShowSettings: { page = .settings },
+                isSettingsSelected: page == .settings
             )
+            .focusSection()
+            .disabled(model.isReplacingRecords)
             VStack(spacing: 0) {
                 if model.isScanning {
                     scanProgress
@@ -114,13 +132,17 @@ struct MediaLibraryView: View {
                     ProgressView("library.loading")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    destinationContent
+                    pageContent
+                        .disabled(model.isReplacingRecords)
+                }
+                if let notice = model.undoNotice {
+                    undoNoticeBanner(notice)
                 }
                 if let current = player.state.request, player.state.phase == .ready {
                     currentPlaybackBar(title: current.url.deletingPathExtension().lastPathComponent)
                 }
             }
-            .background(AppTheme.surface)
+            .focusSection()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppTheme.surface)
@@ -133,36 +155,76 @@ struct MediaLibraryView: View {
             case .success(let urls):
                 if let folder = urls.first { model.addFolder(folder) }
             case .failure(let error):
+                guard (error as? CocoaError)?.code != .userCancelled else { return }
                 model.report(error)
             }
         }
     }
 
     @ViewBuilder
-    private var destinationContent: some View {
-        switch destination ?? .home {
+    private var pageContent: some View {
+        switch page {
+        case .destination(let destination):
+            destinationContent(destination)
+        case .continueWatching:
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
+                    Button { page = .destination(.home) } label: {
+                        Label("library.backToHome", systemImage: "chevron.left")
+                            .font(AppTheme.Typography.controlBody)
+                            .frame(minHeight: AppTheme.Layout.compactControlSize)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    pageHeader(title: "library.continueWatching", subtitle: "library.continueSubtitle")
+                    if model.continueWatching.isEmpty {
+                        emptyState(title: "library.emptyContinue", message: "library.emptyContinueMessage")
+                    } else {
+                        mediaGrid(model.continueWatching, presentation: .continueWatching)
+                    }
+                }
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
+            }
+        case .settings:
+            SettingsView(player: player, preferences: preferences, records: records)
+        }
+    }
+
+    private var continueWatchingViewAllAction: (() -> Void)? {
+        guard model.continueWatching.count > 2 else { return nil }
+        return { page = .continueWatching }
+    }
+
+    @ViewBuilder
+    private func destinationContent(_ destination: LibraryDestination) -> some View {
+        switch destination {
         case .home:
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.homeTitle", subtitle: "library.homeSubtitle")
                     mediaSection(title: "library.continueWatching", items: Array(model.continueWatching.prefix(2)),
-                                 emptyKey: "library.emptyContinue", columnCount: 2, showsViewAll: true,
+                                 emptyKey: "library.emptyContinue", columnCount: 2,
+                                 onViewAll: continueWatchingViewAllAction,
                                  presentation: .continueWatching)
                     mediaSection(title: "library.recentlyAdded", items: Array(model.recentlyAdded.prefix(3)),
                                  emptyKey: "library.emptyRecent", columnCount: 3,
                                  trailingNote: "library.fromThisMac", presentation: .standard)
                     if !model.offlineRoots.isEmpty { MediaLibraryOfflineSources(roots: model.offlineRoots) }
                 }
-                .padding(AppTheme.Layout.contentInset)
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
             }
         case .library:
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.library", subtitle: "library.librarySubtitle")
                     filterControls
-                    mediaGrid(filtered(model.availableItems))
+                    filteredMediaGrid(model.browsableItems)
                 }
-                .padding(AppTheme.Layout.contentInset)
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
             }
         case .folders:
             foldersContent
@@ -176,25 +238,27 @@ struct MediaLibraryView: View {
                         mediaGrid(model.favorites)
                     }
                 }
-                .padding(AppTheme.Layout.contentInset)
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
             }
         case .search:
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                     pageHeader(title: "library.nav.search", subtitle: "library.searchSubtitle")
                     searchField
-                    if model.searchText.isEmpty {
-                        ContentUnavailableView("library.searchEmptyTitle", systemImage: "magnifyingglass",
-                                               description: Text("library.searchEmptyMessage"))
+                    if !model.hasSearchQuery {
+                        emptyState(title: "library.searchEmptyTitle", message: "library.searchEmptyMessage",
+                                   systemImage: "magnifyingglass")
                     } else if model.searchResults.isEmpty {
-                        ContentUnavailableView("library.noSearchResultsTitle", systemImage: "magnifyingglass",
-                                               description: Text("library.noSearchResultsMessage"))
+                        emptyState(title: "library.noSearchResultsTitle", message: "library.noSearchResultsMessage",
+                                   systemImage: "magnifyingglass")
                     } else {
                         filterControls
-                        mediaGrid(filtered(model.searchResults))
+                        filteredMediaGrid(model.searchResults)
                     }
                 }
-                .padding(AppTheme.Layout.contentInset)
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
             }
         }
     }
@@ -213,12 +277,63 @@ struct MediaLibraryView: View {
         .font(AppTheme.Typography.body)
         .padding(.horizontal, 13)
         .padding(.vertical, 10)
-        .background(AppTheme.background, in: RoundedRectangle(cornerRadius: AppTheme.Corners.field))
+        .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.field))
         .overlay {
             RoundedRectangle(cornerRadius: AppTheme.Corners.field)
                 .stroke(AppTheme.separator.opacity(0.8), lineWidth: 1)
         }
-        .frame(maxWidth: 480)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func undoNoticeBanner(_ notice: MediaLibraryUndoNotice) -> some View {
+        HStack(spacing: 12) {
+            Label(undoMessage(for: notice.kind), systemImage: "checkmark.circle.fill")
+                .font(AppTheme.Typography.body)
+                .foregroundStyle(AppTheme.textPrimary)
+                .lineLimit(1)
+
+            Spacer(minLength: 8)
+
+            Button {
+                Task { await model.undoLastPreferenceChange() }
+            } label: {
+                Text("common.undo")
+                    .font(AppTheme.Typography.controlEmphasis)
+                    .frame(minHeight: AppTheme.Layout.compactControlSize)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+
+            Button(action: model.dismissUndoNotice) {
+                Image(systemName: "xmark")
+                    .font(AppTheme.Typography.Symbol.folderDisclosure)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(width: AppTheme.Layout.compactControlSize, height: AppTheme.Layout.compactControlSize)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("common.dismiss"))
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 8)
+        .padding(.vertical, 8)
+        .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+        .overlay {
+            RoundedRectangle(cornerRadius: AppTheme.Corners.control)
+                .stroke(AppTheme.separator, lineWidth: 1)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func undoMessage(for kind: MediaLibraryUndoKind) -> LocalizedStringKey {
+        switch kind {
+        case .favoriteAdded: "library.undo.favoriteAdded"
+        case .favoriteRemoved: "library.undo.favoriteRemoved"
+        case .markedWatched: "library.undo.markedWatched"
+        case .markedUnwatched: "library.undo.markedUnwatched"
+        }
     }
 
     private var filterControls: some View {
@@ -277,11 +392,27 @@ struct MediaLibraryView: View {
          + Text(selection).foregroundColor(AppTheme.textPrimary))
         .font(AppTheme.Typography.filterLabel)
         .padding(.vertical, 6)
+        .frame(minHeight: AppTheme.Layout.compactControlSize)
         .contentShape(Rectangle())
     }
 
-    private func filtered(_ items: [MediaLibraryItem]) -> [MediaLibraryItem] {
-        MediaLibraryModel.filtering(items, category: categoryFilter, watched: watchedFilter)
+    @ViewBuilder
+    private func filteredMediaGrid(_ items: [MediaLibraryItem]) -> some View {
+        let matches = MediaLibraryModel.filtering(items, category: categoryFilter, watched: watchedFilter)
+        if items.isEmpty {
+            emptyState(title: "library.noMediaTitle", message: "library.noMediaMessage")
+        } else if matches.isEmpty {
+            VStack(spacing: 0) {
+                emptyState(title: "library.noFilterResultsTitle", message: "library.noFilterResultsMessage")
+                Button("library.clearFilters") {
+                    categoryFilter = .all
+                    watchedFilter = .all
+                }
+                .buttonStyle(.bordered)
+            }
+        } else {
+            mediaGrid(matches)
+        }
     }
 
     private var foldersContent: some View {
@@ -292,7 +423,7 @@ struct MediaLibraryView: View {
                     if model.onlineRoots.isEmpty && model.offlineRoots.isEmpty {
                         emptyState(title: "library.noFoldersTitle", message: "library.noFoldersMessage")
                     }
-                    ForEach(model.onlineRoots) { root in
+                    ForEach(model.roots) { root in
                         let location = MediaLibraryDirectory(sourceRootID: root.id,
                             relativePath: root.relativePath, displayName: root.displayName)
                         NavigationLink(value: location) {
@@ -301,9 +432,14 @@ struct MediaLibraryView: View {
                         .buttonStyle(.plain)
                         .id("root-\(root.id)")
                     }
-                    MediaLibraryOfflineSources(roots: model.offlineRoots)
+                    if !model.offlineRoots.isEmpty {
+                        Text("library.offlineMessage")
+                            .font(AppTheme.Typography.metadata)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
                 }
-                .padding(AppTheme.Layout.contentInset)
+                .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+                .padding(.vertical, AppTheme.Layout.contentVerticalInset)
                 .scrollTargetLayout()
             }
             .scrollPosition(id: $folderListScrollTarget, anchor: .top)
@@ -326,12 +462,15 @@ struct MediaLibraryView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
                 MediaLibraryFolderBreadcrumbs(
-                    root: model.roots.first { $0.id == directory.sourceRootID },
                     directory: directory,
                     path: $folderPath
                 )
                 HStack(alignment: .center) {
-                    Text(directory.displayName).font(AppTheme.Typography.pageTitle)
+                    Text(directory.displayName)
+                        .font(AppTheme.Typography.pageTitle)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(directory.displayName)
                     Spacer()
                     Picker("library.folderDensity", selection: $folderDensity) {
                         Image(systemName: "square.grid.2x2")
@@ -344,13 +483,14 @@ struct MediaLibraryView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .frame(width: 92)
+                    .fixedSize()
                 }
                 if childDirectories.isEmpty && mediaItems.isEmpty {
                     emptyState(title: "library.folderEmptyTitle", message: "library.folderEmptyMessage")
                 } else if folderDensity == .grid {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 180, maximum: 260),
-                                                  spacing: AppTheme.Layout.gridGap)],
-                              spacing: AppTheme.Layout.gridGap) {
+                                                  spacing: AppTheme.Layout.folderGridGap)],
+                              spacing: AppTheme.Layout.folderGridGap) {
                         ForEach(childDirectories) { child in
                             NavigationLink(value: child) {
                                 MediaLibraryFolderTile(directory: child)
@@ -374,7 +514,7 @@ struct MediaLibraryView: View {
                             MediaLibraryListRow(item: item, isPlayable: model.fileURL(for: item) != nil,
                                 isVisible: isVisible, model: model, onPlay: onPlay, onContinue: onContinue,
                                 onPlayFromBeginning: onPlayFromBeginning) {
-                                    model.toggleFavorite(item)
+                                    Task { await model.toggleFavorite(item) }
                                 }
                             .id("media-\(item.id)")
                         }
@@ -382,7 +522,8 @@ struct MediaLibraryView: View {
                     .scrollTargetLayout()
                 }
             }
-            .padding(AppTheme.Layout.contentInset)
+            .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+            .padding(.vertical, AppTheme.Layout.contentVerticalInset)
         }
         .scrollPosition(id: $visibleScrollTarget, anchor: .top)
         .onAppear {
@@ -426,15 +567,15 @@ struct MediaLibraryView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 10)
-        .background(.white.opacity(0.85))
+        .background(AppTheme.surface)
     }
 
     private func pageHeader(title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 7) {
                 Text(title).font(AppTheme.Typography.pageTitle)
                 Text(subtitle)
-                    .font(AppTheme.Typography.subtitle)
+                    .font(AppTheme.Typography.pageSubtitle)
                     .foregroundStyle(AppTheme.textSecondary)
             }
             Spacer()
@@ -444,25 +585,31 @@ struct MediaLibraryView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .foregroundStyle(.white)
-                    .background(AppTheme.textPrimary,
-                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+                    .background(AppTheme.textPrimary, in: Capsule())
+                    .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .fixedSize(horizontal: true, vertical: false)
         }
     }
 
     private func mediaSection(title: LocalizedStringKey, items: [MediaLibraryItem], emptyKey: LocalizedStringKey,
-                              columnCount: Int, showsViewAll: Bool = false,
+                              columnCount: Int, onViewAll: (() -> Void)? = nil,
                               trailingNote: LocalizedStringKey? = nil,
                               presentation: MediaLibraryCard.Presentation = .standard) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center) {
                 Text(title).font(AppTheme.Typography.sectionTitle)
                 Spacer()
-                if showsViewAll {
-                    Button("library.viewAll") { destination = .library }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(AppTheme.textSecondary)
+                if let onViewAll {
+                    Button(action: onViewAll) {
+                        Text("library.viewAll")
+                            .font(AppTheme.Typography.controlBody)
+                            .frame(minHeight: AppTheme.Layout.compactControlSize)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(AppTheme.textSecondary)
                 } else if let trailingNote {
                     Text(trailingNote)
                         .font(AppTheme.Typography.caption)
@@ -480,12 +627,11 @@ struct MediaLibraryView: View {
     }
 
     @ViewBuilder
-    private func mediaGrid(_ items: [MediaLibraryItem], columnCount: Int? = nil,
+    private func mediaGrid(_ items: [MediaLibraryItem], columnCount: Int = AppTheme.Layout.mediaGridColumnCount,
                            presentation: MediaLibraryCard.Presentation = .standard) -> some View {
-        if items.isEmpty {
-            emptyState(title: "library.noMediaTitle", message: "library.noMediaMessage")
-        } else {
-            LazyVGrid(columns: gridColumns(columnCount), spacing: AppTheme.Layout.gridGap) {
+        if !items.isEmpty {
+            let spacing = mediaGridSpacing(for: presentation)
+            LazyVGrid(columns: gridColumns(columnCount, spacing: spacing.columns), spacing: spacing.rows) {
                 ForEach(items) { item in
                     MediaLibraryCard(item: item, model: model, isVisible: isVisible,
                                      isPlayable: model.fileURL(for: item) != nil,
@@ -499,21 +645,28 @@ struct MediaLibraryView: View {
         }
     }
 
-    private func gridColumns(_ columnCount: Int?) -> [GridItem] {
-        guard let columnCount else {
-            return [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: AppTheme.Layout.gridGap)]
-        }
-        return Array(repeating: GridItem(.flexible(), spacing: AppTheme.Layout.gridGap), count: columnCount)
+    private func gridColumns(_ columnCount: Int, spacing: CGFloat) -> [GridItem] {
+        return Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
     }
 
-    private func emptyState(title: LocalizedStringKey, message: LocalizedStringKey) -> some View {
+    private func mediaGridSpacing(for presentation: MediaLibraryCard.Presentation) -> (columns: CGFloat, rows: CGFloat) {
+        switch presentation {
+        case .continueWatching:
+            (AppTheme.Layout.continueWatchingGap, AppTheme.Layout.continueWatchingGap)
+        case .standard:
+            (AppTheme.Layout.mediaGridColumnGap, AppTheme.Layout.mediaGridRowGap)
+        }
+    }
+
+    private func emptyState(title: LocalizedStringKey, message: LocalizedStringKey,
+                            systemImage: String = "film") -> some View {
         VStack(spacing: 14) {
-            Image(systemName: "film")
-                .font(.system(size: 27, weight: .light))
+            Image(systemName: systemImage)
+                .font(AppTheme.Typography.Symbol.emptyState)
                 .foregroundStyle(AppTheme.textSecondary)
                 .frame(width: 62, height: 62)
                 .background(
-                    AppTheme.background,
+                    AppTheme.mutedSurface,
                     in: RoundedRectangle(cornerRadius: AppTheme.Corners.emptyStateIcon)
                 )
                 .accessibilityHidden(true)
@@ -533,7 +686,7 @@ struct MediaLibraryView: View {
 
     private func currentPlaybackBar(title: String) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "play.rectangle.fill").font(.title2)
+            Image(systemName: "play.rectangle.fill").font(AppTheme.Typography.Symbol.nowPlaying)
             VStack(alignment: .leading, spacing: 2) {
                 Text("library.nowPlaying").font(AppTheme.Typography.caption).foregroundStyle(.secondary)
                 Text(title).font(AppTheme.Typography.emphasizedCallout).lineLimit(1)
@@ -541,8 +694,12 @@ struct MediaLibraryView: View {
             Spacer()
             Button(action: player.togglePause) {
                 Image(systemName: player.isPaused ? "play.fill" : "pause.fill")
+                    .font(AppTheme.Typography.Symbol.mediaPlay)
+                    .frame(width: AppTheme.Layout.toolbarControlSize, height: AppTheme.Layout.toolbarControlSize)
+                    .contentShape(Rectangle())
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.plain)
+            .disabled(!player.canControlPlayback)
             .accessibilityLabel(Text(player.isPaused ? "player.play" : "player.pause"))
             Button("library.showPlayer", action: onShowPlayer)
                 .buttonStyle(.bordered)
@@ -551,7 +708,7 @@ struct MediaLibraryView: View {
         .padding(.horizontal, 22)
         .padding(.vertical, 12)
         .background(.white)
-        .overlay(alignment: .top) { Rectangle().fill(.black.opacity(0.08)).frame(height: 1) }
+        .overlay(alignment: .top) { AppTheme.separator.frame(height: 1) }
     }
 
     private func chooseFolder() {
@@ -564,6 +721,6 @@ struct MediaLibraryView: View {
             relativePath: root.relativePath,
             displayName: root.displayName
         )]
-        destination = .folders
+        page = .destination(.folders)
     }
 }

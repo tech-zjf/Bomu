@@ -150,7 +150,7 @@
       "acceptance": "旧请求事件被丢弃；暂停、缓冲、定位和结束意图分离",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "A10"
@@ -164,7 +164,7 @@
       "acceptance": "单个、多文件、目录拖入，中文空格路径全部可用；应用已启动时不丢事件",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B01"
@@ -178,7 +178,7 @@
       "acceptance": "中央播放与前后 10 秒，底部时间线音量全屏，顶部字幕音轨倍速队列；静止自动隐藏规则通过",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "A02",
@@ -193,7 +193,7 @@
       "acceptance": "快速连续拖动以最终位置为准；暂停时 seek 不自动播放",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B01",
@@ -208,7 +208,7 @@
       "acceptance": "内嵌、外部字幕、语言与偏移可用；菜单显示真实轨道",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B01"
@@ -222,7 +222,7 @@
       "acceptance": "S01E2 排在 S01E10 前；结束与手动停止不混淆；错误文件可恢复",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B02"
@@ -236,7 +236,7 @@
       "acceptance": "SQLite 迁移与事务；按文件保存进度、轨道与音量；退出续播误差目标小于 2 秒；记录默认每 5 秒保存",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B01"
@@ -250,7 +250,7 @@
       "acceptance": "原生全屏、Esc、空格、方向键通过；Now Playing 和媒体键在取得命令归属时响应，不注册全局监听抢占其他应用",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B03"
@@ -264,7 +264,7 @@
       "acceptance": "损坏、缺失、权限、解码失败分别提供动作；可回到浏览状态",
       "size": "S",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B01"
@@ -278,7 +278,7 @@
       "acceptance": "浅色默认；播放、字幕、数据与更新设置完成；键盘与 VoiceOver 可访问；系统黑暗模式的替代不假称已适配",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B03",
@@ -293,7 +293,7 @@
       "acceptance": "P0 本地样本有声音和图像；30 分钟同步、100 次切换、睡眠恢复通过",
       "size": "L",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.1",
       "dependsOn": [
         "B04",
@@ -325,7 +325,7 @@
       "acceptance": "同一来源文件不因简单更名丢进度；内容替换不继承旧记录；保存卷标识和相对路径",
       "size": "L",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "B07"
@@ -339,7 +339,7 @@
       "acceptance": "文件名先出现；取消、离线和权限失败不会清空现有库",
       "size": "L",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "C01"
@@ -353,7 +353,7 @@
       "acceptance": "新增、删除、移动、拔插盘和事件丢失有核对；离线卡片保持可见",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "C02"
@@ -367,7 +367,7 @@
       "acceptance": "抽帧超时可取消；最多两个后台任务；上限清理不会删除原视频",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "C02"
@@ -426,7 +426,7 @@
       "acceptance": "默认返回浏览继续播放并显示底部当前播放栏；原滚动位置、选中项和同一内核会话保留",
       "size": "L",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "B08",
@@ -442,7 +442,7 @@
       "acceptance": "指定目录可不记历史；支持导出和清除应用记录；默认无在线匹配",
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "C01",
@@ -457,7 +457,7 @@
       "acceptance": "三种 Mac 窗口、VoiceOver、减少动态效果与透明度通过；1 万条索引的性能有测量记录",
       "size": "L",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "version": "v0.2",
       "dependsOn": [
         "C05",
@@ -542,7 +542,7 @@
       ],
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "evidenceRequired": "真实数据与操作路径验收",
       "designBaseline": "UI设计稿.html"
     },
@@ -557,7 +557,7 @@
       ],
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "evidenceRequired": "真实数据与操作路径验收",
       "designBaseline": "UI设计稿.html"
     },
@@ -572,7 +572,7 @@
       ],
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "evidenceRequired": "真实数据与操作路径验收",
       "designBaseline": "UI设计稿.html"
     },
@@ -586,7 +586,7 @@
       ],
       "size": "M",
       "priority": "P0",
-      "status": "未开始",
+      "status": "进行中",
       "evidenceRequired": "真实数据与操作路径验收",
       "designBaseline": "UI设计稿.html"
     },

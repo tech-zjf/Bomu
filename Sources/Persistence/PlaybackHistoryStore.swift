@@ -6,6 +6,18 @@ import GRDB
 /// Owns durable media identity, resume history, and their schema migrations.
 actor PlaybackHistoryStore: MediaLibraryPersisting {
     private let database: DatabaseQueue
+    private var closingScanIDs: Set<String> = []
+    private var failedScanFinalizations: [String: ScanFinalization] = [:]
+
+    private struct ScanFinalization: Sendable {
+        let scan: MediaLibraryScanSession
+        let discoveredCount: Int
+        let indexedCount: Int
+        let skippedCount: Int
+        let cancelled: Bool
+
+        var interruptedStatus: String { cancelled ? "cancelled" : "partial" }
+    }
 
     init(path: String) throws {
         var configuration = Configuration()
@@ -43,12 +55,12 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         let identity = try Self.identity(for: url)
         return try await database.write { db in
             let mediaFileID = try Self.resolve(identity, in: db)
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             if try Self.isHistoryExcluded(volumeID: identity.volumeID,
                                           relativePath: identity.relativePath, in: db) {
                 try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
                 return nil
             }
-            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             guard let row = try Row.fetchOne(
                 db,
                 sql: """
@@ -77,12 +89,12 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         let identity = try Self.identity(for: url)
         return try await database.write { db in
             let mediaFileID = try Self.resolve(identity, in: db)
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             if try Self.isHistoryExcluded(volumeID: identity.volumeID,
                                           relativePath: identity.relativePath, in: db) {
                 try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
                 return mediaFileID
             }
-            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             return mediaFileID
         }
     }
@@ -90,7 +102,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     func beginScan(folder: URL, includingSubfolders: Bool) async throws -> MediaLibraryScanSession {
         let source = try Self.sourceIdentity(for: folder)
         let scanID = UUID().uuidString
-        return try await database.write { db in
+        let interrupted = failedScanFinalizations.values.filter { !closingScanIDs.contains($0.scan.id) }
+        let session = try await database.write { db in
             try db.execute(
                 sql: """
                 INSERT INTO media_sources (volume_id, display_name, updated_at)
@@ -119,6 +132,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             ) else {
                 throw PlaybackHistoryError.missingSourceRoot
             }
+            for finalization in interrupted where finalization.scan.sourceRootID == rootID {
+                _ = try Self.writeScanFinalization(finalization, status: finalization.interruptedStatus, in: db)
+            }
             let activeScan = try Int64.fetchOne(
                 db,
                 sql: "SELECT 1 FROM media_scan_runs WHERE source_root_id = ? AND status = 'running' LIMIT 1",
@@ -143,11 +159,17 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 """, arguments: [rootID, source.relativePath, source.displayName, scanID])
             return MediaLibraryScanSession(id: scanID, sourceRootID: rootID)
         }
+        for finalization in interrupted where finalization.scan.sourceRootID == session.sourceRootID {
+            failedScanFinalizations.removeValue(forKey: finalization.scan.id)
+        }
+        return session
     }
 
     func indexDirectory(at folder: URL, in scan: MediaLibraryScanSession) async throws {
+        try requireWritableScan(scan)
         let source = try Self.sourceIdentity(for: folder)
         try await database.write { db in
+            try Self.requireActiveScan(scan, in: db)
             try db.execute(sql: """
                 INSERT INTO media_source_directories
                     (source_root_id, relative_path, display_name, last_seen_scan_id, is_present)
@@ -167,14 +189,15 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     func indexMediaFile(at url: URL, in scan: MediaLibraryScanSession) async throws -> Int64 {
+        try requireWritableScan(scan)
         let identity = try Self.identity(for: url)
         return try await database.write { db in
+            try Self.requireActiveScan(scan, in: db)
             let mediaFileID = try Self.resolve(identity, in: db)
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             if try Self.isHistoryExcluded(volumeID: identity.volumeID,
                                           relativePath: identity.relativePath, in: db) {
                 try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
-            } else {
-                try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             }
             let now = Date.now.timeIntervalSince1970
             try db.execute(
@@ -201,35 +224,40 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         skippedCount: Int,
         cancelled: Bool = false
     ) async throws {
-        try await database.write { db in
-            let status = cancelled ? "cancelled" : reconcileDeletions ? "completed" : "partial"
-            try db.execute(
-                sql: """
-                UPDATE media_scan_runs
-                SET completed_at = ?, discovered_count = ?, indexed_count = ?, skipped_count = ?, status = ?
-                WHERE id = ? AND source_root_id = ? AND status = 'running'
-                """,
-                arguments: [Date.now.timeIntervalSince1970, discoveredCount, indexedCount,
-                            skippedCount, status, scan.id, scan.sourceRootID]
-            )
-            guard db.changesCount == 1 else { throw PlaybackHistoryError.unknownScan(scan.id) }
-            guard reconcileDeletions, !cancelled else { return }
-            try db.execute(
-                sql: """
-                UPDATE media_source_files
-                SET is_present = 0
-                WHERE source_root_id = ? AND last_seen_scan_id != ?
-                """,
-                arguments: [scan.sourceRootID, scan.id]
-            )
-            try db.execute(
-                sql: "UPDATE media_source_roots SET last_successful_scan_at = ? WHERE id = ?",
-                arguments: [Date.now.timeIntervalSince1970, scan.sourceRootID]
-            )
-            try db.execute(sql: """
-                UPDATE media_source_directories SET is_present = 0
-                WHERE source_root_id = ? AND last_seen_scan_id != ?
-                """, arguments: [scan.sourceRootID, scan.id])
+        guard closingScanIDs.insert(scan.id).inserted else { throw PlaybackHistoryError.unknownScan(scan.id) }
+        defer { closingScanIDs.remove(scan.id) }
+        let finalization = ScanFinalization(scan: scan, discoveredCount: discoveredCount,
+                                            indexedCount: indexedCount, skippedCount: skippedCount,
+                                            cancelled: cancelled)
+        let status: String
+        if cancelled { status = "cancelled" }
+        else if reconcileDeletions { status = "completed" }
+        else { status = "partial" }
+        do {
+            try await database.write { db in
+                guard try Self.writeScanFinalization(finalization, status: status, in: db) else {
+                    throw PlaybackHistoryError.unknownScan(scan.id)
+                }
+                guard reconcileDeletions, !cancelled else { return }
+                try db.execute(sql: """
+                    UPDATE media_source_files SET is_present = 0
+                    WHERE source_root_id = ? AND last_seen_scan_id != ?
+                    """, arguments: [scan.sourceRootID, scan.id])
+                try db.execute(sql: "UPDATE media_source_roots SET last_successful_scan_at = ? WHERE id = ?",
+                               arguments: [Date.now.timeIntervalSince1970, scan.sourceRootID])
+                try db.execute(sql: """
+                    UPDATE media_source_directories SET is_present = 0
+                    WHERE source_root_id = ? AND last_seen_scan_id != ?
+                    """, arguments: [scan.sourceRootID, scan.id])
+            }
+            failedScanFinalizations.removeValue(forKey: scan.id)
+        } catch PlaybackHistoryError.unknownScan {
+            failedScanFinalizations.removeValue(forKey: scan.id)
+            throw PlaybackHistoryError.unknownScan(scan.id)
+        } catch {
+            // The producer has ended even if its terminal transaction could not commit.
+            failedScanFinalizations[scan.id] = finalization
+            throw error
         }
     }
 
@@ -262,6 +290,33 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         try await database.read { db in
             try Self.fetchLibraryItems(in: db, sourceRootID: sourceRootID)
         }
+    }
+
+    private func requireWritableScan(_ scan: MediaLibraryScanSession) throws {
+        guard !closingScanIDs.contains(scan.id), failedScanFinalizations[scan.id] == nil else {
+            throw PlaybackHistoryError.unknownScan(scan.id)
+        }
+    }
+
+    private static func writeScanFinalization(_ finalization: ScanFinalization, status: String,
+                                              in db: Database) throws -> Bool {
+        try db.execute(sql: """
+            UPDATE media_scan_runs
+            SET completed_at = ?, discovered_count = ?, indexed_count = ?, skipped_count = ?, status = ?
+            WHERE id = ? AND source_root_id = ? AND status = 'running'
+            """, arguments: [Date.now.timeIntervalSince1970, finalization.discoveredCount,
+                             finalization.indexedCount, finalization.skippedCount, status,
+                             finalization.scan.id, finalization.scan.sourceRootID])
+        return db.changesCount == 1
+    }
+
+    /** 会话校验与写入属于同一事务，已结束或清除的扫描不能修改后续扫描的事实。 */
+    private static func requireActiveScan(_ scan: MediaLibraryScanSession, in db: Database) throws {
+        let active = try Int.fetchOne(db, sql: """
+            SELECT 1 FROM media_scan_runs
+            WHERE id = ? AND source_root_id = ? AND status = 'running'
+            """, arguments: [scan.id, scan.sourceRootID])
+        guard active != nil else { throw PlaybackHistoryError.unknownScan(scan.id) }
     }
 
     private static func fetchSourceRoots(
@@ -297,31 +352,53 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         let rows: [Row]
         if let sourceRootID {
             rows = try Row.fetchAll(db, sql: """
+                WITH ambiguous_identities AS (
+                    SELECT volume_id, file_number FROM media_files
+                    WHERE file_number IS NOT NULL
+                    GROUP BY volume_id, file_number HAVING COUNT(*) > 1
+                )
                 SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
                        media_files.relative_path, media_files.byte_count, media_files.content_revision,
                        media_source_files.is_present, media_file_preferences.is_favorite,
                        media_file_preferences.is_watched, media_file_preferences.manual_category,
-                       playback_history.position, playback_history.updated_at,
+                       ambiguous_identities.file_number IS NOT NULL AS history_conflict,
+                       CASE WHEN ambiguous_identities.file_number IS NULL
+                            THEN playback_history.position END AS position,
+                       CASE WHEN ambiguous_identities.file_number IS NULL
+                            THEN playback_history.updated_at END AS updated_at,
                        media_source_files.added_at
                 FROM media_source_files
                 JOIN media_files ON media_files.id = media_source_files.media_file_id
                 LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
                 LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                LEFT JOIN ambiguous_identities ON ambiguous_identities.volume_id = media_files.volume_id
+                    AND ambiguous_identities.file_number = media_files.file_number
                 WHERE media_source_files.source_root_id = ?
                 ORDER BY media_files.relative_path COLLATE NOCASE
                 """, arguments: [sourceRootID])
         } else {
             rows = try Row.fetchAll(db, sql: """
+                WITH ambiguous_identities AS (
+                    SELECT volume_id, file_number FROM media_files
+                    WHERE file_number IS NOT NULL
+                    GROUP BY volume_id, file_number HAVING COUNT(*) > 1
+                )
                 SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
                        media_files.relative_path, media_files.byte_count, media_files.content_revision,
                        media_source_files.is_present, media_file_preferences.is_favorite,
                        media_file_preferences.is_watched, media_file_preferences.manual_category,
-                       playback_history.position, playback_history.updated_at,
+                       ambiguous_identities.file_number IS NOT NULL AS history_conflict,
+                       CASE WHEN ambiguous_identities.file_number IS NULL
+                            THEN playback_history.position END AS position,
+                       CASE WHEN ambiguous_identities.file_number IS NULL
+                            THEN playback_history.updated_at END AS updated_at,
                        media_source_files.added_at
                 FROM media_source_files
                 JOIN media_files ON media_files.id = media_source_files.media_file_id
                 LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
                 LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                LEFT JOIN ambiguous_identities ON ambiguous_identities.volume_id = media_files.volume_id
+                    AND ambiguous_identities.file_number = media_files.file_number
                 ORDER BY media_source_files.source_root_id, media_files.relative_path COLLATE NOCASE
                 """)
         }
@@ -359,17 +436,21 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
 
     private static func makeLibraryItem(from row: Row) -> MediaLibraryItem {
         let relativePath: String = row["relative_path"]
+        /** 已持久化的卷相对路径按 POSIX 分隔符取名，不构造会解析当前工作目录的文件 URL。 */
+        let nameStart = relativePath.lastIndex(of: "/").map { relativePath.index(after: $0) }
+            ?? relativePath.startIndex
         return MediaLibraryItem(
             id: row["id"],
             sourceRootID: row["source_root_id"],
             volumeID: row["volume_id"],
             relativePath: relativePath,
-            displayName: URL(filePath: relativePath).lastPathComponent,
+            displayName: String(relativePath[nameStart...]),
             byteCount: row["byte_count"],
             contentRevision: row["content_revision"],
             isPresent: row["is_present"],
             isFavorite: row["is_favorite"] ?? false,
             isWatched: row["is_watched"] ?? false,
+            hasPlaybackHistoryConflict: row["history_conflict"] ?? false,
             manualCategory: (row["manual_category"] as String?).flatMap(MediaManualCategory.init(rawValue:)),
             playbackPosition: row["position"] ?? 0,
             lastPlayedAt: (row["updated_at"] as Double?).map(Date.init(timeIntervalSince1970:)),
@@ -471,12 +552,12 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         let identity = try Self.identity(for: url)
         try await database.write { db in
             let mediaFileID = try Self.resolve(identity, in: db)
+            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             if try Self.isHistoryExcluded(volumeID: identity.volumeID,
                                           relativePath: identity.relativePath, in: db) {
                 try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
                 return
             }
-            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             try db.execute(
                 sql: """
                 INSERT INTO playback_history
@@ -504,6 +585,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     func clearAll() async throws {
         try await database.write { db in
             try db.execute(sql: "DELETE FROM playback_history")
+            try db.execute(sql: "DELETE FROM playback_history_legacy")
+            try db.execute(sql: "DELETE FROM legacy_history_purges")
         }
     }
 
@@ -511,7 +594,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         try await database.write { db in
             try db.execute(sql: "DELETE FROM media_sources")
             try db.execute(sql: "DELETE FROM playback_history_legacy")
+            try db.execute(sql: "DELETE FROM legacy_history_purges")
         }
+        failedScanFinalizations.removeAll()
     }
 
     func exportArchive(settings: MediaLibraryArchive.Settings) async throws -> Data {
@@ -542,7 +627,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             let membershipsByFile = Dictionary(grouping: memberships) { $0["media_file_id"] as Int64 }
             let fileRows = try Row.fetchAll(db, sql: """
                 SELECT media_files.id, media_files.volume_id, media_files.resource_id,
-                       media_files.content_revision, media_files.content_fingerprint,
+                       media_files.content_revision,
+                       COALESCE(media_files.content_fingerprint, media_files.legacy_content_fingerprint) AS content_fingerprint,
                        media_files.relative_path,
                        media_files.byte_count, media_files.modified_at,
                        media_file_preferences.is_favorite, media_file_preferences.is_watched,
@@ -653,6 +739,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     VALUES (?, ?, ?)
                     ON CONFLICT(volume_id, relative_path) DO UPDATE SET display_name = excluded.display_name
                     """, arguments: [folder.volumeID, folder.relativePath, folder.displayName])
+                try Self.purgeHistory(volumeID: folder.volumeID, relativePath: folder.relativePath, in: db)
             }
             var importScanIDs: [Int64: String] = [:]
             for match in matches {
@@ -815,10 +902,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         var matches: [ArchiveMatch] = []
         var usedFileIDs = Set<Int64>()
         for file in archive.files {
-            let exact = try Row.fetchOne(db, sql: """
-                SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
-                WHERE volume_id = ? AND resource_id = ?
-                """, arguments: [file.volumeID, file.resourceID])
+            let exact = try existingFile(volumeID: file.volumeID, resourceID: file.resourceID, in: db)
             let candidate: Row?
             if let exact,
                Self.archiveFile(file, matches: exact, schemaVersion: archive.schemaVersion) {
@@ -826,14 +910,14 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             } else {
                 if archive.schemaVersion == 2, let fingerprint = file.contentFingerprint {
                     candidate = try Row.fetchOne(db, sql: """
-                        SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
+                        SELECT id, content_revision, content_fingerprint, legacy_content_fingerprint, relative_path FROM media_files
                         WHERE volume_id = ? AND relative_path = ? AND byte_count = ?
-                          AND content_revision = ? AND content_fingerprint = ?
+                          AND content_revision = ? AND (content_fingerprint = ? OR legacy_content_fingerprint = ?)
                         """, arguments: [file.volumeID, file.relativePath, file.byteCount,
-                                         file.contentRevision, fingerprint])
+                                         file.contentRevision, fingerprint, fingerprint])
                 } else {
                     candidate = try Row.fetchOne(db, sql: """
-                        SELECT id, content_revision, content_fingerprint, relative_path FROM media_files
+                        SELECT id, content_revision, content_fingerprint, legacy_content_fingerprint, relative_path FROM media_files
                         WHERE volume_id = ? AND relative_path = ? AND byte_count = ? AND content_revision = ?
                         """, arguments: [file.volumeID, file.relativePath,
                                          file.byteCount, file.contentRevision])
@@ -856,6 +940,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         guard (row["content_revision"] as String) == file.contentRevision else { return false }
         guard schemaVersion == 2 else { return true }
         return (row["content_fingerprint"] as String?) == file.contentFingerprint
+            || (row["legacy_content_fingerprint"] as String?) == file.contentFingerprint
     }
 
     func setHistoryExcludedFolder(_ folder: URL, excluded: Bool) async throws {
@@ -874,23 +959,15 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     """,
                     arguments: [source.volumeID, source.relativePath, source.displayName]
                 )
-                try db.execute(
-                    sql: """
-                    DELETE FROM playback_history
-                    WHERE media_file_id IN (
-                        SELECT id FROM media_files
-                        WHERE volume_id = ? AND (? = '' OR relative_path = ? OR
-                            substr(relative_path, 1, length(?) + 1) = ? || '/')
-                    )
-                    """,
-                    arguments: [source.volumeID, source.relativePath, source.relativePath,
-                                source.relativePath, source.relativePath]
-                )
+                try Self.purgeHistory(volumeID: source.volumeID, relativePath: source.relativePath, in: db)
                 let folderPath = folder.standardizedFileURL.resolvingSymlinksInPath().path
                 try db.execute(sql: """
                     DELETE FROM playback_history_legacy
                     WHERE file_path = ? OR substr(file_path, 1, length(?) + 1) = ? || '/'
                     """, arguments: [folderPath, folderPath, folderPath])
+                try db.execute(sql: """
+                    DELETE FROM legacy_history_purges WHERE NOT EXISTS (SELECT 1 FROM playback_history_legacy)
+                    """)
             } else {
                 try db.execute(sql: "DELETE FROM private_media_roots WHERE volume_id = ? AND relative_path = ?",
                                arguments: [source.volumeID, source.relativePath])
@@ -922,6 +999,22 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         }
     }
 
+    /** 删除事实独立于当前隐私开关；未解析的旧路径记录必须在以后解析身份时继续遵守。 */
+    private static func purgeHistory(volumeID: String, relativePath: String, in db: Database) throws {
+        try db.execute(sql: """
+            INSERT OR IGNORE INTO legacy_history_purges (volume_id, relative_path)
+            SELECT ?, ? WHERE EXISTS (SELECT 1 FROM playback_history_legacy)
+            """, arguments: [volumeID, relativePath])
+        try db.execute(sql: """
+            DELETE FROM playback_history
+            WHERE media_file_id IN (
+                SELECT id FROM media_files
+                WHERE volume_id = ? AND (? = '' OR relative_path = ? OR
+                    substr(relative_path, 1, length(?) + 1) = ? || '/')
+            )
+            """, arguments: [volumeID, relativePath, relativePath, relativePath, relativePath])
+    }
+
     private static func isHistoryExcluded(volumeID: String, relativePath: String, in db: Database) throws -> Bool {
         try Int.fetchOne(db, sql: """
             SELECT 1 FROM private_media_roots
@@ -929,6 +1022,32 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 substr(?, 1, length(relative_path) + 1) = relative_path || '/')
             LIMIT 1
             """, arguments: [volumeID, relativePath, relativePath]) != nil
+    }
+
+    /** 卷 UUID 已确定设备；只解析旧设备号序列化和新格式中的卷内编号。 */
+    private static func fileNumber(in resourceID: String) -> String? {
+        let parts = resourceID.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count == 2, parts[0] == "inode" || Int32(parts[0]) != nil,
+              let number = UInt64(parts[1]), String(number) == parts[1] else { return nil }
+        return String(number)
+    }
+
+    private static func existingFile(volumeID: String, resourceID: String, in db: Database) throws -> Row? {
+        let rows: [Row]
+        if let number = fileNumber(in: resourceID) {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT id, content_revision, content_fingerprint, legacy_content_fingerprint, relative_path
+                FROM media_files WHERE volume_id = ? AND file_number = ? LIMIT 2
+                """, arguments: [volumeID, number])
+        } else {
+            rows = try Row.fetchAll(db, sql: """
+                SELECT id, content_revision, content_fingerprint, legacy_content_fingerprint, relative_path
+                FROM media_files WHERE volume_id = ? AND resource_id = ? LIMIT 2
+                """, arguments: [volumeID, resourceID])
+        }
+        // Conflicting historical rows have user facts; never choose or merge them implicitly.
+        guard rows.count < 2 else { throw PlaybackHistoryError.ambiguousMediaIdentity }
+        return rows.first
     }
 
     private static func resolve(_ identity: MediaFileIdentity, in db: Database) throws -> Int64 {
@@ -943,27 +1062,33 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             arguments: [identity.volumeID, identity.volumeName, Date.now.timeIntervalSince1970]
         )
 
-        if let existing = try Row.fetchOne(
-            db,
-            sql: "SELECT id, content_revision, content_fingerprint FROM media_files WHERE volume_id = ? AND resource_id = ?",
-            arguments: [identity.volumeID, identity.resourceID]
-        ) {
+        if let existing = try existingFile(volumeID: identity.volumeID, resourceID: identity.resourceID, in: db) {
             let mediaFileID: Int64 = existing["id"]
             let oldRevision: String = existing["content_revision"]
             let oldFingerprint: String? = existing["content_fingerprint"]
-            if oldRevision != identity.contentRevision
-                || (oldFingerprint != nil && oldFingerprint != identity.contentFingerprint) {
+            let legacyFingerprint: String? = existing["legacy_content_fingerprint"]
+            let changedFingerprint: Bool
+            if let oldFingerprint {
+                changedFingerprint = oldFingerprint != identity.contentFingerprint
+            } else if let legacyFingerprint {
+                changedFingerprint = legacyFingerprint != identity.legacyContentFingerprint
+            } else {
+                changedFingerprint = false
+            }
+            if oldRevision != identity.contentRevision || changedFingerprint {
                 return try Self.replaceChangedFile(existingID: mediaFileID, with: identity, in: db)
             }
             try db.execute(
                 sql: """
                 UPDATE media_files
-                SET content_revision = ?, content_fingerprint = ?, relative_path = ?, byte_count = ?, modified_at = ?
+                SET content_revision = ?, content_fingerprint = ?, legacy_content_fingerprint = ?,
+                    relative_path = ?, byte_count = ?, modified_at = ?
                 WHERE id = ?
                 """,
                 arguments: [
                     identity.contentRevision,
                     identity.contentFingerprint,
+                    identity.legacyContentFingerprint,
                     identity.relativePath,
                     identity.byteCount,
                     identity.modifiedAt.timeIntervalSince1970,
@@ -973,24 +1098,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             return mediaFileID
         }
 
-        try db.execute(
-            sql: """
-            INSERT INTO media_files
-                (volume_id, resource_id, content_revision, content_fingerprint,
-                 relative_path, byte_count, modified_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            arguments: [
-                identity.volumeID,
-                identity.resourceID,
-                identity.contentRevision,
-                identity.contentFingerprint,
-                identity.relativePath,
-                identity.byteCount,
-                identity.modifiedAt.timeIntervalSince1970
-            ]
-        )
-        return db.lastInsertedRowID
+        return try insert(identity, in: db)
     }
 
     private static func replaceChangedFile(
@@ -1031,12 +1139,12 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         try db.execute(
             sql: """
             INSERT INTO media_files
-                (volume_id, resource_id, content_revision, content_fingerprint,
+                (volume_id, resource_id, file_number, content_revision, content_fingerprint, legacy_content_fingerprint,
                  relative_path, byte_count, modified_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            arguments: [identity.volumeID, identity.resourceID, identity.contentRevision,
-                        identity.contentFingerprint, identity.relativePath, identity.byteCount,
+            arguments: [identity.volumeID, identity.resourceID, identity.fileNumber, identity.contentRevision,
+                        identity.contentFingerprint, identity.legacyContentFingerprint, identity.relativePath, identity.byteCount,
                         identity.modifiedAt.timeIntervalSince1970]
         )
         return db.lastInsertedRowID
@@ -1045,19 +1153,32 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     /// Moves an exact-path v0.0 checkpoint on first access; path alone cannot safely match a rename.
     private static func migrateLegacyHistory(for url: URL, mediaFileID: Int64, in db: Database) throws {
         let path = url.standardizedFileURL.resolvingSymlinksInPath().path
+        guard try Int.fetchOne(db, sql: "SELECT 1 FROM playback_history_legacy WHERE file_path = ?",
+                               arguments: [path]) != nil else { return }
         try db.execute(
             sql: """
             INSERT OR IGNORE INTO playback_history
                 (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
             SELECT ?, position, audio_track_id, subtitle_track_id, volume, updated_at
             FROM playback_history_legacy WHERE file_path = ?
+                AND NOT EXISTS (
+                    SELECT 1 FROM (
+                        SELECT volume_id, relative_path FROM private_media_roots
+                        UNION ALL
+                        SELECT volume_id, relative_path FROM legacy_history_purges
+                    ) AS excluded
+                    JOIN media_files AS file ON file.id = ? AND file.volume_id = excluded.volume_id
+                    WHERE excluded.relative_path = '' OR file.relative_path = excluded.relative_path
+                        OR substr(file.relative_path, 1, length(excluded.relative_path) + 1)
+                            = excluded.relative_path || '/'
+                )
             """,
-            arguments: [mediaFileID, path]
+            arguments: [mediaFileID, path, mediaFileID]
         )
-        try db.execute(
-            sql: "DELETE FROM playback_history_legacy WHERE file_path = ?",
-            arguments: [path]
-        )
+        try db.execute(sql: "DELETE FROM playback_history_legacy WHERE file_path = ?", arguments: [path])
+        try db.execute(sql: """
+            DELETE FROM legacy_history_purges WHERE NOT EXISTS (SELECT 1 FROM playback_history_legacy)
+            """)
     }
 
     private static func identity(for url: URL) throws -> MediaFileIdentity {
@@ -1106,13 +1227,13 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
 
         let modified = metadata.st_mtimespec
         let revision = "\(byteCount):\(modified.tv_sec).\(modified.tv_nsec)"
-        let resourceID = "\(metadata.st_dev):\(metadata.st_ino)"
-        let fingerprint = try Self.sampleFingerprint(for: resolvedURL, expected: metadata, byteCount: Int64(byteCount))
+        let fingerprints = try Self.sampleFingerprint(for: resolvedURL, expected: metadata, byteCount: Int64(byteCount))
         return MediaFileIdentity(
             volumeID: volumeID,
-            resourceID: resourceID,
+            fileNumber: String(metadata.st_ino),
             contentRevision: revision,
-            contentFingerprint: fingerprint,
+            contentFingerprint: fingerprints.current,
+            legacyContentFingerprint: fingerprints.legacy,
             relativePath: relativePath,
             volumeName: values.volumeName ?? volumeURL.lastPathComponent,
             byteCount: Int64(byteCount),
@@ -1120,7 +1241,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         )
     }
 
-    private static func sampleFingerprint(for url: URL, expected: stat, byteCount: Int64) throws -> String {
+    private static func sampleFingerprint(for url: URL, expected: stat, byteCount: Int64) throws
+        -> (current: String, legacy: String?) {
         let file: FileHandle
         do {
             file = try FileHandle(forReadingFrom: url)
@@ -1147,15 +1269,19 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         }
 
         try verifyUnchanged()
-        let sampleLength = min(Int64(16 * 1_024), byteCount)
+        let blockSize = Int64(16 * 1_024)
+        let sampleLength: Int64
         let offsets: [Int64]
-        if byteCount <= 5 * 16 * 1_024 {
+        if byteCount <= 5 * blockSize {
+            sampleLength = byteCount
             offsets = [0]
         } else {
+            sampleLength = blockSize
             let lastOffset = byteCount - sampleLength
             offsets = (0...4).map { lastOffset * Int64($0) / 4 }
         }
 
+        var legacyFingerprint: String?
         var hasher = SHA256()
         hasher.update(data: Data("size:\(byteCount);".utf8))
         for offset in offsets {
@@ -1174,9 +1300,16 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             }
             hasher.update(data: Data("offset:\(offset);".utf8))
             hasher.update(data: sample)
+            if byteCount > blockSize, byteCount <= 5 * blockSize {
+                // Preserve the old prefix-only digest for database and archive upgrades.
+                var legacyHasher = SHA256()
+                legacyHasher.update(data: Data("size:\(byteCount);offset:0;".utf8))
+                legacyHasher.update(data: sample.prefix(Int(blockSize)))
+                legacyFingerprint = legacyHasher.finalize().map { String(format: "%02x", $0) }.joined()
+            }
         }
         try verifyUnchanged()
-        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        return (hasher.finalize().map { String(format: "%02x", $0) }.joined(), legacyFingerprint)
     }
 
     private static func sourceIdentity(for folder: URL) throws -> (volumeID: String, volumeName: String, relativePath: String, displayName: String) {
@@ -1333,6 +1466,42 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         migrator.registerMigration("mediaContentFingerprint") { db in
             try db.alter(table: "media_files") { table in
                 table.add(column: "content_fingerprint", .text)
+            }
+        }
+        migrator.registerMigration("completeSmallFileFingerprint") { db in
+            try db.alter(table: "media_files") { table in
+                table.add(column: "legacy_content_fingerprint", .text)
+            }
+            // Defer filesystem reads until normal access; retain the prior verification baseline.
+            try db.execute(sql: """
+                UPDATE media_files SET legacy_content_fingerprint = content_fingerprint,
+                    content_fingerprint = NULL
+                WHERE byte_count > 16384 AND byte_count <= 81920
+                """)
+        }
+        migrator.registerMigration("volumeScopedFileNumber") { db in
+            try db.alter(table: "media_files") { table in
+                table.add(column: "file_number", .text)
+            }
+            for row in try Row.fetchAll(db, sql: "SELECT id, resource_id FROM media_files") {
+                let resourceID: String = row["resource_id"]
+                if let number = Self.fileNumber(in: resourceID) {
+                    try db.execute(sql: "UPDATE media_files SET file_number = ? WHERE id = ?",
+                                   arguments: [number, row["id"] as Int64])
+                }
+            }
+            try db.create(index: "media_files_by_volume_number", on: "media_files",
+                          columns: ["volume_id", "file_number"])
+        }
+        migrator.registerMigration("legacyHistoryPrivacyPurges") { db in
+            // No foreign key: removing a source or privacy rule cannot revoke a completed purge.
+            try db.create(table: "legacy_history_purges") { table in
+                table.column("volume_id", .text).notNull()
+                table.column("relative_path", .text).notNull()
+                table.primaryKey(["volume_id", "relative_path"])
+            }
+            for row in try Row.fetchAll(db, sql: "SELECT volume_id, relative_path FROM private_media_roots") {
+                try Self.purgeHistory(volumeID: row["volume_id"], relativePath: row["relative_path"], in: db)
             }
         }
         return migrator

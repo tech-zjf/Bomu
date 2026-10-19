@@ -5,7 +5,7 @@ The generated patterns and tones are dedicated to CC0-1.0. No external footage,
 fonts or recordings are used. Python 3.9+; FFmpeg/ffprobe must be on PATH.
 """
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from fractions import Fraction
 import json
 from pathlib import Path
@@ -113,9 +113,10 @@ B11_ADDITIONAL_RECIPES = [
            video='prores_ks', pixel_format='yuv422p10le', profile='', audio='pcm_s16le'),
     Recipe('52-h264-ac3-surround.mkv', 'H.264 with AC-3 5.1-channel audio', audio='ac3', channels=6),
     Recipe('53-h264-eac3-surround.mkv', 'H.264 with E-AC-3 5.1-channel audio', audio='eac3', channels=6),
-    Recipe('54-h264-flac-audio.mkv', 'H.264 with lossless FLAC audio', audio='flac'),
+    Recipe('54-h264-flac-96000.mkv', 'H.264 with lossless FLAC stereo / 96 kHz',
+           audio='flac', sample_rate=96000),
     Recipe('55-h264-pcm24.mov', 'QuickTime / H.264 + PCM24', audio='pcm_s24le'),
-    Recipe('56-h264-pcm16.mov', 'QuickTime / H.264 + PCM16', audio='pcm_s16le'),
+    Recipe('56-h264-pcm-float32.mov', 'QuickTime / H.264 + float32 PCM', audio='pcm_f32le'),
     Recipe('57-h264-mp3-44100.mkv', 'H.264 with MP3 stereo / 44.1 kHz',
            audio='libmp3lame', sample_rate=44100),
     Recipe('58-h264-opus.mkv', 'H.264 with Opus stereo / 48 kHz', audio='libopus'),
@@ -131,7 +132,7 @@ B11_ADDITIONAL_RECIPES = [
            size='1280x720', rate='50', video='libx265', profile='main'),
     Recipe('65-hevc-main10-1080p30-opus.mkv', 'HEVC Main10 1080p30 / Opus',
            size='1920x1080', video='libx265', pixel_format='yuv420p10le', profile='main10', audio='libopus'),
-    Recipe('66-h264-aac-48000-51.mkv', 'H.264 with AAC 5.1 / 48 kHz', channels=6),
+    Recipe('66-h264-aac-7-1.mkv', 'H.264 with AAC 7.1 / 48 kHz', channels=8),
     Recipe('67-h264-high-960x540.mp4', 'H.264 High / 960×540 / AAC', size='960x540'),
 ]
 
@@ -147,6 +148,15 @@ def recipes_for_suite(name):
             raise ValueError('B11 suite must contain exactly 60 audio/video samples')
         if len({recipe.file for recipe in recipes}) != len(recipes):
             raise ValueError('B11 suite filenames must be unique')
+        encodings = {}
+        for recipe in recipes:
+            # A filename or descriptive label alone does not add decoding coverage.
+            parameters = tuple(getattr(recipe, field.name) for field in fields(Recipe)
+                               if field.name not in {'file', 'coverage'})
+            signature = (Path(recipe.file).suffix.lower(), parameters)
+            if signature in encodings:
+                raise ValueError(f'B11 duplicate encoding: {encodings[signature]} and {recipe.file}')
+            encodings[signature] = recipe.file
         return recipes
     raise ValueError(f'Unknown media suite: {name}')
 

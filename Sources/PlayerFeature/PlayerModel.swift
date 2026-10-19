@@ -25,7 +25,7 @@ final class PlayerModel {
     @ObservationIgnored private var shutdownTask: Task<Void, Never>?
     @ObservationIgnored private var restorationTask: Task<Void, Never>?
     @ObservationIgnored private var progressTask: Task<Void, Never>?
-    @ObservationIgnored private var persistenceTask: Task<Void, Never>?
+    @ObservationIgnored private var persistenceTask: Task<Result<Void, Error>, Never>?
     @ObservationIgnored private var mediaImportTask: Task<Void, Never>?
     @ObservationIgnored private var mediaDiscoveryTask: Task<[URL], any Error>?
     @ObservationIgnored private var mediaImportID: UInt64 = 0
@@ -50,6 +50,8 @@ final class PlayerModel {
         case beginning
     }
 
+    private static let minimumAutomaticNextDuration: TimeInterval = 30
+
     var startupError: String? {
         guard case .failed(let message) = startupState else { return nil }
         return message
@@ -69,7 +71,9 @@ final class PlayerModel {
     var hasPlaybackHistoryStore: Bool { historyStore != nil }
     var hasMediaLibraryStore: Bool { historyStore is any MediaLibraryPersisting }
     var canSeek: Bool {
-        canControlPlayback && state.snapshot?.isSeekable == true && state.snapshot?.duration != nil
+        guard canControlPlayback, let snapshot = state.snapshot,
+              snapshot.isSeekable, let duration = snapshot.duration else { return false }
+        return duration.isFinite && duration > 0
     }
     var isPaused: Bool {
         if let pendingPause { return pendingPause.isPaused }
@@ -145,7 +149,11 @@ final class PlayerModel {
 
     /// A delayed input may commit only while it remains the most recent user choice.
     func open(_ urls: [URL], for intent: InputResolution) {
-        guard canOpenMedia, !urls.isEmpty, intent.revision == mediaImportID else { return }
+        guard canOpenMedia, intent.revision == mediaImportID else { return }
+        guard !urls.isEmpty else {
+            inputError = String(localized: "error.noPlayableMedia")
+            return
+        }
         let importID = intent.revision
         let discoveryTask = Task.detached(priority: .userInitiated) {
             try MediaFileDiscovery.expand(urls)
@@ -180,8 +188,8 @@ final class PlayerModel {
         }
     }
 
-    func playQueueItem(at index: Int) {
-        guard canOpenMedia, let url = queue.select(index) else { return }
+    func playQueueItem(at index: Int, requestID: UInt64) {
+        guard canOpenMedia, state.request?.id == requestID, let url = queue.select(index) else { return }
         mediaImportID += 1
         cancelPendingMediaImport()
         inputError = nil
@@ -236,8 +244,8 @@ final class PlayerModel {
         openMedia(request.url, resumeMode: .beginning)
     }
 
-    func seek(to seconds: Double) {
-        guard canSeek, let request = state.request,
+    func seek(to seconds: Double, requestID: UInt64) {
+        guard canSeek, let request = state.request, request.id == requestID,
               let duration = state.snapshot?.duration, seconds.isFinite else { return }
         engine.seek(PlaybackSeekRequest(requestID: request.id, target: .absolute(min(duration, max(0, seconds)))))
     }
@@ -254,37 +262,37 @@ final class PlayerModel {
         engine.setVolume(value)
     }
 
-    func setSpeed(_ speed: Double) {
-        guard canControlPlayback, speed.isFinite else { return }
+    func setSpeed(_ speed: Double, requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID, speed.isFinite else { return }
         engine.setSpeed(min(4, max(0.25, speed)))
     }
 
-    func selectAudioTrack(_ id: Int) {
-        guard canControlPlayback, let requestID = state.request?.id else { return }
+    func selectAudioTrack(_ id: Int, requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID else { return }
         state.dismissCommandFailure()
         engine.setAudioTrack(id: id, requestID: requestID)
     }
 
-    func selectSubtitleTrack(_ id: Int) {
-        guard canControlPlayback, let requestID = state.request?.id else { return }
+    func selectSubtitleTrack(_ id: Int, requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID else { return }
         state.dismissCommandFailure()
         engine.setSubtitleTrack(id: id, requestID: requestID)
     }
 
-    func addExternalSubtitle(_ url: URL) {
-        guard canControlPlayback, let requestID = state.request?.id else { return }
+    func addExternalSubtitle(_ url: URL, requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID else { return }
         state.dismissCommandFailure()
         engine.addExternalSubtitle(url, requestID: requestID)
     }
 
-    func adjustSubtitleDelay(by seconds: Double) {
-        guard canControlPlayback, seconds.isFinite, let requestID = state.request?.id else { return }
+    func adjustSubtitleDelay(by seconds: Double, requestID: UInt64) {
+        guard canControlPlayback, seconds.isFinite, state.request?.id == requestID else { return }
         let current = pendingSubtitleDelay ?? state.snapshot?.subtitleDelay ?? 0
         setSubtitleDelay(to: current + seconds, requestID: requestID)
     }
 
-    func resetSubtitleDelay() {
-        guard canControlPlayback, let requestID = state.request?.id else { return }
+    func resetSubtitleDelay(requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID else { return }
         setSubtitleDelay(to: 0, requestID: requestID)
     }
 
@@ -297,18 +305,34 @@ final class PlayerModel {
 
     func dismissPersistenceError() { persistenceError = nil }
     func dismissInputError() { inputError = nil }
-    func dismissHistoryClearError() { historyClearError = nil }
     func dismissCommandFailure() { state.dismissCommandFailure() }
 
-    func clearPlaybackHistory() async {
-        guard let historyStore else {
+    func reportHistoryClearError(_ error: Error) {
+        if historyStore == nil {
             historyClearError = String(localized: "settings.historyUnavailable")
-            return
+        } else {
+            historyClearError = error.localizedDescription
+        }
+    }
+
+    /// Flush the current checkpoint without stopping or reopening playback.
+    func checkpointPlaybackHistory() async throws {
+        guard !isShuttingDown else { throw CancellationError() }
+        if let checkpoint = persistCurrentHistory() {
+            try await checkpoint.value.get()
+        } else {
+            _ = await persistenceTask?.value
+        }
+    }
+
+    func clearPlaybackHistory() async throws {
+        guard let historyStore else {
+            throw PlaybackHistoryError.libraryUnavailable
         }
         let requestID = state.request?.id
         let previousSuppressedRequestID = historySuppressedRequestID
         historySuppressedRequestID = requestID
-        await persistenceTask?.value
+        _ = await persistenceTask?.value
         do {
             try await historyStore.clearAll()
             persistenceError = nil
@@ -317,7 +341,7 @@ final class PlayerModel {
             if state.request?.id == requestID {
                 historySuppressedRequestID = previousSuppressedRequestID
             }
-            historyClearError = error.localizedDescription
+            throw error
         }
     }
 
@@ -346,6 +370,7 @@ final class PlayerModel {
         guard let store = historyStore as? any MediaLibraryPersisting else {
             throw PlaybackHistoryError.libraryUnavailable
         }
+        try await checkpointPlaybackHistory()
         return try await store.exportArchive(settings: preferences.archiveSnapshot)
     }
 
@@ -363,7 +388,7 @@ final class PlayerModel {
         let requestID = state.request?.id
         let previousSuppressedRequestID = historySuppressedRequestID
         historySuppressedRequestID = requestID
-        await persistenceTask?.value
+        _ = await persistenceTask?.value
         do {
             let result = try await store.importArchive(data)
             preferences.applyArchiveSettings(result.settings)
@@ -386,7 +411,7 @@ final class PlayerModel {
         let requestID = state.request?.id
         let previousSuppressedRequestID = historySuppressedRequestID
         historySuppressedRequestID = requestID
-        await persistenceTask?.value
+        _ = await persistenceTask?.value
         do {
             try await store.clearLibraryRecords()
             persistenceError = nil
@@ -398,6 +423,10 @@ final class PlayerModel {
             }
             throw error
         }
+    }
+
+    func dismissDataManagementError() {
+        dataManagementError = nil
     }
 
     func reportDataManagementError(_ error: Error) {
@@ -464,7 +493,7 @@ final class PlayerModel {
 
     private func receive(_ event: PlaybackEvent) {
         guard !isShuttingDown else { return }
-        state.receive(event)
+        guard state.receive(event) else { return }
         if case .snapshot(let value) = event, value.requestID == state.request?.id,
            let lastRequestedVolume,
            let observedVolume = state.snapshot?.volume,
@@ -492,7 +521,8 @@ final class PlayerModel {
             engine.setSubtitleDelay(preferences.defaultSubtitleDelay, requestID: requestID)
             startProgressPersistence()
         case .ended(let requestID) where state.request?.id == requestID && state.phase == .ended:
-            if preferences.automaticallyPlayNext, queue.advance() != nil, let nextURL = queue.currentURL {
+            if preferences.automaticallyPlayNext, allowsAutomaticQueueAdvance,
+               queue.advance() != nil, let nextURL = queue.currentURL {
                 openMedia(nextURL)
             } else {
                 progressTask?.cancel()
@@ -519,6 +549,11 @@ final class PlayerModel {
         return false
     }
 
+    private var allowsAutomaticQueueAdvance: Bool {
+        guard let duration = state.snapshot?.duration, duration.isFinite else { return false }
+        return duration >= Self.minimumAutomaticNextDuration
+    }
+
     private func restoreAndOpen(_ request: PlaybackRequest) {
         guard let historyStore else {
             engine.open(request, options: PlaybackOpenOptions())
@@ -528,7 +563,7 @@ final class PlayerModel {
         restorationTask?.cancel()
         restorationTask = Task { [weak self, engine] in
             do {
-                await pendingWrite?.value
+                _ = await pendingWrite?.value
                 try Task.checkCancellation()
                 let saved = try await historyStore.history(for: request.url)
                 guard !Task.isCancelled, let self,
@@ -554,7 +589,12 @@ final class PlayerModel {
             } catch {
                 guard !Task.isCancelled, let self,
                       self.state.request?.id == request.id, self.isPrepared else { return }
-                self.persistenceError = error.localizedDescription
+                if case PlaybackHistoryError.ambiguousMediaIdentity = error {
+                    self.historySuppressedRequestID = request.id
+                    self.persistenceError = String(localized: "persistence.identityConflict")
+                } else {
+                    self.persistenceError = String(localized: "persistence.restoreFailed")
+                }
                 engine.open(request, options: PlaybackOpenOptions())
             }
         }
@@ -572,31 +612,35 @@ final class PlayerModel {
         }
     }
 
-    private func persistCurrentHistory() {
+    @discardableResult
+    private func persistCurrentHistory() -> Task<Result<Void, Error>, Never>? {
         guard let historyStore, let request = state.request, let snapshot = state.snapshot,
               historySuppressedRequestID != request.id,
-              snapshot.position.isFinite, snapshot.position >= 0 else { return }
+              snapshot.position.isFinite, snapshot.position >= 0 else { return nil }
         let position = snapshot.position
         let audioTrackID = snapshot.audioTrackID
         let subtitleTrackID = snapshot.subtitleTrackID
         let volume = lastRequestedVolume ?? min(100, max(0, snapshot.volume))
         let pendingWrite = persistenceTask
         persistenceTask = Task { [weak self, historyStore] in
-            await pendingWrite?.value
+            _ = await pendingWrite?.value
             do {
                 try await historyStore.save(for: request.url, position: position,
                                             audioTrackID: audioTrackID,
                                             subtitleTrackID: subtitleTrackID,
                                             volume: volume, updatedAt: .now)
                 self?.persistenceError = nil
+                return .success(())
             } catch {
-                self?.persistenceError = error.localizedDescription
+                self?.persistenceError = String(localized: "persistence.saveFailed")
+                return .failure(error)
             }
         }
+        return persistenceTask
     }
 
     private func persistCurrentHistoryAndWait() async {
-        await persistenceTask?.value
+        _ = await persistenceTask?.value
         guard let historyStore, let request = state.request, let snapshot = state.snapshot,
               historySuppressedRequestID != request.id,
               snapshot.position.isFinite, snapshot.position >= 0 else { return }
@@ -608,7 +652,7 @@ final class PlayerModel {
                                         updatedAt: .now)
             persistenceError = nil
         } catch {
-            persistenceError = error.localizedDescription
+            persistenceError = String(localized: "persistence.saveFailed")
         }
     }
 }

@@ -39,6 +39,10 @@ Objective-C 不自动提供并发安全；安全性来自以下明确合同：
 
 `PlaybackState.Phase` 区分 `idle`、`opening`、`ready`、`ended`、`failed`。暂停、定位、缓冲是 snapshot 中独立事实，不再组合多个含义重叠的“正在播放”布尔值。
 
+自然结束与文件失败都是当前请求的终态。文件失败只接受于 `opening` 或 `ready`；进入 `ended` 或 `failed` 后，同一请求迟到的原生错误不能替换终态，重复错误也保留首次原因。新请求会重置状态并重新接收事件。
+
+`PlaybackState.receive` 返回事件是否被当前请求接受；`PlayerModel` 只对已接受的事件执行副作用。因而重复的 `loaded` 不会再次重置每文件默认值，重复的结束事件也不会重复写入结束检查点。
+
 每次打开由模型生成递增 request ID。mpv 的 `loadfile replace` 返回后，适配层读取 `playlist/0/id`；通过 `START_FILE` / `END_FILE` 的 `playlist_entry_id` 判断事件属于哪一个请求。相同路径连续重播也有不同身份。到 Swift 边界后再校验 request ID，阻止已经排进主线程的旧事件污染当前文件。
 
 初始化期间只保留最后一次打开意图；停止立即清空当前请求，之后晚到的快照和错误都无效。自然 EOF 与手动 stop 分离。文件失败时先停止内核，避免错误页背后继续播放声音。
@@ -56,6 +60,8 @@ Objective-C 不自动提供并发安全；安全性来自以下明确合同：
 ## 视频与窗口
 
 SwiftUI 对视频宿主的更新不创建会话、切换内核或释放渲染器。切文件和调整布局都复用同一 NSView。全屏操作针对该宿主所在窗口，不查询可能属于其他窗口的全局 key window。
+
+`BMVideoSurface` 在加入窗口以及 AppKit 通知 backing properties 变化时，刷新 `CAOpenGLLayer.contentsScale` 并请求重绘。AppKit 的 [`viewDidChangeBackingProperties()`](https://developer.apple.com/documentation/appkit/nsview/viewdidchangebackingproperties%28%29) 覆盖 backing scale 或颜色空间变化；此回调存在只证明代码路径，不替代实际窗口迁移验收。
 
 当前使用 `CAOpenGLLayer`、OpenGL 3.2 core、sRGB layer 和固定 SDR 输出目标；mpv 负责适配文件显示比例。没有硬编码 16:9，也不为本次用户样本添加专用缩放逻辑。HDR 源文件可能被内核映射到 SDR，但尚未验证，不能作为原生 HDR 能力宣传。
 

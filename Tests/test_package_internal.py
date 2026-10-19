@@ -61,6 +61,57 @@ class InternalPackageTests(unittest.TestCase):
 
         self.assertEqual(library.resolve(), resolved.resolve())
 
+    def test_macos_build_version_within_supported_floor_is_accepted(self):
+        load_commands = """Load command 11
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 11.0
+      sdk 26.5
+"""
+
+        self.assertEqual(
+            package_internal.verify_macos_deployment_target(load_commands, '14.0'),
+            '11.0'
+        )
+
+    def test_legacy_macos_version_command_is_accepted(self):
+        load_commands = """Load command 9
+      cmd LC_VERSION_MIN_MACOSX
+  cmdsize 16
+  version 13.0
+      sdk 13.3
+"""
+
+        self.assertEqual(
+            package_internal.verify_macos_deployment_target(load_commands, '14.0'),
+            '13.0'
+        )
+
+    def test_dependency_above_supported_macos_floor_is_rejected(self):
+        load_commands = """Load command 11
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.1
+      sdk 26.5
+"""
+
+        with self.assertRaisesRegex(ValueError, 'requires macOS 14.1'):
+            package_internal.verify_macos_deployment_target(load_commands, '14.0')
+
+    def test_non_macos_binary_is_rejected(self):
+        load_commands = """Load command 11
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 2
+    minos 14.0
+      sdk 26.5
+"""
+
+        with self.assertRaisesRegex(ValueError, 'does not target macOS'):
+            package_internal.verify_macos_deployment_target(load_commands, '14.0')
+
 
 if __name__ == '__main__':
     unittest.main()

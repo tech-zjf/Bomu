@@ -11,3 +11,5 @@
 2026-10-15：预检从首个错误即退出改为逐项执行并汇总独立阻断，仍不允许发行路径越过不满足的信任门。Bomu 项目已选 MIT 并将许可证文件哈希写入审计清单；项目和组件证据审计通过。当前预检仍报告三项阻断：依赖锁尚未批准发行、没有有效 Developer ID Application 身份、未配置公证 profile。依赖批准须等组合 GPL/LGPL 运行库的发行义务和源码提供方式审查完成后再做。
 
 该流程遵循 Apple 的 [macOS 公证说明](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)、[自定义公证工作流](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow) 与 [Mac 软件打包说明](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)。
+
+2026-10-19 只读预检再次确认三个阻断：运行库组合仍未批准发行、本机没有有效 Developer ID Application 身份、未配置 notarytool profile。工具链与依赖校验正常；本次没有构建发行包、读取私钥、签名或提交公证。当前应用闭包检查通过仍仅是内部开发包证据。

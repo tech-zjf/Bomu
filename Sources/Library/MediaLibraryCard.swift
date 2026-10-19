@@ -16,43 +16,53 @@ struct MediaLibraryCard: View {
     let onContinue: (MediaLibraryItem) -> Void
     let onPlayFromBeginning: (MediaLibraryItem) -> Void
 
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     @State private var thumbnailURL: URL?
-    @State private var technicalMetadata: MediaTechnicalMetadata?
+    @State private var metadataState: MediaTechnicalMetadataLoadState = .loading
+
+    private var technicalMetadata: MediaTechnicalMetadata? { metadataState.metadata }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 10) {
             artwork
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(item.displayName)
                         .font(AppTheme.Typography.mediaTitle)
                         .lineLimit(1)
                         .foregroundStyle(AppTheme.textPrimary)
                     metadataLine
-                        .font(AppTheme.Typography.metadata)
-                        .lineLimit(1)
+                        .font(AppTheme.Typography.mediaMetadata)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
 
-                actionsMenu
+                MediaLibraryActionsMenu(item: item, isPlayable: isPlayable, model: model,
+                                        onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning)
             }
         }
         .contentShape(Rectangle())
-        .task(id: "\(item.relativePath)-\(item.contentRevision)-\(isVisible)") {
+        .onTapGesture { model.select(item) }
+        .task(id: "thumbnail-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
             guard isVisible else {
                 thumbnailURL = nil
-                technicalMetadata = nil
                 return
             }
-            async let thumbnail = model.thumbnailURL(for: item)
-            async let metadata = model.metadata(for: item)
-            let loadedThumbnail = await thumbnail
-            let loadedMetadata = await metadata
+            let loadedThumbnail = await model.thumbnailURL(for: item)
             guard !Task.isCancelled else { return }
             thumbnailURL = loadedThumbnail
-            technicalMetadata = loadedMetadata
+        }
+        .task(id: "metadata-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
+            guard isVisible else {
+                metadataState = .loading
+                return
+            }
+            metadataState = .loading
+            let loadedMetadata = await model.metadata(for: item)
+            guard !Task.isCancelled else { return }
+            metadataState = .resolved(loadedMetadata)
         }
         .contextMenu { mediaActions }
     }
@@ -68,31 +78,49 @@ struct MediaLibraryCard: View {
             .accessibilityValue(Text(MediaLibraryAccessibilitySummary.value(
                 for: item,
                 isSelected: model.selectedItemID == item.id,
-                metadata: technicalMetadata
+                metadata: technicalMetadata,
+                isOffline: !isPlayable
             )))
 
             if isPlayable {
                 Button(action: play) {
                     Image(systemName: "play.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.Typography.Symbol.mediaPlay)
                         .foregroundStyle(AppTheme.textPrimary)
-                        .frame(width: 26, height: 26)
-                        .background(.white.opacity(0.92), in: Circle())
+                        .frame(width: AppTheme.Layout.compactControlSize, height: AppTheme.Layout.compactControlSize)
+                        .background(.white.opacity(reduceTransparency ? 1 : 0.92), in: Circle())
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("library.playMedia"))
-                .padding(10)
+                .padding(12)
+            }
+
+            if !isPlayable {
+                Label("library.sourceOffline", systemImage: "externaldrive.badge.xmark")
+                    .font(AppTheme.Typography.compactBadge)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(.white, in: RoundedRectangle(cornerRadius: AppTheme.Corners.badge))
+                    .padding(9)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
 
             if let badge = durationBadge {
                 Text(badge)
                     .font(AppTheme.Typography.durationBadge)
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 4)
-                    .background(.black.opacity(0.68), in: RoundedRectangle(cornerRadius: AppTheme.Corners.badge))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(.black.opacity(reduceTransparency ? 1 : 0.68),
+                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.badge))
                     .padding(9)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
         }
         .overlay(alignment: .bottom) {
@@ -106,9 +134,18 @@ struct MediaLibraryCard: View {
                     }
                 }
                 .frame(height: 3)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.Corners.artwork))
+        .overlay {
+            if model.selectedItemID == item.id {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.artwork)
+                    .strokeBorder(AppTheme.textPrimary.opacity(0.55), lineWidth: 2)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     private var artworkImage: some View {
@@ -118,24 +155,34 @@ struct MediaLibraryCard: View {
 
     @ViewBuilder
     private var metadataLine: some View {
-        if presentation == .continueWatching {
+        VStack(alignment: .leading, spacing: 2) {
+            metadataSummary
+                .lineLimit(presentation == .continueWatching ? 1 : 2)
+                .frame(height: presentation == .continueWatching
+                       ? AppTheme.Layout.mediaSummaryLineHeight : AppTheme.Layout.mediaSummaryHeight,
+                       alignment: .topLeading)
+
+            Text(ByteCountFormatStyle().format(item.byteCount))
+                .font(AppTheme.Typography.mediaMetadata)
+                .lineLimit(1)
+        }
+    }
+
+    @ViewBuilder
+    private var metadataSummary: some View {
+        switch presentation {
+        case .continueWatching:
             Text(String.localizedStringWithFormat(
                 NSLocalizedString("library.continueAt", comment: ""),
                 MediaTechnicalMetadataText.durationLabel(item.playbackPosition) ?? "—"
             ))
-        } else {
-            HStack(spacing: 5) {
-                if let category = item.manualCategory {
-                    Text(category.title)
-                }
-                if item.manualCategory != nil {
-                    Text(verbatim: "·")
-                }
-                Text(MediaTechnicalMetadataText.cardValueOrFileSize(
-                    metadata: technicalMetadata,
-                    byteCount: item.byteCount,
-                    isAudio: isAudio
-                ))
+        case .standard:
+            if let category = item.manualCategory {
+                Text(category.title)
+                    + Text(verbatim: " · ")
+                    + Text(verbatim: metadataState.cardValue(isAudio: isAudio))
+            } else {
+                Text(verbatim: metadataState.cardValue(isAudio: isAudio))
             }
         }
     }
@@ -167,44 +214,9 @@ struct MediaLibraryCard: View {
         MediaFileType.isAudio(URL(filePath: item.relativePath))
     }
 
-    private var actionsMenu: some View {
-        Menu { mediaActions } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: 26, height: 24)
-                .contentShape(Rectangle())
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .accessibilityLabel(Text("library.moreActions"))
-    }
-
-    @ViewBuilder
     private var mediaActions: some View {
-        Button(item.isFavorite ? "library.removeFavorite" : "library.addFavorite",
-               systemImage: item.isFavorite ? "heart.slash" : "heart") {
-            model.toggleFavorite(item)
-        }
-        Button(item.isWatched ? "library.markUnwatched" : "library.markWatched",
-               systemImage: item.isWatched ? "eye.slash" : "eye") {
-            model.toggleWatched(item)
-        }
-        if item.playbackPosition > 0 {
-            Button("library.continuePlayback", systemImage: "play.fill") { continuePlayback() }
-        }
-        Button("library.playFromBeginning", systemImage: "backward.end.fill") {
-            playFromBeginning()
-        }
-        Menu("library.category") {
-            ForEach(MediaManualCategory.allCases) { category in
-                Button(category.title) { model.setCategory(category, for: item) }
-            }
-            if item.manualCategory != nil {
-                Divider()
-                Button("library.category.clear") { model.setCategory(nil, for: item) }
-            }
-        }
+        MediaLibraryItemActions(item: item, isPlayable: isPlayable, model: model,
+                                onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning)
     }
 
     private func play() {
@@ -217,13 +229,4 @@ struct MediaLibraryCard: View {
         }
     }
 
-    private func continuePlayback() {
-        model.select(item)
-        onContinue(item)
-    }
-
-    private func playFromBeginning() {
-        model.select(item)
-        onPlayFromBeginning(item)
-    }
 }

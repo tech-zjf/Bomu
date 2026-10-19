@@ -16,8 +16,9 @@ enum OpenMediaPanel {
         }
     }
 
-    static func presentSubtitle(for player: PlayerModel) {
-        guard let window = NSApp.mainWindow, window.attachedSheet == nil else { return }
+    static func presentSubtitle(for player: PlayerModel, requestID: UInt64) {
+        guard player.canControlPlayback, player.state.request?.id == requestID,
+              let window = NSApp.mainWindow, window.attachedSheet == nil else { return }
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -26,7 +27,7 @@ enum OpenMediaPanel {
         panel.message = String(localized: "open.subtitleMessage")
         panel.beginSheetModal(for: window) { response in
             guard response == .OK, let url = panel.url else { return }
-            player.addExternalSubtitle(url)
+            player.addExternalSubtitle(url, requestID: requestID)
         }
     }
 }

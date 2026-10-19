@@ -4,6 +4,7 @@ struct MediaLibraryArchive: Codable, Sendable {
     static let maximumSize = 256 * 1_024 * 1_024
 
     static func read(from url: URL, maximumSize: Int = maximumSize) throws -> Data {
+        try Task.checkCancellation()
         guard maximumSize >= 0 else { throw MediaLibraryArchiveError.tooLarge }
 
         let file = try FileHandle(forReadingFrom: url)
@@ -11,12 +12,29 @@ struct MediaLibraryArchive: Codable, Sendable {
 
         var data = Data()
         while true {
+            try Task.checkCancellation()
             let remainingCapacity = maximumSize - data.count
             let chunkSize = remainingCapacity < 64 * 1_024 ? remainingCapacity + 1 : 64 * 1_024
             let chunk = try file.read(upToCount: chunkSize) ?? Data()
             guard !chunk.isEmpty else { return data }
             guard chunk.count <= remainingCapacity else { throw MediaLibraryArchiveError.tooLarge }
             data.append(chunk)
+        }
+    }
+
+    static func readForImport(from url: URL) async throws -> Data {
+        try Task.checkCancellation()
+        let worker = Task.detached(priority: .userInitiated) {
+            let hasScopedAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if hasScopedAccess { url.stopAccessingSecurityScopedResource() }
+            }
+            return try read(from: url)
+        }
+        return try await withTaskCancellationHandler {
+            try await worker.value
+        } onCancel: {
+            worker.cancel()
         }
     }
 

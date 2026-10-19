@@ -1,9 +1,11 @@
 """Wrong generated media must fail before it can define playback expectations."""
 from copy import deepcopy
+from dataclasses import replace
 import importlib.util
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 SPEC = importlib.util.spec_from_file_location('media_suite',
@@ -52,6 +54,13 @@ class MediaSuiteTests(unittest.TestCase):
         self.assertEqual(len(b11), 60)
         self.assertTrue(all(recipe.video and recipe.audio for recipe in b11))
         self.assertEqual(len({recipe.file for recipe in b11}), 60)
+
+    def test_b11_rejects_duplicate_encoding_under_a_different_filename(self):
+        recipes = list(media_suite.B11_ADDITIONAL_RECIPES)
+        recipes[-1] = replace(recipes[0], file='renamed-duplicate.mp4', coverage='Different label')
+        with patch.object(media_suite, 'B11_ADDITIONAL_RECIPES', recipes):
+            with self.assertRaisesRegex(ValueError, 'duplicate encoding'):
+                media_suite.recipes_for_suite('b11')
 
     def test_nonstandard_video_encoders_have_real_probe_mappings(self):
         cases = [

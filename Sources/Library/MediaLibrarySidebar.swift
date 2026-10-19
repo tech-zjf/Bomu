@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MediaLibrarySidebar: View {
-    let selection: LibraryDestination?
+    let selection: LibraryDestination
     let onlineRoots: [MediaSourceRoot]
     let offlineRoots: [MediaSourceRoot]
     let isStorageAvailable: Bool
@@ -9,11 +9,12 @@ struct MediaLibrarySidebar: View {
     let onOpen: (MediaSourceRoot) -> Void
     let onChooseFolder: () -> Void
     let onShowSettings: () -> Void
+    let isSettingsSelected: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: AppTheme.Layout.sidebarSectionSpacing) {
                     VStack(alignment: .leading, spacing: 5) {
                         sectionHeading("library.section.yourMedia")
                         ForEach(LibraryDestination.allCases) { destination in
@@ -24,65 +25,44 @@ struct MediaLibrarySidebar: View {
                     VStack(alignment: .leading, spacing: 5) {
                         sectionHeading("library.section.locations")
                         ForEach(onlineRoots) { root in
-                            Button { onOpen(root) } label: {
-                                Label(root.displayName, systemImage: "folder")
-                                    .lineLimit(1)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 8)
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(AppTheme.textSecondary)
-                            .help(root.relativePath)
+                            sourceButton(root)
                         }
                         ForEach(offlineRoots) { root in
-                            Label(root.displayName, systemImage: "externaldrive.badge.xmark")
-                                .lineLimit(1)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 8)
-                                .foregroundStyle(AppTheme.textSecondary.opacity(0.65))
-                                .help(String(localized: "library.sourceOffline"))
+                            sourceButton(root)
                         }
                         Button(action: onChooseFolder) {
                             Label("library.addFolder", systemImage: "plus")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 8)
                         }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(AppTheme.textSecondary)
+                        .buttonStyle(SidebarRowButtonStyle())
                         .disabled(!isStorageAvailable)
                     }
                 }
                 .font(AppTheme.Typography.sidebarLabel)
-                .padding(.horizontal, 12)
-                .padding(.top, 19)
+                .padding(.horizontal, AppTheme.Layout.sidebarHorizontalInset)
+                .padding(.top, AppTheme.Layout.sidebarTopInset)
                 .padding(.bottom, 16)
             }
             .scrollIndicators(.hidden)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: AppTheme.Layout.sidebarSectionSpacing) {
                 Label("library.localOnly", systemImage: "lock.shield")
-                    .font(AppTheme.Typography.compactCaption)
+                    .font(AppTheme.Typography.sidebarLocalTag)
                     .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.horizontal, 10)
+                    .padding(.top, AppTheme.Layout.sidebarLocalTagTopInset)
                 Button(action: onShowSettings) {
                     Label("library.nav.settings", systemImage: "gearshape")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(AppTheme.textPrimary)
+                .buttonStyle(SidebarRowButtonStyle(isSelected: isSettingsSelected))
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .padding(.bottom, 12)
+            .font(AppTheme.Typography.sidebarLabel)
+            .padding(.horizontal, AppTheme.Layout.sidebarHorizontalInset)
+            .padding(.bottom, AppTheme.Layout.sidebarBottomInset)
         }
         .frame(width: AppTheme.Layout.sidebarWidth)
-        .background(AppTheme.background.ignoresSafeArea())
-        .overlay(alignment: .trailing) {
-            AppTheme.separator.frame(width: 1).ignoresSafeArea()
-        }
+        .frame(maxHeight: .infinity)
+        .background(AppTheme.mutedSurface)
+        .labelStyle(SidebarLabelStyle())
         .accessibilityElement(children: .contain)
     }
 
@@ -90,9 +70,18 @@ struct MediaLibrarySidebar: View {
         Text(title)
             .font(AppTheme.Typography.sidebarSection)
             .foregroundStyle(AppTheme.textSecondary)
-            .padding(.horizontal, 10)
-            .padding(.top, 3)
-            .padding(.bottom, 3)
+            .tracking(0.7)
+            .padding(.horizontal, AppTheme.Layout.sidebarRowHorizontalInset)
+            .padding(.top, AppTheme.Layout.sidebarHeadingTopInset)
+            .padding(.bottom, AppTheme.Layout.sidebarHeadingBottomInset)
+    }
+
+    private func sourceButton(_ root: MediaSourceRoot) -> some View {
+        Button { onOpen(root) } label: {
+            Label(root.displayName, systemImage: root.isOnline ? "folder" : "externaldrive.badge.xmark")
+        }
+        .buttonStyle(SidebarRowButtonStyle())
+        .help(root.isOnline ? root.relativePath : String(localized: "library.sourceOffline"))
     }
 
     private func destinationButton(_ destination: LibraryDestination) -> some View {
@@ -100,16 +89,49 @@ struct MediaLibrarySidebar: View {
 
         return Button { onSelect(destination) } label: {
             Label(destination.title, systemImage: destination.symbol)
-                .font(isSelected ? AppTheme.Typography.sidebarSelected : AppTheme.Typography.sidebarLabel)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 10)
-                .frame(height: 34)
-                .background(isSelected ? AppTheme.surface : .clear,
-                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.selection))
         }
-        .buttonStyle(.plain)
-        .foregroundStyle(isSelected ? AppTheme.textPrimary : AppTheme.textSecondary)
+        .buttonStyle(SidebarRowButtonStyle(isSelected: isSelected))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+private struct SidebarLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: AppTheme.Layout.sidebarIconGap) {
+            configuration.icon
+                .font(AppTheme.Typography.Symbol.sidebar)
+                .frame(width: AppTheme.Layout.sidebarIconWidth)
+            configuration.title
+        }
+    }
+}
+
+/// Every sidebar action uses the same full-row bounds, including transparent space.
+private struct SidebarRowButtonStyle: ButtonStyle {
+    var isSelected = false
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(isSelected ? AppTheme.Typography.sidebarSelected : AppTheme.Typography.sidebarLabel)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, AppTheme.Layout.sidebarRowHorizontalInset)
+            .frame(height: AppTheme.Layout.sidebarRowHeight)
+            .foregroundStyle(isSelected ? AppTheme.textPrimary : AppTheme.textSecondary)
+            .background(background(isPressed: configuration.isPressed),
+                        in: RoundedRectangle(cornerRadius: AppTheme.Corners.selection))
+            .contentShape(Rectangle())
+            .opacity(isEnabled ? 1 : 0.45)
+            .opacity(configuration.isPressed ? 0.7 : 1)
+            .onHover { isHovered = $0 }
+    }
+
+    private func background(isPressed: Bool) -> Color {
+        if isSelected { return AppTheme.surface }
+        if isEnabled && isPressed { return AppTheme.surface.opacity(0.9) }
+        if isEnabled && isHovered { return AppTheme.surface.opacity(0.55) }
+        return .clear
     }
 }

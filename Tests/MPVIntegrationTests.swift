@@ -38,8 +38,7 @@ final class MPVIntegrationTests: XCTestCase {
             player.open(try fixture("h264-sdr"))
             try await waitUntil { player.canControlPlayback }
             try await waitUntil { (player.state.snapshot?.position ?? 0) > 0.3 }
-            player.togglePause()
-            try await waitUntil { player.state.snapshot?.isPaused == true }
+            let positionBeforeResizing = try XCTUnwrap(player.state.snapshot?.position)
 
             let sizes = [NSSize(width: 960, height: 640), NSSize(width: 1280, height: 800),
                          NSSize(width: 1440, height: 900)]
@@ -51,6 +50,11 @@ final class MPVIntegrationTests: XCTestCase {
                 XCTAssertEqual(window.screen?.deviceDescription[screenKey] as? NSNumber, originalScreen)
                 XCTAssertEqual(NSApplication.shared.windows.filter { $0.canBecomeMain && $0.isVisible }.count, 1)
             }
+
+            XCTAssertEqual(player.state.snapshot?.isPaused, false,
+                           "Repeated layout changes must not pause active playback")
+            XCTAssertGreaterThan(try XCTUnwrap(player.state.snapshot?.position), positionBeforeResizing + 0.2,
+                                 "Playback must continue to advance during the resize sequence")
 
             let active = await engine.diagnostics()
             XCTAssertEqual(active.coreCreationCount, 1, "Window resizing must reuse the playback core")
@@ -67,6 +71,32 @@ final class MPVIntegrationTests: XCTestCase {
             await player.shutdown()
             throw error
         }
+    }
+
+    func testFinderDropProviderResolvesFileAndDirectoryURLs() async throws {
+        _ = try await applicationHostWindow()
+        let root = FileManager.default.temporaryDirectory.appending(path: "Bomu 拖放 \(UUID().uuidString)")
+        let nested = root.appending(path: "媒体 文件")
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let file = root.appending(path: "Episode 10 中文 file.mp4")
+        let nestedFile = nested.appending(path: "Episode 2 中文 file.mkv")
+        try Data().write(to: file)
+        try Data().write(to: nestedFile)
+
+        let providers = [NSItemProvider(object: file as NSURL), NSItemProvider(object: nested as NSURL)]
+        var inputs: [URL] = []
+        for provider in providers {
+            let loaded = await FileURLProviderRequest().load(from: provider)
+            inputs.append(try XCTUnwrap(loaded))
+        }
+
+        let discovered = try MediaFileDiscovery.expand(inputs)
+        XCTAssertEqual(discovered.map(\.lastPathComponent), [
+            "Episode 2 中文 file.mkv",
+            "Episode 10 中文 file.mp4"
+        ])
     }
 
     func testRealPlaybackPauseSeekReplaceAndRelease() async throws {
@@ -238,13 +268,14 @@ final class MPVIntegrationTests: XCTestCase {
             let audioTracks = try XCTUnwrap(player.state.snapshot?.tracks.filter { $0.kind == .audio })
             let initialTrack = try XCTUnwrap(audioTracks.first(where: \.isSelected))
             let alternateTrack = try XCTUnwrap(audioTracks.first { $0.id != initialTrack.id })
-            player.selectAudioTrack(alternateTrack.id)
+            let trackRequestID = try XCTUnwrap(player.state.request?.id)
+            player.selectAudioTrack(alternateTrack.id, requestID: trackRequestID)
             try await waitUntil {
                 player.state.snapshot?.audioTrackID == alternateTrack.id
                     && player.state.snapshot?.tracks.first { $0.id == alternateTrack.id }?.isSelected == true
             }
 
-            player.selectAudioTrack(initialTrack.id)
+            player.selectAudioTrack(initialTrack.id, requestID: trackRequestID)
             try await waitUntil {
                 player.state.snapshot?.audioTrackID == initialTrack.id
                     && player.state.snapshot?.tracks.first { $0.id == initialTrack.id }?.isSelected == true
@@ -296,12 +327,12 @@ final class MPVIntegrationTests: XCTestCase {
             let restoredTrack = try XCTUnwrap(firstPlayer.state.snapshot?.tracks.first {
                 $0.kind == .audio && $0.id != initialTrack.id
             })
-            firstPlayer.selectAudioTrack(restoredTrack.id)
+            firstPlayer.selectAudioTrack(restoredTrack.id, requestID: try XCTUnwrap(firstPlayer.state.request?.id))
             try await waitUntil {
                 firstPlayer.state.snapshot?.audioTrackID == restoredTrack.id
                     && firstPlayer.state.snapshot?.tracks.first { $0.id == restoredTrack.id }?.isSelected == true
             }
-            firstPlayer.seek(to: 1.2)
+            firstPlayer.seek(to: 1.2, requestID: try XCTUnwrap(firstPlayer.state.request?.id))
             try await waitUntil { self.hasSettledPosition(firstPlayer, seconds: 1.2) }
             XCTAssertTrue(firstPlayer.state.snapshot?.isPaused == true)
             await firstPlayer.shutdown()
@@ -360,7 +391,7 @@ final class MPVIntegrationTests: XCTestCase {
             player.togglePause()
             try await waitUntil { player.state.snapshot?.isPaused == true }
             positionBeforeSeek = player.state.snapshot?.position
-            player.seek(to: 3)
+            player.seek(to: 3, requestID: try XCTUnwrap(player.state.request?.id))
             try await waitUntil { self.hasSettledPosition(player, seconds: 3) }
             XCTAssertTrue(player.state.snapshot?.isPaused == true)
             XCTAssertEqual(player.state.snapshot?.position ?? -1, 3, accuracy: 0.2)
@@ -492,7 +523,7 @@ final class MPVIntegrationTests: XCTestCase {
             let firstID = try XCTUnwrap(player.state.request?.id)
             player.togglePause()
             try await waitUntil { player.state.snapshot?.isPaused == true }
-            player.seek(to: 3)
+            player.seek(to: 3, requestID: try XCTUnwrap(player.state.request?.id))
             try await waitUntil { self.hasSettledPosition(player, seconds: 3) }
 
             player.skip(by: 2)
@@ -500,7 +531,7 @@ final class MPVIntegrationTests: XCTestCase {
             player.skip(by: -1)
             try await waitUntil { self.hasSettledPosition(player, seconds: 6) }
             XCTAssertEqual(player.state.snapshot?.isPaused, true)
-            player.seek(to: 9)
+            player.seek(to: 9, requestID: try XCTUnwrap(player.state.request?.id))
             player.skip(by: -2)
             player.skip(by: 1)
             try await waitUntil { self.hasSettledPosition(player, seconds: 8) }
@@ -509,8 +540,9 @@ final class MPVIntegrationTests: XCTestCase {
             try await waitUntil { player.canSeek && player.state.snapshot?.requestID != firstID }
             player.togglePause()
             try await waitUntil { player.state.snapshot?.isPaused == true }
-            player.seek(to: 3)
+            player.seek(to: 3, requestID: try XCTUnwrap(player.state.request?.id))
             try await waitUntil { self.hasSettledPosition(player, seconds: 3) }
+            player.seek(to: 12, requestID: firstID)
             engine.seek(PlaybackSeekRequest(requestID: firstID, target: .absolute(12)))
             engine.seek(PlaybackSeekRequest(requestID: firstID, target: .relative(4)))
             try await Task.sleep(for: .milliseconds(300))
@@ -538,7 +570,7 @@ final class MPVIntegrationTests: XCTestCase {
             firstPlayer.setVolume(0)
             firstPlayer.open(media)
             try await waitUntil { firstPlayer.canSeek }
-            firstPlayer.seek(to: 6)
+            firstPlayer.seek(to: 6, requestID: try XCTUnwrap(firstPlayer.state.request?.id))
             try await waitUntil { self.hasSettledPosition(firstPlayer, seconds: 6) }
             firstPlayer.togglePause()
             try await waitUntil { firstPlayer.state.snapshot?.isPaused == true }

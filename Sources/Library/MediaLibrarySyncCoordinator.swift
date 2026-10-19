@@ -12,6 +12,7 @@ final class MediaLibrarySyncCoordinator {
     private var scanTask: Task<Void, Never>?
     private var stopTask: Task<Void, Never>?
     private var isStopping = false
+    private var isSuspended = false
     private let didReconcile: @MainActor () async -> Void
 
     init(historyStore: PlaybackHistoryStore,
@@ -52,6 +53,18 @@ final class MediaLibrarySyncCoordinator {
         scheduleReconciliation()
     }
 
+    func suspendReconciliation() async {
+        isSuspended = true
+        let scan = scanTask
+        scan?.cancel()
+        await scan?.value
+    }
+
+    func resumeReconciliation() {
+        isSuspended = false
+        scheduleReconciliation()
+    }
+
     func stop() async {
         if let stopTask {
             await stopTask.value
@@ -76,9 +89,11 @@ final class MediaLibrarySyncCoordinator {
     }
 
     private func scheduleReconciliation() {
-        guard !isStopping else { return }
-        scanTask?.cancel()
+        guard !isStopping, !isSuspended else { return }
+        let previousScan = scanTask
+        previousScan?.cancel()
         scanTask = Task { @MainActor [weak self] in
+            await previousScan?.value
             do { try await Task.sleep(for: .milliseconds(700)) }
             catch { return }
             await self?.reconcileMountedRoots()
@@ -86,16 +101,7 @@ final class MediaLibrarySyncCoordinator {
     }
 
     private func reconcileMountedRoots() async {
-        let volumeURLs = FileManager.default.mountedVolumeURLs(
-            includingResourceValuesForKeys: [.volumeUUIDStringKey],
-            options: []
-        ) ?? []
-        var mountedVolumes: [String: URL] = [:]
-        for volumeURL in volumeURLs {
-            let volumeID = try? volumeURL.resourceValues(forKeys: [.volumeUUIDStringKey]).volumeUUIDString
-            guard let volumeID, !volumeID.isEmpty else { continue }
-            mountedVolumes[volumeID] = volumeURL
-        }
+        let mountedVolumes = MountedMediaVolumes.current()
 
         do {
             let roots = try await historyStore.sourceRoots(mountedVolumeIDs: Set(mountedVolumes.keys))
@@ -109,13 +115,17 @@ final class MediaLibrarySyncCoordinator {
                 }
                 let isDirectory = (try? folder.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
                 guard isDirectory else { continue }
+                let scan = scanner.scan(folder: folder, includingSubfolders: root.includingSubfolders)
                 do {
-                    for try await _ in scanner.scan(folder: folder, includingSubfolders: root.includingSubfolders) {
+                    for try await _ in scan.events {
                         try Task.checkCancellation()
                     }
+                    await scan.cancelAndWait()
                 } catch is CancellationError {
+                    await scan.cancelAndWait()
                     return
                 } catch {
+                    await scan.cancelAndWait()
                     // A partial scan is retained as evidence by the store; the next scheduled pass retries it.
                 }
             }

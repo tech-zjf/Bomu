@@ -1,5 +1,4 @@
 import Foundation
-import UniformTypeIdentifiers
 
 /// The ordered set of local media accepted by one playback session.
 struct PlaybackQueue: Equatable, Sendable {
@@ -61,12 +60,6 @@ struct PlaybackQueue: Equatable, Sendable {
 }
 
 enum MediaFileDiscovery {
-    private static let supportedFallbackExtensions: Set<String> = [
-        "3gp", "aac", "aiff", "ape", "avi", "flac", "flv", "m2ts", "m4a", "m4v",
-        "mkv", "mov", "mp3", "mp4", "mpeg", "mpg", "mts", "oga", "ogg", "ogv",
-        "opus", "ts", "wav", "webm", "wma", "wmv"
-    ]
-
     /// Expands dropped/opened folders without following symlinks or entering packages.
     static func expand(
         _ inputs: [URL],
@@ -84,12 +77,19 @@ enum MediaFileDiscovery {
                 continue
             }
 
-            guard values.isPackage != true,
-                  let enumerator = fileManager.enumerator(
-                    at: input,
-                    includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .isPackageKey],
-                    options: [.skipsHiddenFiles, .skipsPackageDescendants]
-                  ) else { continue }
+            guard values.isPackage != true else { continue }
+            var enumerationError: Error?
+            guard let enumerator = fileManager.enumerator(
+                at: input,
+                includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .isPackageKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants],
+                errorHandler: { _, error in
+                    enumerationError = error
+                    return false
+                }
+            ) else {
+                throw CocoaError(.fileReadUnknown, userInfo: [NSURLErrorKey: input])
+            }
 
             while let candidate = enumerator.nextObject() as? URL {
                 try checkCancellation()
@@ -100,17 +100,15 @@ enum MediaFileDiscovery {
                     enumerator.skipDescendants()
                     continue
                 }
-                guard candidateValues.isDirectory != true, isSupportedMedia(candidate) else { continue }
+                guard candidateValues.isDirectory != true, MediaFileType.supports(candidate) else { continue }
                 files.append(candidate.standardizedFileURL)
             }
+            try checkCancellation()
+            // FileManager otherwise skips unreadable descendants silently. A partial
+            // result must not replace the current queue as if every input was read.
+            if let enumerationError { throw enumerationError }
         }
         try checkCancellation()
         return PlaybackQueue(urls: files).items
-    }
-
-    private static func isSupportedMedia(_ url: URL) -> Bool {
-        if supportedFallbackExtensions.contains(url.pathExtension.lowercased()) { return true }
-        guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
-        return type.conforms(to: .movie) || type.conforms(to: .audio) || type.conforms(to: .audiovisualContent)
     }
 }

@@ -5,7 +5,13 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
     let engine = MPVPlaybackEngine()
     let preferences = PlaybackPreferences()
     private var historyStoreStartupError: String?
-    private var librarySync: MediaLibrarySyncCoordinator?
+    private lazy var librarySync: MediaLibrarySyncCoordinator? = {
+        guard let historyStore else { return nil }
+        let library = mediaLibrary
+        return MediaLibrarySyncCoordinator(historyStore: historyStore) { [weak library] in
+            await library?.refresh()
+        }
+    }()
     private lazy var historyStore: PlaybackHistoryStore? = {
         do {
             return try PlaybackHistoryStore.applicationStore()
@@ -24,18 +30,15 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
         metadataProbe: MediaMetadataProbe(),
         startupError: historyStoreStartupError
     )
+    lazy var libraryRecords = MediaLibraryRecordOperations(
+        library: mediaLibrary, sync: librarySync, player: player
+    )
     private var isTerminating = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        guard let historyStore else { return }
-        let library = mediaLibrary
-        let coordinator = MediaLibrarySyncCoordinator(historyStore: historyStore) { [weak library] in
-            await library?.refresh()
-        }
-        librarySync = coordinator
-        coordinator.start()
+        librarySync?.start()
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
@@ -47,8 +50,10 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
         guard !isTerminating else { return .terminateLater }
         isTerminating = true
         Task {
-            nowPlaying.deactivate()
+            nowPlaying.shutdown()
+            await libraryRecords.shutdown()
             await librarySync?.stop()
+            await mediaLibrary.shutdown()
             await player.shutdown()
             sender.reply(toApplicationShouldTerminate: true)
         }

@@ -59,5 +59,4 @@ build/
 /player_plan/build_plan.py
 /player_plan/check_final.cjs
 /player_plan/check_html.cjs
-/player_ui/check-preview.cjs
 /资料迁移校验.json

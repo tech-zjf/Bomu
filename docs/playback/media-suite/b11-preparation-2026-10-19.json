@@ -1,0 +1,1346 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-19",
+  "stage": "fixture-preparation-only",
+  "suite": "bomu-b11",
+  "generator": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers",
+  "generatorSHA256": "b3553525ca7d63d96d75f75e8fd80798bad96cbf1f3ee3033fd15e9795d00a5f",
+  "manifestSHA256": "6d6ed383ecc09edcf9376eb242d014633de8be3fae4270ddf62f319849e3ca07",
+  "sampleCount": 60,
+  "distinctFileHashes": 60,
+  "totalMediaBytes": 193596747,
+  "verification": "Every audio/video stream fully decoded with ffmpeg -xerror; actual ffprobe properties checked against recipes; all manifest hashes rechecked.",
+  "limits": [
+    "No Bomu playback or listening acceptance in this run.",
+    "No physical A/V synchronization, sleep/wake recovery, or 100-switch acceptance."
+  ],
+  "samples": [
+    {
+      "file": "01-baseline-480p.mp4",
+      "sha256": "151483324bf0c5e93e784279e9d5c0b0e3387c9f3cabbd0d5c317ba179ebc97a",
+      "coverage": "H.264 Constrained Baseline / 480p",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 854,
+          "height": 480,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "02-main-720p25.mp4",
+      "sha256": "d82687516e26b2a0bbd6600f3e3da505e856dafe151f47c55bf486f832d9e7bf",
+      "coverage": "H.264 Main / 720p / 25 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "03-high-1080p30.mp4",
+      "sha256": "539b1faccdd5346f7a7870b0e667de582551730014c53049ca81f5aa00461eef",
+      "coverage": "H.264 High / 1080p / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "04-high-1080p60.mp4",
+      "sha256": "d48971d77fb3c5a1a4b7085a84de2ea567dc96f2db5422acdd29ec0d62009fc6",
+      "coverage": "H.264 High / 1080p / 60 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "05-high-4k24.mp4",
+      "sha256": "482087a361b458a405d1038e2408749bab6464360e11a08f19f20ba69169c471",
+      "coverage": "H.264 High / 4K / 24 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "06-portrait.mp4",
+      "sha256": "1b2a07a37dbb25c89912edff278778eaba41c086526bc3d026e1a2ad27c0c511",
+      "coverage": "9:16 portrait",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 1280,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "07-square.mp4",
+      "sha256": "619e901f2551db81e3c6953e5f74a9254c8af24f602c80ee941844bd21518a33",
+      "coverage": "1:1 square",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "08-中文 宽银幕.mp4",
+      "sha256": "0b3948d0137c9effda7046f3214cb4ddefd556992ae2519ba35be16a1890c0cf",
+      "coverage": "21:9 ultrawide / Unicode and space in filename",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1470,
+          "height": 630,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "09-anamorphic.mp4",
+      "sha256": "e02b5dd193737ca0fd169c0a6beb50c6b144ce397ccdf19c4b69c9d5d3561f56",
+      "coverage": "720×576 with 64:45 sample aspect ratio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 576,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "10-rotation.mp4",
+      "sha256": "c19dbc994af34b79c2404df458d3dd1aa05aaa4cee0481b5934c1ca6efcffe0c",
+      "coverage": "90° display matrix",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 640,
+          "height": 360,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "11-variable-rate.mp4",
+      "sha256": "87e32c6624ffcee161215338fa27e2bd27e7f6b7fab67a3c26ef0e8f7145b2cf",
+      "coverage": "Variable frame intervals: 30 then 15 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "12-fractional-rate.mp4",
+      "sha256": "4036476c0b0c5b1e9763b9ed242e161bc177a925bb67195d87f7a18abc8f4349",
+      "coverage": "30000/1001 fractional frame rate",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "13-hevc-main.mp4",
+      "sha256": "f68fad252662385543509d9703d427bec8583e3078c69e4b4ae7af0d6b447060",
+      "coverage": "HEVC Main 8-bit / MP4",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "14-hevc-main10.mp4",
+      "sha256": "0052c01e60a84658019f3d459e88e61af45748aa27668e1612de1aef096d58f9",
+      "coverage": "HEVC Main10 SDR / 1080p",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "15-hevc-main10-4k.mp4",
+      "sha256": "3185243fbcabe4703b923ad0c73f990b4ebe6d18154a83e55141dfcf65530cb5",
+      "coverage": "HEVC Main10 SDR / 4K",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "17-h264-flac.mkv",
+      "sha256": "312c7709fc523c6cfffdfa6bbf75d7b67a76f65f54b9efc2806f2f46806d4db9",
+      "coverage": "Matroska / H.264 + FLAC",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "flac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "18-hevc-main10.mkv",
+      "sha256": "2aeb46210fad7a8b787cb5e46cb66fbf53c5c0244ad5410b9a357ccaeaf23694",
+      "coverage": "Matroska / HEVC Main10 + AAC",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "19-h264-pcm.mov",
+      "sha256": "c476595a616d3e5c82817615056410c107ebd43ffd2bd591a657aa858c659491",
+      "coverage": "QuickTime / H.264 + PCM16",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "20-h264-aac.ts",
+      "sha256": "260615377f7e1f1d02954136de890940730e4ba1aaa36d18fc71062e34e7a2e6",
+      "coverage": "MPEG-TS / H.264 + AAC",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "21-vp9-opus.webm",
+      "sha256": "f9098d2ce3e25c0a582d0e000da6b3def82e10b534ed5871a6ecd8dcc0853944",
+      "coverage": "WebM / VP9 + Opus",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "vp9",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "22-full-range.mp4",
+      "sha256": "91434f6ca93341d3c74542d4890b8acc8eb4b2788587dd0b6eba240c6631eff3",
+      "coverage": "Explicit full-range SDR",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "28-two-audio-tracks.mkv",
+      "sha256": "ceab8723c3f62cea499b7d1e9799f4a59428d843ab02b6e39d543765c81e22b7",
+      "coverage": "Two distinct AAC tracks / default-track decoding",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "29-sync.mov",
+      "sha256": "cca036e62fbbe5a139c8253d1b47407c7e76ee8442db7034e265103fb11b4ec4",
+      "coverage": "Decoded flash/pulse alignment / 1080p60",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 1,
+          "channel_layout": "mono"
+        }
+      ]
+    },
+    {
+      "file": "31-h264-baseline-720x480.mp4",
+      "sha256": "ef41c0431ccefb47f9585052aa1410f883aa16818baee0045aa7b030b13f208a",
+      "coverage": "H.264 Baseline / 720×480 / 30000:1001",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 480,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "32-h264-main-720p50.mp4",
+      "sha256": "61c2018102b8ac1eac793e1d5675d58b7d2e770c3cbe18fa78bee5a052bf2387",
+      "coverage": "H.264 Main / 720p / 50 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "33-h264-high-1080p24.mp4",
+      "sha256": "4b49d4bc8efe3f4944f8efc9d517cc11a1ca401743a9c9e7bbdb38317a77fda1",
+      "coverage": "H.264 High / 1080p / 24 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "34-h264-high-4k30.mp4",
+      "sha256": "d4f1fc0bc6c983dc2f6235bf9d1346483eebc0779b5b72518e92d1464ad6d5f2",
+      "coverage": "H.264 High / 4K / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "35-h264-pal-anamorphic.mp4",
+      "sha256": "97855a14572c692b01025727e4db606e268c3ccdeb6be73925109c82b34ca2de",
+      "coverage": "H.264 / 720×576 PAL / 16:15 sample aspect ratio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 576,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "36-h264-portrait-1080.mp4",
+      "sha256": "26a2012f80136e1d8d48cc4b1da669f565491886105726a2b018fd09717dd021",
+      "coverage": "H.264 portrait / 1080×1920",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "37-h264-ultrawide-1920.mp4",
+      "sha256": "dd9d62e7db1e833d2c535653ae4c36f9de2a2a6facafeab54d7dec6e2eab4383",
+      "coverage": "H.264 ultrawide / 1920×804 / 24 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 804,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "38-h264-qhd30.mp4",
+      "sha256": "ee4c19c372588df6d4047817d562c63016675987eb3dd032495b92cc8339afbf",
+      "coverage": "H.264 High / 2560×1440 / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 2560,
+          "height": 1440,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "39-h264-sd60.mp4",
+      "sha256": "d5f8bd7b905c8d498981da18d40fb92f208ab3d7d4cd2db18995e157b24a2896",
+      "coverage": "H.264 High / 854×480 / 60 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 854,
+          "height": 480,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "40-h264-vga30.mp4",
+      "sha256": "8b0add27ff2feaa8e75195ea97a823074512e23eb9f2c02836468e70f8d9c351",
+      "coverage": "H.264 Main / 640×480 / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 640,
+          "height": 480,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "41-h264-fullhd50.mp4",
+      "sha256": "0f1555c51914e68c621edf4447dcf9742f75f197e7c82909423293cf079dd655",
+      "coverage": "H.264 High / 1080p / 50 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "42-h264-hd60.mp4",
+      "sha256": "f804ecbbc9f831fac7e1088afa7d2d992816c813049f667698fa0a8e69637d5a",
+      "coverage": "H.264 High / 720p / 60 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "43-hevc-main-1080p60.mp4",
+      "sha256": "6c5b7260f83487819827c3060be34f41e2825182a01f9b662dc622f4bae11950",
+      "coverage": "HEVC Main 8-bit / 1080p / 60 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "44-hevc-main10-720p30.mp4",
+      "sha256": "9238f4c37adcb0493a7dc2283ce1c6d6bfa9174839bbbcbd46458ff3ee61968c",
+      "coverage": "HEVC Main10 SDR / 720p / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "45-hevc-main10-qhd30.mp4",
+      "sha256": "f23f7951f7c3a9637022d9068e8f1feff27575ea7d679be06b830c3dcff90186",
+      "coverage": "HEVC Main10 SDR / 2560×1440 / 30 fps",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 2560,
+          "height": 1440,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "46-hevc-main10-fullhd25.mkv",
+      "sha256": "e3aa9efc6430dc3526f4b00003e8fd2e0648bf5cfce3a777cd87fdccb87efb13",
+      "coverage": "Matroska / HEVC Main10 SDR / 1080p25",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "47-vp9-720p60.webm",
+      "sha256": "6098e131d6b0d2f9f76f00709f9f71deb2ec12e4f46cc0df68d68532902480eb",
+      "coverage": "WebM / VP9 720p60 / Opus",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "vp9",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "48-vp9-1080p30.webm",
+      "sha256": "b165379c24eb09bb7f6d45f6814349bf9c6549f30e676c982274c9fbe40e6f9f",
+      "coverage": "WebM / VP9 1080p30 / Opus",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "vp9",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "49-mpeg4-part2-avi.avi",
+      "sha256": "9f60c9344a32dc5f4d24baadaf7082ea2109cc6d379951162797768531b0de39",
+      "coverage": "AVI / MPEG-4 Part 2 / MP3 audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "mpeg4",
+          "codec_type": "video",
+          "width": 640,
+          "height": 480,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "50-mpeg2-pal-program-stream.mpg",
+      "sha256": "5ab72e68e7c80f97bc7669deab18fb72b1ddd2521207b1c1a1f8a944f8fa41c9",
+      "coverage": "MPEG-2 PAL program stream / MP2 audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "mpeg2video",
+          "codec_type": "video",
+          "width": 720,
+          "height": 576,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "mp2",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "51-prores-422-hd.mov",
+      "sha256": "2ee68c4b03a21dd8e0a738f6fbadd9de0e8e804163c99f313a86ae7b7b5cb868",
+      "coverage": "QuickTime / ProRes 422 / PCM16",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "prores",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv422p10le"
+        },
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "52-h264-ac3-surround.mkv",
+      "sha256": "5507f29db9609f2bf44c1bb8a37dff06b238e59a9142c6672f1ffaaee00bd12c",
+      "coverage": "H.264 with AC-3 5.1-channel audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "ac3",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 6,
+          "channel_layout": "5.1(side)"
+        }
+      ]
+    },
+    {
+      "file": "53-h264-eac3-surround.mkv",
+      "sha256": "4f3d17f545c92920dda640dfacd7c92d852203bf79105710aaa1e6e26d054f52",
+      "coverage": "H.264 with E-AC-3 5.1-channel audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "eac3",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 6,
+          "channel_layout": "5.1(side)"
+        }
+      ]
+    },
+    {
+      "file": "54-h264-flac-96000.mkv",
+      "sha256": "d28214853a251a971bc3a41a1f6b947982b7a90520cc980e3bed036cecbd2506",
+      "coverage": "H.264 with lossless FLAC stereo / 96 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "flac",
+          "codec_type": "audio",
+          "sample_rate": "96000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "55-h264-pcm24.mov",
+      "sha256": "68d9feba5e120b0be6c12609a9067a292135861f3cc8c70fc14498f6ed3e21c8",
+      "coverage": "QuickTime / H.264 + PCM24",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "pcm_s24le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "56-h264-pcm-float32.mov",
+      "sha256": "e4c1d9b859f0ca57358dc1ddba026cd76569f60a2f755067152e0541fc49f24a",
+      "coverage": "QuickTime / H.264 + float32 PCM",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "pcm_f32le",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "57-h264-mp3-44100.mkv",
+      "sha256": "3dde822fb3be28c786ba777c9ec9e17298262e7285a0fbe42220b1ac5e87f869",
+      "coverage": "H.264 with MP3 stereo / 44.1 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "58-h264-opus.mkv",
+      "sha256": "e5b4723632e3efee896e86873578fbfd8d6f4b36439ae89c45d410b9a3e6ed96",
+      "coverage": "H.264 with Opus stereo / 48 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "59-h264-aac-96000.mkv",
+      "sha256": "47f482078623c3980a86dbc9073e0ea6d155ff1d77c0afc16a94432cc2ea176e",
+      "coverage": "H.264 with AAC stereo / 96 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "96000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "60-hevc-main10-4k30-eac3.mkv",
+      "sha256": "9c62b8db36be1cc3d6289efbd64fd567f56186e79dc0ce9de321678c96cb5b8a",
+      "coverage": "HEVC Main10 4K30 / E-AC-3 5.1",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 3840,
+          "height": 2160,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "eac3",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 6,
+          "channel_layout": "5.1(side)"
+        }
+      ]
+    },
+    {
+      "file": "61-h264-mono-44100.mp4",
+      "sha256": "8d0721aaac80dee7d40ff0780c23371d34709fc469e65d10651348d615fbdc62",
+      "coverage": "H.264 with AAC mono / 44.1 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 1,
+          "channel_layout": "mono"
+        }
+      ]
+    },
+    {
+      "file": "62-h264-aac-5-1.mkv",
+      "sha256": "65231344de3d3a15ef9897ddf20734effb105d203da3ed58727f228205d6badb",
+      "coverage": "H.264 with AAC 5.1-channel audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 6,
+          "channel_layout": "5.1"
+        }
+      ]
+    },
+    {
+      "file": "63-h264-alac.mov",
+      "sha256": "d18ca13eb646cf2cc2a5013bb558ed31291ffbf9f7ac5cbf8e09ac346cebec52",
+      "coverage": "QuickTime / H.264 + ALAC lossless audio",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "alac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "64-hevc-main-720p50.mkv",
+      "sha256": "26f092482f44a0de30f027605f142e6497a2deb039999f1456c70ea931eef545",
+      "coverage": "Matroska / HEVC Main 8-bit / 720p50",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "65-hevc-main10-1080p30-opus.mkv",
+      "sha256": "df53dddec59dac6c893fc20e2ef76e52db10cd2f57d31b028482b691f3badc34",
+      "coverage": "HEVC Main10 1080p30 / Opus",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "hevc",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p10le"
+        },
+        {
+          "codec_name": "opus",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    {
+      "file": "66-h264-aac-7-1.mkv",
+      "sha256": "0bcf5c11faad0e8d7c1bccf8ac0995445602a593420aefc029b82c03a04f236f",
+      "coverage": "H.264 with AAC 7.1 / 48 kHz",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 8,
+          "channel_layout": "7.1"
+        }
+      ]
+    },
+    {
+      "file": "67-h264-high-960x540.mp4",
+      "sha256": "51eb77c0ae2b5b9a8323eb752f3e41eae8aaa3af321c7d0216b2cb162aa33c8a",
+      "coverage": "H.264 High / 960×540 / AAC",
+      "license": "CC0-1.0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    }
+  ]
+}

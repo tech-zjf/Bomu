@@ -31,29 +31,6 @@ struct MediaLibraryDirectory: Equatable, Hashable, Identifiable, Sendable {
 
     var id: String { "\(sourceRootID):\(relativePath)" }
 
-    func ancestors(relativeTo root: MediaSourceRoot?) -> [MediaLibraryDirectory] {
-        guard root == nil || root?.id == sourceRootID else { return [] }
-        let rootPath = root?.relativePath ?? ""
-        let remainder: String
-        if rootPath.isEmpty {
-            remainder = relativePath
-        } else if relativePath == rootPath {
-            remainder = ""
-        } else {
-            let prefix = rootPath + "/"
-            guard relativePath.hasPrefix(prefix) else { return [] }
-            remainder = String(relativePath.dropFirst(prefix.count))
-        }
-
-        let components = remainder.split(separator: "/").map(String.init)
-        return components.enumerated().map { index, component in
-            let pathBelowRoot = components.prefix(index + 1).joined(separator: "/")
-            let path = rootPath.isEmpty ? pathBelowRoot : "\(rootPath)/\(pathBelowRoot)"
-            return MediaLibraryDirectory(sourceRootID: sourceRootID,
-                relativePath: path, displayName: component)
-        }
-    }
-
     func navigationPathPrefix(in path: [MediaLibraryDirectory]) -> [MediaLibraryDirectory]? {
         guard let index = path.firstIndex(of: self) else { return nil }
         return Array(path.prefix(index + 1))
@@ -77,6 +54,7 @@ struct MediaLibraryItem: Equatable, Identifiable, Sendable {
     let isPresent: Bool
     let isFavorite: Bool
     let isWatched: Bool
+    let hasPlaybackHistoryConflict: Bool
     let manualCategory: MediaManualCategory?
     let playbackPosition: Double
     let lastPlayedAt: Date?
@@ -104,7 +82,23 @@ enum MediaLibraryScanEvent: Equatable, Sendable {
 }
 
 protocol MediaLibraryScanning: Sendable {
-    func scan(folder root: URL, includingSubfolders: Bool) -> AsyncThrowingStream<MediaLibraryScanEvent, Error>
+    func scan(folder root: URL, includingSubfolders: Bool) -> MediaLibraryScan
+}
+
+/** 消费者拥有扫描操作；提前结束事件消费时，必须等待后台任务取消并完成数据库收尾。 */
+struct MediaLibraryScan: Sendable {
+    let events: AsyncThrowingStream<MediaLibraryScanEvent, Error>
+    private let task: Task<Void, Never>
+
+    init(events: AsyncThrowingStream<MediaLibraryScanEvent, Error>, task: Task<Void, Never>) {
+        self.events = events
+        self.task = task
+    }
+
+    func cancelAndWait() async {
+        task.cancel()
+        await task.value
+    }
 }
 
 enum MediaLibraryScanError: LocalizedError {
@@ -118,5 +112,21 @@ enum MediaLibraryScanError: LocalizedError {
         case .cannotEnumerate(let url):
             "The selected folder could not be scanned: \(url.path)"
         }
+    }
+}
+
+/// Captures volume identity separately from file presence in the saved catalog.
+enum MountedMediaVolumes {
+    static func current() -> [String: URL] {
+        let volumes = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: [.volumeUUIDStringKey], options: []
+        ) ?? []
+        var mounted: [String: URL] = [:]
+        for volume in volumes {
+            guard let values = try? volume.resourceValues(forKeys: [.volumeUUIDStringKey]),
+                  let id = values.volumeUUIDString, !id.isEmpty else { continue }
+            mounted[id] = volume
+        }
+        return mounted
     }
 }

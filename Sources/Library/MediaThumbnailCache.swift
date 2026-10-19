@@ -26,6 +26,13 @@ enum MediaThumbnailError: LocalizedError {
 
 /// Stores bounded local JPEGs. It never writes to or removes source media.
 actor MediaThumbnailCache {
+    private struct Generation {
+        let id: UUID
+        let task: Task<Void, Never>
+        var waiters: [UUID: CheckedContinuation<URL, Error>]
+    }
+
+    private var generations: [URL: Generation] = [:]
     private let directory: URL
     private let maximumBytes: Int
     private let maximumPixelSize: Int
@@ -69,6 +76,7 @@ actor MediaThumbnailCache {
     }
 
     func thumbnail(mediaFileID: Int64, contentRevision: String, sourceURL: URL) async throws -> URL {
+        try Task.checkCancellation()
         if let existing = cachedThumbnail(mediaFileID: mediaFileID, contentRevision: contentRevision) {
             return existing
         }
@@ -76,7 +84,60 @@ actor MediaThumbnailCache {
               (try? sourceURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else {
             throw MediaThumbnailError.unavailableMedia
         }
+        let key = cacheURL(mediaFileID: mediaFileID, contentRevision: contentRevision)
+        let waiterID = UUID()
+        let url = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
+                guard !Task.isCancelled else {
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
+                if var generation = generations[key] {
+                    generation.waiters[waiterID] = continuation
+                    generations[key] = generation
+                    return
+                }
+                let generationID = UUID()
+                let task = Task {
+                    let result: Result<URL, Error>
+                    do {
+                        result = .success(try await generateAndCache(
+                            mediaFileID: mediaFileID, contentRevision: contentRevision, sourceURL: sourceURL))
+                    } catch {
+                        result = .failure(error)
+                    }
+                    finishGeneration(key: key, id: generationID, result: result)
+                }
+                generations[key] = Generation(id: generationID, task: task,
+                                               waiters: [waiterID: continuation])
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(waiterID, for: key) }
+        }
+        try Task.checkCancellation()
+        return url
+    }
 
+    private func cancelWaiter(_ id: UUID, for key: URL) {
+        guard var generation = generations[key],
+              let continuation = generation.waiters.removeValue(forKey: id) else { return }
+        if generation.waiters.isEmpty {
+            generations[key] = nil
+            generation.task.cancel()
+        } else {
+            generations[key] = generation
+        }
+        continuation.resume(throwing: CancellationError())
+    }
+
+    private func finishGeneration(key: URL, id: UUID, result: Result<URL, Error>) {
+        // An abandoned worker may finish after a new request has taken ownership of this key.
+        guard let generation = generations[key], generation.id == id else { return }
+        generations[key] = nil
+        for continuation in generation.waiters.values { continuation.resume(with: result) }
+    }
+
+    private func generateAndCache(mediaFileID: Int64, contentRevision: String, sourceURL: URL) async throws -> URL {
         try await permits.acquire()
         do {
             try Task.checkCancellation()
@@ -86,6 +147,12 @@ actor MediaThumbnailCache {
             }
             let jpeg = try await generateWithTimeout(sourceURL)
             try Task.checkCancellation()
+            // Another request for this revision may have committed while generation
+            // suspended the actor. Reuse it before reserving space or evicting entries.
+            if let existing = cachedThumbnail(mediaFileID: mediaFileID, contentRevision: contentRevision) {
+                await permits.release()
+                return existing
+            }
             guard jpeg.count <= maximumBytes else { throw MediaThumbnailError.cacheEntryTooLarge }
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             try evictToFit(incomingBytes: jpeg.count)
@@ -220,9 +287,10 @@ private struct AVFoundationThumbnailGenerator: ThumbnailFrameGenerating {
     }
 }
 
-/// Confines AVAssetImageGenerator's legacy callback API and continuation state behind one lock.
-/// AVFoundation requires generation to be cancellable from the task's cancellation handler, which
-/// may run concurrently with the image callback; no generator reference escapes this adapter.
+/// Bridges AVAssetImageGenerator's callback API to async cancellation at one narrow boundary.
+/// `lock` serializes all generator calls, the continuation, and completion state because AVFoundation's
+/// callback and the task cancellation handler may run concurrently. The callback captures this request,
+/// never the generator; the continuation is resumed only after releasing the lock.
 private final class AVImageGenerationRequest: @unchecked Sendable {
     private let lock = NSRecursiveLock()
     private let generator: AVAssetImageGenerator

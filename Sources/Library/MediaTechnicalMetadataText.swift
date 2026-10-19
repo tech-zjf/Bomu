@@ -14,35 +14,15 @@ enum MediaTechnicalMetadataText {
     }
 
     static func cardValue(metadata: MediaTechnicalMetadata, isAudio: Bool) -> String? {
-        var attributes: [String] = []
-        if let duration = durationLabel(metadata.duration) {
-            attributes.append(duration)
-        }
-        if isAudio {
-            if let tracks = metadata.audioTracks, !tracks.isEmpty {
-                let codecs = Array(Set(tracks.compactMap(\.codec))).sorted()
-                attributes.append(contentsOf: codecs)
-            }
-        } else {
-            if let width = metadata.width, let height = metadata.height {
-                attributes.append("\(width) × \(height)")
-            }
-            if let codec = metadata.videoCodec {
-                attributes.append(codec)
-            }
-        }
+        let attributes = knownAttributes(metadata: metadata, isAudio: isAudio)
         guard !attributes.isEmpty else { return nil }
         return attributes.joined(separator: " · ")
     }
 
-    static func cardValueOrFileSize(
-        metadata: MediaTechnicalMetadata?,
-        byteCount: Int64,
-        isAudio: Bool
-    ) -> String {
+    static func cardValueOrUnknown(metadata: MediaTechnicalMetadata?, isAudio: Bool) -> String {
         guard let metadata,
               let value = cardValue(metadata: metadata, isAudio: isAudio) else {
-            return ByteCountFormatStyle().format(byteCount)
+            return String(localized: "library.metadata.unknown")
         }
         return value
     }
@@ -87,16 +67,37 @@ enum MediaTechnicalMetadataText {
     private static func audioSummary(_ tracks: [MediaAudioTrackMetadata]?) -> String? {
         guard let tracks else { return nil }
         guard !tracks.isEmpty else { return String(localized: "library.metadata.noAudio") }
+        let trackText: String
         if tracks.count == 1 {
-            return String(localized: "library.metadata.oneAudioTrack")
+            trackText = String(localized: "library.metadata.oneAudioTrack")
+        } else {
+            trackText = String.localizedStringWithFormat(
+                NSLocalizedString("library.metadata.audioTracks", comment: ""), tracks.count
+            )
         }
-        let trackText = String.localizedStringWithFormat(
-            NSLocalizedString("library.metadata.audioTracks", comment: ""), tracks.count
-        )
         var seenCodecs: Set<String> = []
         let codecs = tracks.compactMap(\.codec).filter { seenCodecs.insert($0).inserted }
         guard !codecs.isEmpty else { return trackText }
         return "\(trackText) · \(codecs.joined(separator: ", "))"
     }
 
+}
+
+enum MediaTechnicalMetadataLoadState: Equatable {
+    case loading
+    case resolved(MediaTechnicalMetadata?)
+
+    var metadata: MediaTechnicalMetadata? {
+        guard case let .resolved(metadata) = self else { return nil }
+        return metadata
+    }
+
+    func cardValue(isAudio: Bool) -> String {
+        switch self {
+        case .loading:
+            String(localized: "library.metadata.loading")
+        case .resolved(let metadata):
+            MediaTechnicalMetadataText.cardValueOrUnknown(metadata: metadata, isAudio: isAudio)
+        }
+    }
 }

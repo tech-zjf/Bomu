@@ -4,49 +4,160 @@ import MediaPlayer
 @MainActor
 final class NowPlayingController {
     private let player: PlayerModel
-    private let commandCenter = MPRemoteCommandCenter.shared()
-    private var targets: [(MPRemoteCommand, Any)] = []
+    private let system: any NowPlayingSystem
+    private var registrationID: UUID?
+    private var requestID: UInt64?
+    private var isShutDown = false
     private var lastPublishedAt = Date.distantPast
-    private var lastPublishedPosition: Double?
-    private var lastPublishedTitle: String?
-    private var lastPublishedDuration: Double?
-    private var lastPublishedRate: Double?
+    private var lastPublished: NowPlayingMetadata?
 
-    init(player: PlayerModel) {
+    init(player: PlayerModel, system: (any NowPlayingSystem)? = nil) {
         self.player = player
+        self.system = system ?? SystemNowPlaying()
     }
 
     func update() {
-        guard player.state.phase == .ready, let snapshot = player.state.snapshot,
+        guard !isShutDown, player.canControlPlayback, let snapshot = player.state.snapshot,
               let request = player.state.request else {
             deactivate()
             return
         }
-        activateIfNeeded()
-        commandCenter.nextTrackCommand.isEnabled = player.queue.nextURL != nil
-        commandCenter.previousTrackCommand.isEnabled = player.queue.previousURL != nil
+        activateIfNeeded(requestID: request.id)
+        system.setQueueAvailability(next: player.queue.nextURL != nil,
+                                    previous: player.queue.previousURL != nil)
 
-        let title = request.url.deletingPathExtension().lastPathComponent
-        let rate = player.isPaused ? 0 : snapshot.speed
+        let metadata = NowPlayingMetadata(request: request, snapshot: snapshot, isPaused: player.isPaused)
         let now = Date()
-        let shouldPublish = title != lastPublishedTitle || snapshot.duration != lastPublishedDuration ||
-            rate != lastPublishedRate || abs(snapshot.position - (lastPublishedPosition ?? -1)) >= 0.8 ||
-            now.timeIntervalSince(lastPublishedAt) >= 1
-        guard shouldPublish else { return }
+        guard metadata.requiresPublication(after: lastPublished,
+                                           elapsed: now.timeIntervalSince(lastPublishedAt)) else { return }
+        system.publish(metadata)
+        lastPublishedAt = now
+        lastPublished = metadata
+    }
 
+    func shutdown() {
+        isShutDown = true
+        deactivate()
+    }
+
+    func deactivate() {
+        // Invalidate queued callbacks before releasing their native command targets.
+        let wasActive = registrationID != nil
+        registrationID = nil
+        requestID = nil
+        if wasActive { system.deactivate() }
+        lastPublishedAt = .distantPast
+        lastPublished = nil
+    }
+
+    private func activateIfNeeded(requestID: UInt64) {
+        guard self.requestID != requestID || registrationID == nil else { return }
+        deactivate()
+        let registrationID = UUID()
+        self.registrationID = registrationID
+        self.requestID = requestID
+        system.activate { [weak self] command in
+            guard let self, self.registrationID == registrationID,
+                  self.player.state.request?.id == requestID,
+                  self.player.canControlPlayback else { return }
+            switch command {
+            case .play:
+                if self.player.isPaused { self.player.togglePause() }
+            case .pause:
+                if !self.player.isPaused { self.player.togglePause() }
+            case .togglePause: self.player.togglePause()
+            case .next: self.player.playNext()
+            case .previous: self.player.playPrevious()
+            }
+            self.update()
+        }
+    }
+}
+
+struct NowPlayingMetadata: Equatable {
+    let requestID: UInt64
+    let title: String
+    let position: Double
+    let duration: Double?
+    let rate: Double
+    let defaultRate: Double
+    let playbackState: MPNowPlayingPlaybackState
+
+    init(request: PlaybackRequest, snapshot: PlaybackSnapshot, isPaused: Bool) {
+        requestID = request.id
+        title = request.url.deletingPathExtension().lastPathComponent
+        position = snapshot.position
+        duration = snapshot.duration
+        defaultRate = snapshot.speed
+        if isPaused {
+            playbackState = .paused
+            rate = 0
+        } else if snapshot.isBuffering || snapshot.isSeeking {
+            playbackState = .interrupted
+            rate = 0
+        } else {
+            playbackState = .playing
+            rate = snapshot.speed
+        }
+    }
+
+    func requiresPublication(after previous: Self?, elapsed: TimeInterval) -> Bool {
+        guard let previous else { return true }
+        return requestID != previous.requestID || title != previous.title || duration != previous.duration
+            || rate != previous.rate || defaultRate != previous.defaultRate
+            || playbackState != previous.playbackState || abs(position - previous.position) >= 0.8
+            || elapsed >= 1
+    }
+
+    var information: [String: Any] {
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: title,
-            MPNowPlayingInfoPropertyElapsedPlaybackTime: snapshot.position,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: position,
             MPNowPlayingInfoPropertyPlaybackRate: rate,
-            MPNowPlayingInfoPropertyDefaultPlaybackRate: snapshot.speed
+            MPNowPlayingInfoPropertyDefaultPlaybackRate: defaultRate
         ]
-        if let duration = snapshot.duration { info[MPMediaItemPropertyPlaybackDuration] = duration }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        lastPublishedAt = now
-        lastPublishedPosition = snapshot.position
-        lastPublishedTitle = title
-        lastPublishedDuration = snapshot.duration
-        lastPublishedRate = rate
+        if let duration { info[MPMediaItemPropertyPlaybackDuration] = duration }
+        return info
+    }
+}
+
+enum NowPlayingCommand { case play, pause, togglePause, next, previous }
+
+/// The platform boundary keeps hostless checks away from the shared system command center.
+@MainActor
+protocol NowPlayingSystem {
+    func activate(handler: @escaping @MainActor (NowPlayingCommand) -> Void)
+    func setQueueAvailability(next: Bool, previous: Bool)
+    func publish(_ metadata: NowPlayingMetadata)
+    func deactivate()
+}
+
+@MainActor
+private final class SystemNowPlaying: NowPlayingSystem {
+    private let commandCenter = MPRemoteCommandCenter.shared()
+    private let infoCenter = MPNowPlayingInfoCenter.default()
+    private var targets: [(MPRemoteCommand, Any)] = []
+
+    func activate(handler: @escaping @MainActor (NowPlayingCommand) -> Void) {
+        guard targets.isEmpty else { return }
+        register(commandCenter.playCommand, action: .play, handler: handler)
+        register(commandCenter.pauseCommand, action: .pause, handler: handler)
+        register(commandCenter.togglePlayPauseCommand, action: .togglePause, handler: handler)
+        register(commandCenter.nextTrackCommand, action: .next, handler: handler)
+        register(commandCenter.previousTrackCommand, action: .previous, handler: handler)
+        commandCenter.playCommand.isEnabled = true
+        commandCenter.pauseCommand.isEnabled = true
+        commandCenter.togglePlayPauseCommand.isEnabled = true
+    }
+
+    func setQueueAvailability(next: Bool, previous: Bool) {
+        commandCenter.nextTrackCommand.isEnabled = next
+        commandCenter.previousTrackCommand.isEnabled = previous
+    }
+
+    func publish(_ metadata: NowPlayingMetadata) {
+        infoCenter.nowPlayingInfo = metadata.information
+        infoCenter.playbackState = metadata.playbackState
     }
 
     func deactivate() {
@@ -57,44 +168,16 @@ final class NowPlayingController {
         commandCenter.togglePlayPauseCommand.isEnabled = false
         commandCenter.nextTrackCommand.isEnabled = false
         commandCenter.previousTrackCommand.isEnabled = false
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        lastPublishedAt = .distantPast
-        lastPublishedPosition = nil
-        lastPublishedTitle = nil
-        lastPublishedDuration = nil
-        lastPublishedRate = nil
+        infoCenter.playbackState = .stopped
+        infoCenter.nowPlayingInfo = nil
     }
 
-    private func activateIfNeeded() {
-        guard targets.isEmpty else { return }
-        register(commandCenter.playCommand) { [weak self] in self?.play() }
-        register(commandCenter.pauseCommand) { [weak self] in self?.pause() }
-        register(commandCenter.togglePlayPauseCommand) { [weak self] in self?.togglePause() }
-        register(commandCenter.nextTrackCommand) { [weak self] in self?.player.playNext() }
-        register(commandCenter.previousTrackCommand) { [weak self] in self?.player.playPrevious() }
-        commandCenter.playCommand.isEnabled = true
-        commandCenter.pauseCommand.isEnabled = true
-        commandCenter.togglePlayPauseCommand.isEnabled = true
-    }
-
-    private func register(_ command: MPRemoteCommand, action: @escaping @MainActor () -> Void) {
-        let target = command.addTarget { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard self != nil else { return }
-                action()
-            }
+    private func register(_ command: MPRemoteCommand, action: NowPlayingCommand,
+                          handler: @escaping @MainActor (NowPlayingCommand) -> Void) {
+        let target = command.addTarget { _ in
+            Task { @MainActor in handler(action) }
             return .success
         }
         targets.append((command, target))
     }
-
-    private func play() {
-        if player.isPaused { player.togglePause() }
-    }
-
-    private func pause() {
-        if !player.isPaused { player.togglePause() }
-    }
-
-    private func togglePause() { player.togglePause() }
 }

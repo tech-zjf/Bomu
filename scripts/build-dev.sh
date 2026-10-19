@@ -5,8 +5,13 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE_CACHE="$PROJECT_ROOT/.build/ClangModuleCache"
 PACKAGE_CACHE="$PROJECT_ROOT/.build/SwiftPMCache"
 BUILD_ACTION=build
+BUILD_SCHEME=Bomu
 DERIVED_DATA="$PROJECT_ROOT/.build/DerivedData"
 case "${1:-}" in
+  --benchmark)
+    BUILD_SCHEME=BomuBenchmark
+    shift
+    ;;
   --for-testing)
     BUILD_ACTION=build-for-testing
     DERIVED_DATA="$PROJECT_ROOT/.build/DerivedData-ForTesting"
@@ -30,7 +35,7 @@ fi
 
 exec xcodebuild \
   -project "$PROJECT_ROOT/Bomu.xcodeproj" \
-  -scheme Bomu \
+  -scheme "$BUILD_SCHEME" \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$DERIVED_DATA" \

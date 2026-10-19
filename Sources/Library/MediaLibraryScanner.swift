@@ -8,134 +8,143 @@ struct MediaLibraryScanner: MediaLibraryScanning {
         self.historyStore = historyStore
     }
 
-    func scan(folder root: URL, includingSubfolders: Bool = true) -> AsyncThrowingStream<MediaLibraryScanEvent, Error> {
-        AsyncThrowingStream(bufferingPolicy: .bufferingOldest(32)) { continuation in
-            let task = Task.detached(priority: .utility) { [historyStore] in
-                var scanSession: MediaLibraryScanSession?
-                var discoveredCount = 0
-                var indexedCount = 0
-                var skippedCount = 0
-                let hasScopedAccess = root.startAccessingSecurityScopedResource()
-                defer {
-                    if hasScopedAccess { root.stopAccessingSecurityScopedResource() }
+    func scan(folder root: URL, includingSubfolders: Bool = true) -> MediaLibraryScan {
+        let (events, continuation) = AsyncThrowingStream<MediaLibraryScanEvent, Error>.makeStream(
+            bufferingPolicy: .bufferingOldest(32)
+        )
+        let task = Task.detached(priority: .utility) { [historyStore] in
+            var scanSession: MediaLibraryScanSession?
+            var discoveredCount = 0
+            var indexedCount = 0
+            var skippedCount = 0
+            let hasScopedAccess = root.startAccessingSecurityScopedResource()
+            defer {
+                if hasScopedAccess { root.stopAccessingSecurityScopedResource() }
+            }
+
+            do {
+                try Task.checkCancellation()
+                let keys: Set<URLResourceKey> = [
+                    .isDirectoryKey, .isRegularFileKey, .isPackageKey, .isSymbolicLinkKey
+                ]
+                let rootValues: URLResourceValues
+                do {
+                    rootValues = try root.resourceValues(forKeys: keys)
+                } catch {
+                    throw MediaLibraryScanError.unavailableRoot(root)
+                }
+                guard rootValues.isDirectory == true else {
+                    throw MediaLibraryScanError.unavailableRoot(root)
+                }
+                let session = try await historyStore.beginScan(
+                    folder: root,
+                    includingSubfolders: includingSubfolders
+                )
+                scanSession = session
+                var inaccessiblePaths: [(String, String)] = []
+                guard let enumerator = FileManager.default.enumerator(
+                    at: root,
+                    includingPropertiesForKeys: Array(keys),
+                    options: [.skipsHiddenFiles, .skipsPackageDescendants],
+                    errorHandler: { url, error in
+                        inaccessiblePaths.append((Self.relativePath(url, under: root), error.localizedDescription))
+                        return true
+                    }
+                ) else {
+                    throw MediaLibraryScanError.cannotEnumerate(root)
                 }
 
-                do {
-                    let keys: Set<URLResourceKey> = [
-                        .isDirectoryKey, .isRegularFileKey, .isPackageKey, .isSymbolicLinkKey
-                    ]
-                    let rootValues: URLResourceValues
-                    do {
-                        rootValues = try root.resourceValues(forKeys: keys)
-                    } catch {
-                        throw MediaLibraryScanError.unavailableRoot(root)
-                    }
-                    guard rootValues.isDirectory == true else {
-                        throw MediaLibraryScanError.unavailableRoot(root)
-                    }
-                    let session = try await historyStore.beginScan(
-                        folder: root,
-                        includingSubfolders: includingSubfolders
-                    )
-                    scanSession = session
-                    var inaccessiblePaths: [(String, String)] = []
-                    guard let enumerator = FileManager.default.enumerator(
-                        at: root,
-                        includingPropertiesForKeys: Array(keys),
-                        options: [.skipsHiddenFiles, .skipsPackageDescendants],
-                        errorHandler: { url, error in
-                            inaccessiblePaths.append((Self.relativePath(url, under: root), error.localizedDescription))
-                            return true
-                        }
-                    ) else {
-                        throw MediaLibraryScanError.cannotEnumerate(root)
-                    }
-
-                    let resolvedRootPath = Self.resolvedPath(root)
-                    var seen = Set<String>()
-                    while let url = enumerator.nextObject() as? URL {
-                        try Task.checkCancellation()
-                        let values: URLResourceValues
-                        do {
-                            values = try url.resourceValues(forKeys: keys)
-                        } catch {
-                            skippedCount += 1
-                            try await Self.publish(
-                                .skipped(relativePath: Self.relativePath(url, under: root),
-                                          reason: error.localizedDescription),
-                                through: continuation
-                            )
-                            continue
-                        }
-                        if values.isSymbolicLink == true,
-                           !Self.isContained(Self.resolvedPath(url), in: resolvedRootPath) {
-                            if values.isDirectory == true { enumerator.skipDescendants() }
-                            continue
-                        }
-                        if values.isDirectory == true {
-                            try await historyStore.indexDirectory(at: url, in: session)
-                            if !includingSubfolders { enumerator.skipDescendants() }
-                            continue
-                        }
-                        guard values.isRegularFile == true, Self.isPlayableMedia(url) else { continue }
-
-                        let canonicalPath = url.standardizedFileURL.resolvingSymlinksInPath().path
-                        guard seen.insert(canonicalPath).inserted else { continue }
-                        let candidate = MediaLibraryCandidate(
-                            url: url,
-                            displayName: url.lastPathComponent,
-                            relativePath: Self.relativePath(url, under: root)
-                        )
-                        discoveredCount += 1
-                        try await Self.publish(.discovered(candidate), through: continuation)
-                        try Task.checkCancellation()
-
-                        do {
-                            let mediaFileID = try await historyStore.indexMediaFile(at: url, in: session)
-                            indexedCount += 1
-                            try await Self.publish(.indexed(candidate, mediaFileID: mediaFileID), through: continuation)
-                        } catch is CancellationError {
-                            throw CancellationError()
-                        } catch {
-                            skippedCount += 1
-                            try await Self.publish(
-                                .skipped(relativePath: candidate.relativePath, reason: error.localizedDescription),
-                                through: continuation
-                            )
-                        }
-                    }
+                let resolvedRootPath = Self.resolvedPath(root)
+                var seen = Set<String>()
+                while let url = enumerator.nextObject() as? URL {
                     try Task.checkCancellation()
-                    for (relativePath, reason) in inaccessiblePaths {
+                    let values: URLResourceValues
+                    do {
+                        values = try url.resourceValues(forKeys: keys)
+                    } catch {
                         skippedCount += 1
-                        try await Self.publish(.skipped(relativePath: relativePath, reason: reason),
-                                               through: continuation)
+                        try await Self.publish(
+                            .skipped(relativePath: Self.relativePath(url, under: root),
+                                      reason: error.localizedDescription),
+                            through: continuation
+                        )
+                        continue
                     }
-                    let reconciledDeletions = skippedCount == 0
-                    try await historyStore.finishScan(session, reconcileDeletions: reconciledDeletions,
-                                                      discoveredCount: discoveredCount,
-                                                      indexedCount: indexedCount,
-                                                      skippedCount: skippedCount)
-                    scanSession = nil
-                    try await Self.publish(.completed(MediaLibraryScanSummary(
-                        discoveredCount: discoveredCount,
-                        indexedCount: indexedCount,
-                        skippedCount: skippedCount,
-                        reconciledDeletions: reconciledDeletions
-                    )), through: continuation)
-                    continuation.finish()
-                } catch {
-                    if let scanSession {
-                        try? await historyStore.finishScan(scanSession, reconcileDeletions: false,
+                    if values.isSymbolicLink == true,
+                       !Self.isContained(Self.resolvedPath(url), in: resolvedRootPath) {
+                        if values.isDirectory == true { enumerator.skipDescendants() }
+                        continue
+                    }
+                    if values.isDirectory == true {
+                        try await historyStore.indexDirectory(at: url, in: session)
+                        if !includingSubfolders { enumerator.skipDescendants() }
+                        continue
+                    }
+                    guard values.isRegularFile == true, Self.isPlayableMedia(url) else { continue }
+
+                    let canonicalPath = url.standardizedFileURL.resolvingSymlinksInPath().path
+                    guard seen.insert(canonicalPath).inserted else { continue }
+                    let candidate = MediaLibraryCandidate(
+                        url: url,
+                        displayName: url.lastPathComponent,
+                        relativePath: Self.relativePath(url, under: root)
+                    )
+                    discoveredCount += 1
+                    try await Self.publish(.discovered(candidate), through: continuation)
+                    try Task.checkCancellation()
+
+                    do {
+                        let mediaFileID = try await historyStore.indexMediaFile(at: url, in: session)
+                        indexedCount += 1
+                        try await Self.publish(.indexed(candidate, mediaFileID: mediaFileID), through: continuation)
+                    } catch is CancellationError {
+                        throw CancellationError()
+                    } catch PlaybackHistoryError.unknownScan(let id) {
+                        throw PlaybackHistoryError.unknownScan(id)
+                    } catch {
+                        skippedCount += 1
+                        try await Self.publish(
+                            .skipped(relativePath: candidate.relativePath, reason: error.localizedDescription),
+                            through: continuation
+                        )
+                    }
+                }
+                try Task.checkCancellation()
+                for (relativePath, reason) in inaccessiblePaths {
+                    skippedCount += 1
+                    try await Self.publish(.skipped(relativePath: relativePath, reason: reason),
+                                           through: continuation)
+                }
+                let reconciledDeletions = skippedCount == 0
+                try await historyStore.finishScan(session, reconcileDeletions: reconciledDeletions,
+                                                  discoveredCount: discoveredCount,
+                                                  indexedCount: indexedCount,
+                                                  skippedCount: skippedCount)
+                scanSession = nil
+                try await Self.publish(.completed(MediaLibraryScanSummary(
+                    discoveredCount: discoveredCount,
+                    indexedCount: indexedCount,
+                    skippedCount: skippedCount,
+                    reconciledDeletions: reconciledDeletions
+                )), through: continuation)
+                continuation.finish()
+            } catch {
+                if let scanSession {
+                    /** 取消不应取消收尾事务；独立任务被显式等待，不会脱离扫描操作的生命周期。 */
+                    let cleanup = Task { [discoveredCount, indexedCount, skippedCount] in
+                        try await historyStore.finishScan(scanSession, reconcileDeletions: false,
                                                           discoveredCount: discoveredCount,
                                                           indexedCount: indexedCount,
                                                           skippedCount: skippedCount,
                                                           cancelled: error is CancellationError)
                     }
-                    continuation.finish(throwing: error)
+                    _ = try? await cleanup.value
                 }
+                continuation.finish(throwing: error)
             }
-            continuation.onTermination = { _ in task.cancel() }
         }
+        continuation.onTermination = { _ in task.cancel() }
+        return MediaLibraryScan(events: events, task: task)
     }
 
     private static func isPlayableMedia(_ url: URL) -> Bool {

@@ -6,7 +6,7 @@ struct EmptyPlayerView: View {
     var body: some View {
         VStack(spacing: 18) {
             Image(systemName: "play.rectangle.fill")
-                .font(.system(size: 58))
+                .font(AppTheme.Typography.Symbol.emptyPlayer)
                 .accessibilityHidden(true)
             Text(Brand.displayName)
                 .font(AppTheme.Typography.brandName)
@@ -22,7 +22,7 @@ struct EmptyPlayerView: View {
         }
         .padding(30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.background)
+        .background(AppTheme.mutedSurface)
         .foregroundStyle(AppTheme.textPrimary)
     }
 }

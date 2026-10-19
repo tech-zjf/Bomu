@@ -1,5 +1,6 @@
 """An interrupted or unfinished visibility interval cannot become a passing summary."""
 import contextlib
+from copy import deepcopy
 import importlib.util
 import io
 import json
@@ -171,6 +172,83 @@ class WindowSummaryTests(unittest.TestCase):
         self.report['mediaVisibility']['changes'].append({'elapsedSeconds': 6, 'isVisible': True})
         with self.assertRaisesRegex(SystemExit, 'visibility evidence'):
             self.summarize()
+
+    def add_b11_run(self):
+        self.add_soak_samples()
+        self.report.update(schemaVersion=9, scenario='b11-suite', requestedCycles=100,
+                           requestedSoakSeconds=1800, requestedInitialDisplayID=1,
+                           minimizeRestoreProbeSkippedReason='Stationary window')
+        self.report['soak'][-1]['process']['uptime'] = 1801
+        self.report['soak'][-1]['positionSeconds'] = 1800
+        self.report['soakVisibility']['endedAtSeconds'] = 1800
+        self.report['mediaVisibility'] = deepcopy(self.report['soakVisibility'])
+        self.report['mediaSamples'] = [
+            {'sample': {'file': f'{index}.mp4', 'coverage': 'test',
+                        'expected': {'outcome': 'play', 'video': {'width': 960, 'height': 540},
+                                     'audio': {'sampleRate': 48000, 'channels': 2}}},
+             'windowNumber': 1, 'displayID': 1, 'passed': True} for index in range(60)]
+        self.report['fileSwitches'] = [
+            {'index': index + 1, 'file': f'{index % 60}.mp4', 'requestID': index + 61}
+            for index in range(100)]
+        checkpoint = deepcopy(self.report['soak'][0])
+        checkpoint['elapsedSeconds'] = 0
+        checkpoint['playback'].update(coreCreationCount=1, renderContextCreationCount=1)
+        self.report['rounds'] = [{'cycle': index + 1, 'checkpoint': deepcopy(checkpoint)}
+                                 for index in range(100)]
+        self.report['shutdown']['graphicsContextAlive'] = False
+        self.report['systemSleepWake'] = {'sleepNotifications': 0, 'wakeNotifications': 0}
+
+    def test_b11_reports_automated_evidence_without_claiming_physical_sync_or_wake_recovery(self):
+        self.add_b11_run()
+        summary = self.summarize()
+        self.assertIn('Completed b11-suite cycles: 100/100', summary)
+        self.assertIn('Completed file switches: 100/100', summary)
+        self.assertIn('physical speaker/display synchronization remains unverified', summary)
+        self.assertIn('sleep/wake recovery acceptance remains open', summary)
+        self.report['systemSleepWake'] = {'sleepNotifications': 1, 'wakeNotifications': 1}
+        self.assertIn('Notification counts do not prove', self.summarize())
+
+    def test_b11_rejects_missing_or_non_audiovisual_cases(self):
+        self.add_b11_run()
+        self.report['mediaSamples'][-1]['sample']['expected'].pop('audio')
+        with self.assertRaisesRegex(SystemExit, '60 audiovisual cases'):
+            self.summarize()
+        self.report['mediaSamples'].pop()
+        with self.assertRaisesRegex(SystemExit, '60 passing cases'):
+            self.summarize()
+
+    def test_b11_rejects_missing_repeated_or_out_of_order_switches(self):
+        self.add_b11_run()
+        original = deepcopy(self.report)
+        self.report['fileSwitches'].pop()
+        with self.assertRaisesRegex(SystemExit, '100 completed file switches'):
+            self.summarize()
+        self.report = deepcopy(original)
+        self.report['fileSwitches'][-1]['requestID'] = self.report['fileSwitches'][0]['requestID']
+        with self.assertRaisesRegex(SystemExit, 'distinct playback requests'):
+            self.summarize()
+        self.report = deepcopy(original)
+        self.report['fileSwitches'][-1]['file'] = '0.mp4'
+        with self.assertRaisesRegex(SystemExit, 'file-switch order'):
+            self.summarize()
+
+    def test_b11_rejects_short_or_nonadvancing_soak_and_incomplete_release(self):
+        self.add_b11_run()
+        original = deepcopy(self.report)
+        for field in ('elapsed', 'position', 'visibility', 'nan'):
+            with self.subTest(field=field):
+                self.report = deepcopy(original)
+                if field == 'elapsed': self.report['soak'][-1]['process']['uptime'] = 120
+                if field == 'position': self.report['soak'][-1]['positionSeconds'] = 20
+                if field == 'visibility': self.report['soakVisibility']['endedAtSeconds'] = 120
+                if field == 'nan': self.report['soak'][-1]['process']['uptime'] = float('nan')
+                with self.assertRaisesRegex(SystemExit, '1,800-second playback interval'):
+                    self.summarize()
+        self.report = deepcopy(original)
+        self.report['shutdown']['graphicsContextAlive'] = True
+        with self.assertRaisesRegex(SystemExit, 'resources were not confirmed released'):
+            self.summarize()
+
 
 
 if __name__ == '__main__':

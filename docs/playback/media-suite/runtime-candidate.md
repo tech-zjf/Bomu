@@ -33,7 +33,7 @@
 
 ## 实测结果
 
-以下为 Xcode 26.1.1 下的历史运行，目录为 `.build/seek-candidates/20261013-232523/`。带原始报告哈希的归档证据见 [format-runtime-validation-2026-10-13.json](format-runtime-validation-2026-10-13.json)。
+以下为 Xcode 26.1.1 下的历史运行，原目录为 `.build/seek-candidates/20261013-232523/`。候选应用、重复运行库和源码树已于 2026-10-16 因磁盘空间不足清理；带原始报告、源码和媒体哈希的归档证据见 [format-runtime-validation-2026-10-13.json](format-runtime-validation-2026-10-13.json)。需要复现时按 [SeekProbe](../../../Tools/SeekProbe/README.md) 重新生成。
 
 - **9/9 候选内核用例通过**：短 TS、相同负载 MP4/MKV、长 TS/MP4、H.265 Main10 TS、MPEG-2 TS、纯音频 TS、压缩 MOV。定位后必须有新帧并能继续播放，不能只靠时间变化通过。原版和未修改重编仍复现 TS 故障，容器及压缩 MOV 对照通过。
 - **交错回归通过**：短 TS、长 TS、MP4 各完成连续前后定位、100 条快速定位、定位请求后立即替换/停止；候选另做 10 次加载排队后立即关闭。原版 MP4 和关闭对照通过，原版 TS 的缺陷仍有有效帧记录证明。
@@ -46,7 +46,7 @@
 
 `prepare-seek-candidate-app.py` 只接受通过当前播放配置的完整实验，重新核验身份后构建并克隆 `BomuBenchmark`。候选应用仅替换自身的解封装库，其余库与原基准应用逐字节一致；源文件、执行文件和全部动态库哈希写入 `desktop-candidate.json`。它不启动窗口，也不覆盖已有候选或正式依赖缓存。
 
-2026-10-13 的准备结果为 `.build/seek-candidates/20261013-232523/BomuSeekCandidate.app`，当时桌面锁屏未启动；该应用和更早的精简配置应用均保留为历史产物，不代表当前应用源码。
+2026-10-13 的准备结果曾位于 `.build/seek-candidates/20261013-232523/BomuSeekCandidate.app`，当时桌面锁屏未启动；该应用和更早的精简配置应用均为历史产物，不代表当前应用源码。
 
 2026-10-14 已从同一个已核验的原生实验重新准备 dev.2 应用并尝试单窗口验证。两次都在首个 MP4 用例附近由外接屏变到内建屏，保留 `completed=false` 并释放资源，未到达 TS 用例。移除测试窗口跟随活动 Space、等待激活后第二次仍失败，不能把此调整写成已解决启动移动。详见 [可见验证记录](desktop-candidate-validation.md)。
 

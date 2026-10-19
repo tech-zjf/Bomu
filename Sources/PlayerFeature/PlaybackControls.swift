@@ -7,6 +7,7 @@ struct PlaybackControls: View {
     let toggleFullScreen: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var focusedControl: Control?
     @State private var isVoiceOverEnabled = false
     @State private var isScrubbing = false
@@ -17,7 +18,7 @@ struct PlaybackControls: View {
     @State private var idleExpired = false
 
     private enum Region { case header, transport, timeline }
-    private enum Control: Hashable { case back, stop, open, backSeek, pause, forward, seek, volume, fullscreen }
+    private enum Control: Hashable { case back, stop, open, speed, audio, subtitles, queue, backSeek, pause, forward, seek, volume, fullscreen }
 
     private struct HideTask: Equatable {
         let interaction: Int
@@ -26,20 +27,20 @@ struct PlaybackControls: View {
 
     private var isPinned: Bool {
         player.isPaused || isVoiceOverEnabled || isScrubbing || isAdjustingVolume
-            || focusedControl != nil || !hoveredRegions.isEmpty
+            || player.state.activity != nil || focusedControl != nil || !hoveredRegions.isEmpty
     }
 
     private var isVisible: Bool { !idleExpired || isPinned }
 
     private var panelBackground: Color {
-        Color.black.opacity(reduceTransparency ? 0.9 : 0.56)
+        AppTheme.playerControlBackground(reduceTransparency: reduceTransparency)
     }
 
     var body: some View {
         ZStack {
-            if isVisible {
+            if isVisible && !reduceTransparency {
                 edgeGradients
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .identity : .opacity)
             }
             Color.clear
                 .contentShape(Rectangle())
@@ -48,7 +49,7 @@ struct PlaybackControls: View {
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)
                 .accessibilityHidden(!isVisible)
-                .animation(.easeOut(duration: 0.18), value: isVisible)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isVisible)
         }
         .onContinuousHover { phase in
             if case .active = phase { reveal() }
@@ -57,6 +58,7 @@ struct PlaybackControls: View {
             isVoiceOverEnabled = $0
         }
         .onChange(of: player.isPaused) { _, _ in reveal() }
+        .onChange(of: player.state.activity) { _, _ in reveal() }
         .task(id: HideTask(interaction: interaction, isPinned: isPinned)) {
             guard !isPinned else { return }
             do {
@@ -80,6 +82,8 @@ struct PlaybackControls: View {
     private var controls: some View {
         VStack(spacing: 0) {
             header
+                .background(reduceTransparency ? AppTheme.playerFallback : .clear,
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
                 .padding(.horizontal, 15)
                 .padding(.top, 14)
                 .onHover { hover($0, in: .header) }
@@ -87,20 +91,25 @@ struct PlaybackControls: View {
             HStack(spacing: AppTheme.PlayerControls.buttonGap) {
                 roundButton("player.back", icon: "gobackward.10",
                             size: AppTheme.PlayerControls.skipButtonSize,
-                            iconSize: AppTheme.PlayerControls.skipIconSize) { player.skip(by: -10) }
+                            iconFont: AppTheme.Typography.Symbol.playerSkipTransport) {
+                    player.skip(by: -10)
+                }
                     .focused($focusedControl, equals: .backSeek)
                     .disabled(!player.canSeek)
                 roundButton(player.isPaused ? "player.play" : "player.pause",
                             icon: player.isPaused ? "play.fill" : "pause.fill",
                             size: AppTheme.PlayerControls.centralButtonSize,
-                            iconSize: AppTheme.PlayerControls.primaryIconSize) {
+                            iconFont: AppTheme.Typography.Symbol.playerPrimaryTransport) {
                     player.togglePause()
                 }
                 .focused($focusedControl, equals: .pause)
                 roundButton("player.forward", icon: "goforward.10",
                             size: AppTheme.PlayerControls.skipButtonSize,
-                            iconSize: AppTheme.PlayerControls.skipIconSize) { player.skip(by: 10) }
+                            iconFont: AppTheme.Typography.Symbol.playerSkipTransport) {
+                    player.skip(by: 10)
+                }
                     .focused($focusedControl, equals: .forward)
+                    .disabled(!player.canSeek)
             }
             .disabled(!player.canControlPlayback)
             .onHover { hover($0, in: .transport) }
@@ -108,6 +117,8 @@ struct PlaybackControls: View {
             timeline
                 .padding(.horizontal, AppTheme.Layout.playerHorizontalInset)
                 .padding(.vertical, 12)
+                .background(reduceTransparency ? AppTheme.playerFallback : .clear,
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
                 .padding(.bottom, 9)
                 .onHover { hover($0, in: .timeline) }
         }
@@ -118,10 +129,7 @@ struct PlaybackControls: View {
     private var header: some View {
         HStack(spacing: 9) {
             Button(action: onReturnToLibrary) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 35, height: 35)
-                    .contentShape(Rectangle())
+                PlayerToolbarIcon(symbol: "chevron.left")
             }
             .buttonStyle(.plain)
             .focused($focusedControl, equals: .back)
@@ -133,37 +141,48 @@ struct PlaybackControls: View {
                 .truncationMode(.middle)
                 .frame(maxWidth: 420, alignment: .leading)
 
+            if let activity = player.state.activity {
+                ProgressView(activity.label)
+                    .controlSize(.small)
+                    .font(AppTheme.Typography.caption)
+                    .fixedSize()
+            }
+
             Spacer(minLength: 8)
             toolbarButton("player.stop", icon: "stop.fill") { player.stop() }
                 .focused($focusedControl, equals: .stop)
             toolbarButton("open.video", icon: "folder") { OpenMediaPanel.present(for: player) }
                 .focused($focusedControl, equals: .open)
-            speedMenu
-            audioMenu
-            subtitlesMenu
-            queueMenu
+            speedMenu.focused($focusedControl, equals: .speed)
+            audioMenu.focused($focusedControl, equals: .audio)
+            subtitlesMenu.focused($focusedControl, equals: .subtitles)
+            queueMenu.focused($focusedControl, equals: .queue)
         }
         .buttonStyle(.plain)
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
     }
 
     private var speedMenu: some View {
         Menu {
-            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { speed in
-                Button {
-                    player.setSpeed(speed)
-                } label: {
-                    let title = "\(speed.formatted(.number.precision(.fractionLength(0...2))))×"
-                    if abs((player.state.snapshot?.speed ?? 1) - speed) < 0.01 {
-                        Label(title, systemImage: "checkmark")
-                    } else {
-                        Text(title)
+            if let requestID = player.state.request?.id {
+                ForEach(PlaybackPreferences.supportedSpeeds, id: \.self) { speed in
+                    Button {
+                        player.setSpeed(speed, requestID: requestID)
+                    } label: {
+                        let title = "\(speed.formatted(.number.precision(.fractionLength(0...2))))×"
+                        if abs((player.state.snapshot?.speed ?? 1) - speed) < 0.01 {
+                            Label(title, systemImage: "checkmark")
+                        } else {
+                            Text(title)
+                        }
                     }
                 }
             }
         } label: {
-            toolbarIcon("speedometer")
+            PlayerToolbarIcon(symbol: "speedometer")
         }
         .disabled(!player.canControlPlayback)
         .accessibilityLabel(Text("player.speed"))
@@ -172,15 +191,18 @@ struct PlaybackControls: View {
 
     private var audioMenu: some View {
         Menu {
-            ForEach(player.state.snapshot?.tracks.filter { $0.kind == .audio } ?? []) { track in
-                Button {
-                    player.selectAudioTrack(track.id)
-                } label: {
-                    trackMenuLabel(track, selected: track.isSelected)
+            if let requestID = player.state.request?.id {
+                let tracks = player.state.snapshot?.tracks.filter { $0.kind == .audio } ?? []
+                ForEach(tracks) { track in
+                    Button {
+                        player.selectAudioTrack(track.id, requestID: requestID)
+                    } label: {
+                        trackMenuLabel(track, among: tracks)
+                    }
                 }
             }
         } label: {
-            toolbarIcon("waveform")
+            PlayerToolbarIcon(symbol: "waveform")
         }
         .disabled(player.state.snapshot?.tracks.contains { $0.kind == .audio } != true)
         .accessibilityLabel(Text("player.audioTracks"))
@@ -189,42 +211,46 @@ struct PlaybackControls: View {
 
     private var subtitlesMenu: some View {
         Menu {
-            let subtitles = player.state.snapshot?.tracks.filter { $0.kind == .subtitle } ?? []
-            Button {
-                player.selectSubtitleTrack(0)
-            } label: {
-                if subtitles.contains(where: \.isSelected) {
-                    Label("player.subtitleOff", systemImage: "checkmark")
-                } else {
-                    Text("player.subtitleOff")
-                }
-            }
-            ForEach(subtitles) { track in
+            if let requestID = player.state.request?.id {
+                let subtitles = player.state.snapshot?.tracks.filter { $0.kind == .subtitle } ?? []
                 Button {
-                    player.selectSubtitleTrack(track.id)
+                    player.selectSubtitleTrack(0, requestID: requestID)
                 } label: {
-                    trackMenuLabel(track, selected: track.isSelected)
+                    if !subtitles.contains(where: \.isSelected) {
+                        Label("player.subtitleOff", systemImage: "checkmark")
+                    } else {
+                        Text("player.subtitleOff")
+                    }
                 }
-            }
-            Divider()
-            Button("player.loadExternalSubtitle") { OpenMediaPanel.presentSubtitle(for: player) }
-            Menu("player.subtitleDelay") {
-                let delay = player.state.snapshot?.subtitleDelay ?? 0
-                HStack {
-                    Text("player.subtitleOffsetValue")
-                    Spacer()
-                    Text(delay, format: .number.precision(.fractionLength(1)))
-                    Text("settings.seconds")
+                ForEach(subtitles) { track in
+                    Button {
+                        player.selectSubtitleTrack(track.id, requestID: requestID)
+                    } label: {
+                        trackMenuLabel(track, among: subtitles)
+                    }
                 }
-                Button("player.subtitleReset") { player.resetSubtitleDelay() }
-                    .disabled(abs(delay) < 0.01 || !player.canControlPlayback)
                 Divider()
-                Button("player.subtitleEarlier") { player.adjustSubtitleDelay(by: -0.5) }
-                Button("player.subtitleLater") { player.adjustSubtitleDelay(by: 0.5) }
+                Button("player.loadExternalSubtitle") {
+                    OpenMediaPanel.presentSubtitle(for: player, requestID: requestID)
+                }
+                Menu("player.subtitleDelay") {
+                    let delay = player.state.snapshot?.subtitleDelay ?? 0
+                    HStack {
+                        Text("player.subtitleOffsetValue")
+                        Spacer()
+                        Text(delay, format: .number.precision(.fractionLength(1)))
+                        Text("settings.seconds")
+                    }
+                    Button("player.subtitleReset") { player.resetSubtitleDelay(requestID: requestID) }
+                        .disabled(abs(delay) < 0.01 || !player.canControlPlayback)
+                    Divider()
+                    Button("player.subtitleEarlier") { player.adjustSubtitleDelay(by: -0.5, requestID: requestID) }
+                    Button("player.subtitleLater") { player.adjustSubtitleDelay(by: 0.5, requestID: requestID) }
+                }
+                .disabled(!player.canControlPlayback)
             }
-            .disabled(!player.canControlPlayback)
         } label: {
-            toolbarIcon("captions.bubble")
+            PlayerToolbarIcon(symbol: "captions.bubble")
         }
         .disabled(!player.canControlPlayback)
         .accessibilityLabel(Text("player.subtitles"))
@@ -232,29 +258,7 @@ struct PlaybackControls: View {
     }
 
     private var queueMenu: some View {
-        Menu {
-            Button("player.previousItem") { player.playPrevious() }
-                .disabled(player.queue.previousURL == nil)
-            Button("player.nextItem") { player.playNext() }
-                .disabled(player.queue.nextURL == nil)
-            Divider()
-            ForEach(Array(player.queue.items.enumerated()), id: \.offset) { index, url in
-                Button {
-                    player.playQueueItem(at: index)
-                } label: {
-                    if index == player.queue.currentIndex {
-                        Label(url.lastPathComponent, systemImage: "checkmark")
-                    } else {
-                        Text(url.lastPathComponent)
-                    }
-                }
-            }
-        } label: {
-            toolbarIcon("list.number")
-        }
-        .disabled(player.queue.items.isEmpty)
-        .accessibilityLabel(Text("player.queue"))
-        .help(Text("player.queue"))
+        PlaybackQueueMenu(player: player)
     }
 
     private var timeline: some View {
@@ -270,7 +274,7 @@ struct PlaybackControls: View {
                 ), in: 0...duration, onEditingChanged: { editing in
                     if editing { scrubPosition = snapshot.position }
                     isScrubbing = editing
-                    if !editing { player.seek(to: scrubPosition) }
+                    if !editing { player.seek(to: scrubPosition, requestID: snapshot.requestID) }
                 })
                 .disabled(!player.canSeek)
                 .focused($focusedControl, equals: .seek)
@@ -284,7 +288,7 @@ struct PlaybackControls: View {
             }
 
             Image(systemName: "speaker.wave.2.fill")
-                .font(.system(size: 12))
+                .font(AppTheme.Typography.Symbol.playerVolume)
                 .accessibilityHidden(true)
             if let snapshot = player.state.snapshot {
                 Slider(value: Binding(
@@ -297,9 +301,7 @@ struct PlaybackControls: View {
                 .tint(.white)
             }
             Button(action: toggleFullScreen) {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 12, weight: .medium))
-                    .frame(width: 26, height: 26)
+                PlayerToolbarIcon(symbol: "arrow.up.left.and.arrow.down.right")
             }
             .buttonStyle(.plain)
             .focused($focusedControl, equals: .fullscreen)
@@ -310,25 +312,19 @@ struct PlaybackControls: View {
     }
 
     private func toolbarButton(_ label: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { toolbarIcon(icon) }
+        Button(action: action) { PlayerToolbarIcon(symbol: icon) }
             .accessibilityLabel(Text(label))
             .help(Text(label))
     }
 
-    private func toolbarIcon(_ icon: String) -> some View {
-        Image(systemName: icon)
-            .font(.system(size: 12, weight: .medium))
-            .frame(width: 35, height: 35)
-            .contentShape(Rectangle())
-    }
-
-    private func roundButton(_ label: LocalizedStringKey, icon: String, size: CGFloat, iconSize: CGFloat,
+    private func roundButton(_ label: LocalizedStringKey, icon: String, size: CGFloat, iconFont: Font,
                              action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: iconSize))
+                .font(iconFont)
                 .frame(width: size, height: size)
                 .background(panelBackground, in: Circle())
+                .contentShape(Circle())
                 .shadow(color: .black.opacity(0.16), radius: 8, y: 3)
         }
         .buttonStyle(.plain)
@@ -336,18 +332,39 @@ struct PlaybackControls: View {
     }
 
     @ViewBuilder
-    private func trackMenuLabel(_ track: PlaybackTrack, selected: Bool) -> some View {
-        let details = [track.language, track.title]
-            .compactMap { value -> String? in
-                guard let value, !value.isEmpty else { return nil }
-                return value
-            }
-        let title = details.isEmpty ? String(format: String(localized: "player.trackNumber"), track.id) : details.joined(separator: " · ")
-        if selected {
+    private func trackMenuLabel(_ track: PlaybackTrack, among tracks: [PlaybackTrack]) -> some View {
+        let title = trackMenuTitle(track, among: tracks)
+        if track.isSelected {
             Label(title, systemImage: "checkmark")
         } else {
             Text(title)
         }
+    }
+
+    private func trackMenuTitle(_ track: PlaybackTrack, among tracks: [PlaybackTrack]) -> String {
+        var title = trackMenuBaseTitle(track)
+        let duplicateCount = tracks.filter { trackMenuBaseTitle($0) == title }.count
+        if duplicateCount > 1 {
+            title += " · \(String(format: String(localized: "player.trackNumber"), track.id))"
+        }
+        return title
+    }
+
+    private func trackMenuBaseTitle(_ track: PlaybackTrack) -> String {
+        let details = [track.language, track.title]
+            .compactMap { rawValue -> String? in
+                guard let rawValue else { return nil }
+                let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !value.isEmpty else { return nil }
+                return value
+            }
+        var title = details.isEmpty
+            ? String(format: String(localized: "player.trackNumber"), track.id)
+            : details.joined(separator: " · ")
+        if track.isExternal {
+            title += " · \(String(localized: "player.track.external"))"
+        }
+        return title
     }
 
     private func reveal() {
@@ -365,5 +382,66 @@ struct PlaybackControls: View {
         let total = Int(max(0, seconds))
         if total >= 3600 { return String(format: "%d:%02d:%02d", total / 3600, total / 60 % 60, total % 60) }
         return String(format: "%d:%02d", total / 60, total % 60)
+    }
+}
+
+private extension PlaybackState.Activity {
+    var label: LocalizedStringKey {
+        switch self {
+        case .opening: "player.loading"
+        case .seeking: "player.seeking"
+        case .buffering: "player.buffering"
+        }
+    }
+}
+
+struct PlaybackQueueMenu: View {
+    let player: PlayerModel
+
+    var body: some View {
+        Menu {
+            if let requestID = player.state.request?.id, let currentIndex = player.queue.currentIndex {
+                Button("player.previousItem") {
+                    player.playQueueItem(at: currentIndex - 1, requestID: requestID)
+                }
+                .disabled(player.queue.previousURL == nil)
+                Button("player.nextItem") {
+                    player.playQueueItem(at: currentIndex + 1, requestID: requestID)
+                }
+                .disabled(player.queue.nextURL == nil)
+                Divider()
+                ForEach(Array(player.queue.items.enumerated()), id: \.offset) { index, url in
+                    Button {
+                        player.playQueueItem(at: index, requestID: requestID)
+                    } label: {
+                        if index == currentIndex {
+                            Label(url.lastPathComponent, systemImage: "checkmark")
+                        } else {
+                            Text(url.lastPathComponent)
+                        }
+                    }
+                }
+            }
+        } label: {
+            PlayerToolbarIcon(symbol: "list.number")
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .buttonStyle(.plain)
+        .disabled(player.queue.items.isEmpty)
+        .accessibilityLabel(Text("player.queue"))
+        .help(Text("player.queue"))
+    }
+}
+
+/** 工具栏按钮与菜单共享图标、完整命中范围和尺寸，菜单内容仍由系统呈现。 */
+private struct PlayerToolbarIcon: View {
+    let symbol: String
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(AppTheme.Typography.Symbol.playerToolbar)
+            .frame(width: AppTheme.Layout.toolbarControlSize, height: AppTheme.Layout.toolbarControlSize)
+            .contentShape(Rectangle())
     }
 }
