@@ -11,12 +11,10 @@ struct PlayerScreen: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollView {
-                PlayerPageLayout(availableHeight: geometry.size.height,
-                                 stageInset: AppTheme.Layout.playerStageInset) {
-                    playerStage
-                    playerFooter
-                }
+            PlayerPageLayout(availableHeight: geometry.size.height,
+                             stageInset: AppTheme.Layout.playerStageInset) {
+                playerStage
+                playerFooter
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -168,7 +166,7 @@ private struct PlayerPageLayout: Layout {
         let footerHeight = measuredFooterHeight(in: width, subviews: subviews)
         let stageWidth = stageWidth(for: width, footerHeight: footerHeight)
         let contentHeight = stageWidth * 9 / 16 + footerHeight
-        return CGSize(width: width, height: max(availableHeight, contentHeight))
+        return CGSize(width: width, height: min(availableHeight, max(0, contentHeight)))
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
