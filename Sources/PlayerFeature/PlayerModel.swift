@@ -589,7 +589,9 @@ final class PlayerModel {
             } catch {
                 guard !Task.isCancelled, let self,
                       self.state.request?.id == request.id, self.isPrepared else { return }
-                if case PlaybackHistoryError.ambiguousMediaIdentity = error {
+                if case PlaybackHistoryError.mediaFileUnavailable = error {
+                    self.persistenceError = nil
+                } else if case PlaybackHistoryError.ambiguousMediaIdentity = error {
                     self.historySuppressedRequestID = request.id
                     self.persistenceError = String(localized: "persistence.identityConflict")
                 } else {

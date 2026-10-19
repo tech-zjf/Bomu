@@ -55,6 +55,7 @@ protocol MediaLibraryPersisting: PlaybackHistoryPersisting {
 enum PlaybackHistoryError: LocalizedError {
     case invalidPosition
     case invalidVolume
+    case mediaFileUnavailable(String)
     case identityUnavailable(String, underlying: String)
     case ambiguousMediaIdentity
     case missingSourceRoot
@@ -70,6 +71,8 @@ enum PlaybackHistoryError: LocalizedError {
             "Playback position must be a finite nonnegative value."
         case .invalidVolume:
             "Playback volume must be between 0 and 100."
+        case .mediaFileUnavailable(let path):
+            "The media file is no longer available at \(path)."
         case .identityUnavailable(let path, let underlying):
             "Unable to identify media file at \(path): \(underlying)"
         case .ambiguousMediaIdentity:

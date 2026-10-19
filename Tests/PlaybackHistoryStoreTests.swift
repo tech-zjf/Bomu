@@ -19,6 +19,24 @@ final class PlaybackHistoryStoreTests: XCTestCase {
                        "A failed database open must preserve the file for recovery")
     }
 
+    func testHistoryForMissingMediaReturnsTypedUnavailableError() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+        let missingMedia = directory.appending(path: "removed.mp4")
+
+        do {
+            _ = try await store.history(for: missingMedia)
+            XCTFail("A removed media file cannot have a readable checkpoint identity")
+        } catch let error as PlaybackHistoryError {
+            guard case .mediaFileUnavailable(let path) = error else {
+                return XCTFail("Expected mediaFileUnavailable, received \(error)")
+            }
+            XCTAssertEqual(path, missingMedia.path)
+        }
+    }
+
     func testReadOnlyDatabaseStartupPreservesCheckpointAndRecovers() async throws {
         guard geteuid() != 0 else { throw XCTSkip("Root bypasses filesystem permission restrictions") }
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)

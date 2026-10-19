@@ -1195,6 +1195,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         do {
             values = try resolvedURL.resourceValues(forKeys: keys)
         } catch {
+            if Self.isMissingMediaFile(error) {
+                throw PlaybackHistoryError.mediaFileUnavailable(url.path)
+            }
             throw PlaybackHistoryError.identityUnavailable(url.path, underlying: error.localizedDescription)
         }
         guard values.isRegularFile == true,
@@ -1208,6 +1211,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         var metadata = stat()
         let statResult = resolvedURL.path.withCString { stat($0, &metadata) }
         guard statResult == 0 else {
+            if errno == ENOENT {
+                throw PlaybackHistoryError.mediaFileUnavailable(url.path)
+            }
             throw PlaybackHistoryError.identityUnavailable(
                 url.path,
                 underlying: String(cString: strerror(errno))
@@ -1241,12 +1247,21 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         )
     }
 
+    private static func isMissingMediaFile(_ error: Error) -> Bool {
+        let error = error as NSError
+        if error.domain == NSPOSIXErrorDomain, error.code == Int(ENOENT) { return true }
+        return error.domain == NSCocoaErrorDomain && error.code == NSFileReadNoSuchFileError
+    }
+
     private static func sampleFingerprint(for url: URL, expected: stat, byteCount: Int64) throws
         -> (current: String, legacy: String?) {
         let file: FileHandle
         do {
             file = try FileHandle(forReadingFrom: url)
         } catch {
+            if Self.isMissingMediaFile(error) {
+                throw PlaybackHistoryError.mediaFileUnavailable(url.path)
+            }
             throw PlaybackHistoryError.identityUnavailable(url.path, underlying: error.localizedDescription)
         }
         defer { try? file.close() }

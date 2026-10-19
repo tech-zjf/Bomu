@@ -317,6 +317,26 @@ final class PlayerModelTests: XCTestCase {
         await player.shutdown()
     }
 
+    func testMissingMediaDoesNotReportPlaybackHistoryAsUnavailable() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store)
+        let missingMedia = directory.appending(path: "moved-or-removed.mp4")
+
+        player.open(missingMedia)
+        try await waitUntilPrepared(player)
+        try await waitUntil { engine.requests.count == 1 }
+
+        XCTAssertNil(player.persistenceError,
+                     "A missing file belongs to the playback failure state, not the history database state")
+        XCTAssertEqual(engine.requests.first?.url, missingMedia)
+        XCTAssertNil(engine.openOptions.first?.startPosition)
+        await player.shutdown()
+    }
+
     func testDatabaseWriteContentionPreservesCheckpointAndRecovers() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
