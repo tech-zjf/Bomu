@@ -39,7 +39,7 @@ The 2026-10-16 token audit corrected the content canvas to white. The approved U
 | Text / secondary text | `#141D2D` / `#647084` |
 | Library surface / sidebar and secondary surface / player fallback | `#FFFFFF` / `#F0F4F8` / `#111722` |
 | Separator / warm accent | `#E5EAF0` / `#EFB98F` |
-| Brand / page / section title | system serif 32 / system sans 27 / system sans 17 |
+| Brand / page / section title | system serif 32 / system sans 27 / system sans 18 |
 | Media title / media metadata / page subtitle / body subtitle | system sans 13 semibold / 11 / 12 / 13 |
 | Sidebar width / content horizontal and vertical insets | 176 / 30 and 28 |
 | Sidebar outer insets / row height / section gap | 25, 13, 17 / 40 / 5 |
