@@ -103,6 +103,7 @@
 "player.volume" = "Volume";
 "player.speed" = "Playback Speed";
 "player.audioTracks" = "Audio Tracks";
+"player.audioAndSubtitleTracks" = "Audio & Subtitles";
 "player.subtitles" = "Subtitles";
 "player.subtitleOff" = "Off";
 "player.loadExternalSubtitle" = "Load External Subtitle…";

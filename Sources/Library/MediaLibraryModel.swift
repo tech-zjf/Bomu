@@ -492,6 +492,13 @@ final class MediaLibraryModel {
         return volume.appending(path: item.relativePath)
     }
 
+    func item(matchingMediaURL url: URL) -> MediaLibraryItem? {
+        let standardizedURL = url.standardizedFileURL
+        let matches = browsableItems.filter { fileURL(for: $0)?.standardizedFileURL == standardizedURL }
+        guard matches.count == 1 else { return nil }
+        return matches[0]
+    }
+
     func items(in rootID: Int64) -> [MediaLibraryItem] { itemsByRoot[rootID] ?? [] }
 
     func childDirectories(in directory: MediaLibraryDirectory) -> [MediaLibraryDirectory] {

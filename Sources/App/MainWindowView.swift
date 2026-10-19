@@ -15,6 +15,8 @@ struct MainWindowView: View {
     @State private var navigation = MainWindowNavigation()
     @State private var isDropTargeted = false
     @State private var dropResolutionTask: Task<Void, Never>?
+    @State private var activeLibraryItem: MediaLibraryItem?
+    @State private var isUpdatingFavorite = false
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -39,6 +41,9 @@ struct MainWindowView: View {
                 player: player,
                 videoView: videoView,
                 nowPlaying: nowPlaying,
+                isFavorite: activeLibraryItem?.isFavorite ?? false,
+                canToggleFavorite: activeLibraryItem != nil && !isUpdatingFavorite,
+                onToggleFavorite: toggleActiveFavorite,
                 onReturnToLibrary: returnToLibrary
             )
                 .opacity(navigation.isPlayerVisible ? 1 : 0)
@@ -78,7 +83,10 @@ struct MainWindowView: View {
         .preferredColorScheme(.light)
         .onChange(of: player.state.request?.id, initial: true) { _, requestID in
             if requestID != nil {
+                activeLibraryItem = player.state.request.flatMap { library.item(matchingMediaURL: $0.url) }
                 navigation.showPlayer()
+            } else {
+                activeLibraryItem = nil
             }
         }
         .onChange(of: player.state.phase) { _, phase in
@@ -114,20 +122,37 @@ struct MainWindowView: View {
 
     private func open(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
+        activeLibraryItem = item
         player.open(url)
         navigation.showPlayer()
     }
 
     private func continuePlayback(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
+        activeLibraryItem = item
         player.continuePlayback(url)
         navigation.showPlayer()
     }
 
     private func playFromBeginning(_ item: MediaLibraryItem) {
         guard let url = library.fileURL(for: item) else { return }
+        activeLibraryItem = item
         player.playFromBeginning(url)
         navigation.showPlayer()
+    }
+
+    private func toggleActiveFavorite() {
+        guard let item = activeLibraryItem,
+              let requestID = player.state.request?.id,
+              !isUpdatingFavorite else { return }
+        isUpdatingFavorite = true
+        Task {
+            await library.toggleFavorite(item)
+            if player.state.request?.id == requestID {
+                activeLibraryItem = library.browsableItems.first { $0.id == item.id }
+            }
+            isUpdatingFavorite = false
+        }
     }
 
     private func returnToLibrary() {
@@ -146,6 +171,7 @@ struct MainWindowView: View {
     }
 
     private func open(_ url: URL) {
+        activeLibraryItem = library.item(matchingMediaURL: url)
         player.open(url)
         navigation.showPlayer()
     }

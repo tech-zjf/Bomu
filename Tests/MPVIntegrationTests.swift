@@ -22,6 +22,9 @@ final class MPVIntegrationTests: XCTestCase {
             player: player,
             videoView: engine.videoView,
             nowPlaying: nowPlaying,
+            isFavorite: false,
+            canToggleFavorite: false,
+            onToggleFavorite: {},
             onReturnToLibrary: {}
         ))
         defer {

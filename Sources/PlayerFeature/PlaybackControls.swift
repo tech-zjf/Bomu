@@ -3,6 +3,9 @@ import SwiftUI
 
 struct PlaybackControls: View {
     let player: PlayerModel
+    let isFavorite: Bool
+    let canToggleFavorite: Bool
+    let onToggleFavorite: () -> Void
     let onReturnToLibrary: () -> Void
     let toggleFullScreen: () -> Void
 
@@ -18,7 +21,7 @@ struct PlaybackControls: View {
     @State private var idleExpired = false
 
     private enum Region { case header, transport, timeline }
-    private enum Control: Hashable { case back, stop, open, speed, audio, subtitles, queue, backSeek, pause, forward, seek, volume, fullscreen }
+    private enum Control: Hashable { case back, speed, tracks, queue, favorite, backSeek, pause, forward, seek, volume, fullscreen }
 
     private struct HideTask: Equatable {
         let interaction: Int
@@ -82,10 +85,8 @@ struct PlaybackControls: View {
     private var controls: some View {
         VStack(spacing: 0) {
             header
-                .background(reduceTransparency ? AppTheme.playerFallback : .clear,
-                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
-                .padding(.horizontal, 15)
-                .padding(.top, 14)
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
                 .onHover { hover($0, in: .header) }
             Spacer(minLength: 12)
             HStack(spacing: AppTheme.PlayerControls.buttonGap) {
@@ -127,7 +128,7 @@ struct PlaybackControls: View {
     }
 
     private var header: some View {
-        HStack(spacing: 9) {
+        HStack(spacing: 6) {
             Button(action: onReturnToLibrary) {
                 PlayerToolbarIcon(symbol: "chevron.left")
             }
@@ -149,20 +150,14 @@ struct PlaybackControls: View {
             }
 
             Spacer(minLength: 8)
-            toolbarButton("player.stop", icon: "stop.fill") { player.stop() }
-                .focused($focusedControl, equals: .stop)
-            toolbarButton("open.video", icon: "folder") { OpenMediaPanel.present(for: player) }
-                .focused($focusedControl, equals: .open)
             speedMenu.focused($focusedControl, equals: .speed)
-            audioMenu.focused($focusedControl, equals: .audio)
-            subtitlesMenu.focused($focusedControl, equals: .subtitles)
+            tracksMenu.focused($focusedControl, equals: .tracks)
             queueMenu.focused($focusedControl, equals: .queue)
+            favoriteButton
         }
         .buttonStyle(.plain)
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
     }
 
     private var speedMenu: some View {
@@ -189,72 +184,78 @@ struct PlaybackControls: View {
         .help(Text("player.speed"))
     }
 
-    private var audioMenu: some View {
+    private var tracksMenu: some View {
         Menu {
-            if let requestID = player.state.request?.id {
-                let tracks = player.state.snapshot?.tracks.filter { $0.kind == .audio } ?? []
-                ForEach(tracks) { track in
-                    Button {
-                        player.selectAudioTrack(track.id, requestID: requestID)
-                    } label: {
-                        trackMenuLabel(track, among: tracks)
+            Menu("player.audioTracks") {
+                if let requestID = player.state.request?.id {
+                    let tracks = player.state.snapshot?.tracks.filter { $0.kind == .audio } ?? []
+                    ForEach(tracks) { track in
+                        Button {
+                            player.selectAudioTrack(track.id, requestID: requestID)
+                        } label: {
+                            trackMenuLabel(track, among: tracks)
+                        }
                     }
                 }
             }
-        } label: {
-            PlayerToolbarIcon(symbol: "waveform")
-        }
-        .disabled(player.state.snapshot?.tracks.contains { $0.kind == .audio } != true)
-        .accessibilityLabel(Text("player.audioTracks"))
-        .help(Text("player.audioTracks"))
-    }
-
-    private var subtitlesMenu: some View {
-        Menu {
-            if let requestID = player.state.request?.id {
-                let subtitles = player.state.snapshot?.tracks.filter { $0.kind == .subtitle } ?? []
-                Button {
-                    player.selectSubtitleTrack(0, requestID: requestID)
-                } label: {
-                    if !subtitles.contains(where: \.isSelected) {
-                        Label("player.subtitleOff", systemImage: "checkmark")
-                    } else {
-                        Text("player.subtitleOff")
-                    }
-                }
-                ForEach(subtitles) { track in
+            Menu("player.subtitles") {
+                if let requestID = player.state.request?.id {
+                    let subtitles = player.state.snapshot?.tracks.filter { $0.kind == .subtitle } ?? []
                     Button {
-                        player.selectSubtitleTrack(track.id, requestID: requestID)
+                        player.selectSubtitleTrack(0, requestID: requestID)
                     } label: {
-                        trackMenuLabel(track, among: subtitles)
+                        if !subtitles.contains(where: \.isSelected) {
+                            Label("player.subtitleOff", systemImage: "checkmark")
+                        } else {
+                            Text("player.subtitleOff")
+                        }
                     }
-                }
-                Divider()
-                Button("player.loadExternalSubtitle") {
-                    OpenMediaPanel.presentSubtitle(for: player, requestID: requestID)
-                }
-                Menu("player.subtitleDelay") {
-                    let delay = player.state.snapshot?.subtitleDelay ?? 0
-                    HStack {
-                        Text("player.subtitleOffsetValue")
-                        Spacer()
-                        Text(delay, format: .number.precision(.fractionLength(1)))
-                        Text("settings.seconds")
+                    ForEach(subtitles) { track in
+                        Button {
+                            player.selectSubtitleTrack(track.id, requestID: requestID)
+                        } label: {
+                            trackMenuLabel(track, among: subtitles)
+                        }
                     }
-                    Button("player.subtitleReset") { player.resetSubtitleDelay(requestID: requestID) }
-                        .disabled(abs(delay) < 0.01 || !player.canControlPlayback)
                     Divider()
-                    Button("player.subtitleEarlier") { player.adjustSubtitleDelay(by: -0.5, requestID: requestID) }
-                    Button("player.subtitleLater") { player.adjustSubtitleDelay(by: 0.5, requestID: requestID) }
+                    Button("player.loadExternalSubtitle") {
+                        OpenMediaPanel.presentSubtitle(for: player, requestID: requestID)
+                    }
+                    Menu("player.subtitleDelay") {
+                        let delay = player.state.snapshot?.subtitleDelay ?? 0
+                        HStack {
+                            Text("player.subtitleOffsetValue")
+                            Spacer()
+                            Text(delay, format: .number.precision(.fractionLength(1)))
+                            Text("settings.seconds")
+                        }
+                        Button("player.subtitleReset") { player.resetSubtitleDelay(requestID: requestID) }
+                            .disabled(abs(delay) < 0.01 || !player.canControlPlayback)
+                        Divider()
+                        Button("player.subtitleEarlier") { player.adjustSubtitleDelay(by: -0.5, requestID: requestID) }
+                        Button("player.subtitleLater") { player.adjustSubtitleDelay(by: 0.5, requestID: requestID) }
+                    }
+                    .disabled(!player.canControlPlayback)
                 }
-                .disabled(!player.canControlPlayback)
             }
         } label: {
             PlayerToolbarIcon(symbol: "captions.bubble")
         }
         .disabled(!player.canControlPlayback)
-        .accessibilityLabel(Text("player.subtitles"))
-        .help(Text("player.subtitles"))
+        .accessibilityLabel(Text("player.audioAndSubtitleTracks"))
+        .help(Text("player.audioAndSubtitleTracks"))
+    }
+
+    private var favoriteButton: some View {
+        Button(action: onToggleFavorite) {
+            PlayerToolbarIcon(symbol: isFavorite ? "heart.fill" : "heart",
+                              tint: isFavorite ? .pink : .white)
+        }
+        .buttonStyle(.plain)
+        .focused($focusedControl, equals: .favorite)
+        .disabled(!canToggleFavorite)
+        .accessibilityLabel(Text(isFavorite ? "library.removeFavorite" : "library.addFavorite"))
+        .help(Text(isFavorite ? "library.removeFavorite" : "library.addFavorite"))
     }
 
     private var queueMenu: some View {
@@ -309,12 +310,6 @@ struct PlaybackControls: View {
             .help(Text("player.fullscreen"))
         }
         .font(AppTheme.Typography.timeReadout)
-    }
-
-    private func toolbarButton(_ label: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { PlayerToolbarIcon(symbol: icon) }
-            .accessibilityLabel(Text(label))
-            .help(Text(label))
     }
 
     private func roundButton(_ label: LocalizedStringKey, icon: String, size: CGFloat, iconFont: Font,
@@ -437,11 +432,29 @@ struct PlaybackQueueMenu: View {
 /** 工具栏按钮与菜单共享图标、完整命中范围和尺寸，菜单内容仍由系统呈现。 */
 private struct PlayerToolbarIcon: View {
     let symbol: String
+    var tint: Color = .white
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         Image(systemName: symbol)
             .font(AppTheme.Typography.Symbol.playerToolbar)
+            .foregroundStyle(tint)
             .frame(width: AppTheme.Layout.toolbarControlSize, height: AppTheme.Layout.toolbarControlSize)
             .contentShape(Rectangle())
+            .background {
+                let shape = RoundedRectangle(cornerRadius: AppTheme.Corners.control)
+                if reduceTransparency {
+                    shape.fill(AppTheme.playerToolbarBackground(reduceTransparency: true))
+                } else {
+                    shape
+                        .fill(AppTheme.playerToolbarBackground(reduceTransparency: false))
+                        .background(.ultraThinMaterial, in: shape)
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.control)
+                    .stroke(.white.opacity(0.07), lineWidth: 1)
+            }
     }
 }

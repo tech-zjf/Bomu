@@ -909,6 +909,30 @@ final class MediaLibraryScannerTests: XCTestCase {
     }
 
     @MainActor
+    func testMediaURLLookupResolvesOneBrowsableLibraryItem() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: UUID().uuidString,
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let media = root.appending(path: "clip.mp4")
+        try Data("media".utf8).write(to: media)
+
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let scanner = MediaLibraryScanner(historyStore: store)
+        for try await _ in scanner.scan(folder: root).events { }
+        let model = MediaLibraryModel(store: store, thumbnailCache: nil)
+        let refreshed = await model.refresh()
+        XCTAssertTrue(refreshed)
+
+        let item = try XCTUnwrap(model.browsableItems.first)
+        XCTAssertEqual(model.item(matchingMediaURL: root.appending(path: "folder/../clip.mp4"))?.id, item.id)
+        XCTAssertNil(model.item(matchingMediaURL: root.appending(path: "missing.mp4")))
+        await model.shutdown()
+    }
+
+    @MainActor
     func testBrowsableItemsExcludeMediaRemovedByCompleteScan() async throws {
         let root = FileManager.default.temporaryDirectory.appending(
             path: UUID().uuidString,

@@ -5,6 +5,9 @@ struct PlayerScreen: View {
     let player: PlayerModel
     let videoView: NSView
     let nowPlaying: NowPlayingController
+    let isFavorite: Bool
+    let canToggleFavorite: Bool
+    let onToggleFavorite: () -> Void
     let onReturnToLibrary: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -51,7 +54,13 @@ struct PlayerScreen: View {
             }
         case .ready:
             videoFrame {
-                PlaybackControls(player: player, onReturnToLibrary: onReturnToLibrary) {
+                PlaybackControls(
+                    player: player,
+                    isFavorite: isFavorite,
+                    canToggleFavorite: canToggleFavorite,
+                    onToggleFavorite: onToggleFavorite,
+                    onReturnToLibrary: onReturnToLibrary
+                ) {
                     videoView.window?.toggleFullScreen(nil)
                 }
                 // A file owns its scrub/focus/idle state; the video host keeps its identity.
