@@ -21,7 +21,7 @@ struct PlaybackControls: View {
     @State private var idleExpired = false
 
     private enum Region { case header, transport, timeline }
-    private enum Control: Hashable { case back, speed, tracks, queue, favorite, backSeek, pause, forward, seek, volume, fullscreen }
+    private enum Control: Hashable { case back, speed, tracks, queue, favorite, info, backSeek, pause, forward, seek, volume, fullscreen }
 
     private struct HideTask: Equatable {
         let interaction: Int
@@ -154,6 +154,10 @@ struct PlaybackControls: View {
             tracksMenu.focused($focusedControl, equals: .tracks)
             queueMenu.focused($focusedControl, equals: .queue)
             favoriteButton
+            if let url = player.state.request?.url {
+                PlayerMediaInfoButton(url: url)
+                    .focused($focusedControl, equals: .info)
+            }
         }
         .buttonStyle(.plain)
         .menuStyle(.borderlessButton)

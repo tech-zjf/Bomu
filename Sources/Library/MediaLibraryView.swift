@@ -146,6 +146,9 @@ struct MediaLibraryView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppTheme.surface)
+        // Keep scroll chrome stable while the library sits behind the player view.
+        // Scroll gestures remain available; indicators never change the content geometry.
+        .scrollIndicators(.hidden)
         .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
                minHeight: AppTheme.Layout.minimumWindowHeight)
         .task { await model.refresh() }

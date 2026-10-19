@@ -123,6 +123,7 @@
 "player.emptyPrompt" = "Choose a local video or audio file to begin.";
 "player.ended" = "Playback finished";
 "player.replay" = "Play Again";
+"player.mediaInfo" = "Video information";
 "player.timeUnknown" = "Unknown duration";
 "player.queue" = "Playback Queue";
 "player.previousItem" = "Previous Item";

@@ -72,6 +72,7 @@ enum AppTheme {
             static let playerToolbar = Font.system(size: 12, weight: .medium)
             static let playerPrimaryTransport = Font.system(size: 39)
             static let playerSkipTransport = Font.system(size: 27)
+            static let playerMediaInfo = Font.system(size: 15, weight: .medium)
         }
     }
 
@@ -103,9 +104,6 @@ enum AppTheme {
         static let mediaSummaryHeight: CGFloat = 28
         static let sectionGap: CGFloat = 28
         static let playerStageInset: CGFloat = 12
-        static let playerDetailsHorizontalInset: CGFloat = 24
-        static let playerDetailsTopInset: CGFloat = 3
-        static let playerDetailsBottomInset: CGFloat = 17
         static let playerHorizontalInset: CGFloat = 22
         static let minimumWindowWidth: CGFloat = 900
         static let minimumWindowHeight: CGFloat = 600

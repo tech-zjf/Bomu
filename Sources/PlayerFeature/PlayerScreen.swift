@@ -17,7 +17,6 @@ struct PlayerScreen: View {
             PlayerPageLayout(availableHeight: geometry.size.height,
                              stageInset: AppTheme.Layout.playerStageInset) {
                 playerStage
-                playerFooter
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -97,30 +96,25 @@ struct PlayerScreen: View {
     }
 
     @ViewBuilder
-    private var playerFooter: some View {
-        VStack(spacing: 0) {
-            if let request = player.state.request {
-                PlayerMediaDetails(url: request.url)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
-                    .padding(.top, AppTheme.Layout.playerDetailsTopInset)
-                    .padding(.bottom, AppTheme.Layout.playerDetailsBottomInset)
-            }
-            if let failure = player.state.commandFailure {
-                PlaybackCommandFailureNotice(failure: failure) {
-                    player.dismissCommandFailure()
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, AppTheme.Layout.playerDetailsHorizontalInset)
-            }
-        }
-    }
-
     private func videoFrame<Overlay: View>(@ViewBuilder overlay: () -> Overlay) -> some View {
         ZStack {
             AppTheme.playerFallback
             VideoHostView(surface: videoView)
             overlay()
+            if let failure = player.state.commandFailure {
+                VStack {
+                    Spacer(minLength: 0)
+                    PlaybackCommandFailureNotice(failure: failure) {
+                        player.dismissCommandFailure()
+                    }
+                    .padding(16)
+                }
+            }
+            if let url = player.state.request?.url, player.state.phase != .ready {
+                PlayerMediaInfoButton(url: url)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(16)
+            }
         }
         .aspectRatio(16 / 9, contentMode: .fit)
         .frame(maxWidth: .infinity)
@@ -163,6 +157,12 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, minHeight: 420, maxHeight: .infinity)
         .foregroundStyle(.white)
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
+        .overlay(alignment: .topTrailing) {
+            if let url = player.state.request?.url {
+                PlayerMediaInfoButton(url: url)
+                    .padding(16)
+            }
+        }
     }
 }
 
@@ -172,19 +172,15 @@ private struct PlayerPageLayout: Layout {
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = proposal.width ?? 0
-        let footerHeight = measuredFooterHeight(in: width, subviews: subviews)
-        let stageWidth = stageWidth(for: width, footerHeight: footerHeight)
-        let contentHeight = stageWidth * 9 / 16 + footerHeight + 2 * stageInset
-        return CGSize(width: width, height: min(availableHeight, max(0, contentHeight)))
+        return CGSize(width: width, height: availableHeight)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let footerHeight = measuredFooterHeight(in: bounds.width, subviews: subviews)
-        let stageWidth = stageWidth(for: bounds.width, footerHeight: footerHeight)
+        let stageWidth = stageWidth(for: bounds.width)
         let stageHeight = stageWidth * 9 / 16
         let stageFrame = CGRect(
             x: bounds.minX + (bounds.width - stageWidth) / 2,
-            y: bounds.minY + stageInset,
+            y: bounds.minY + max(stageInset, (bounds.height - stageHeight) / 2),
             width: stageWidth,
             height: stageHeight
         )
@@ -193,20 +189,11 @@ private struct PlayerPageLayout: Layout {
             stage.place(at: stageFrame.origin, anchor: .topLeading,
                         proposal: ProposedViewSize(stageFrame.size))
         }
-        if subviews.count > 1 {
-            subviews[1].place(at: CGPoint(x: bounds.minX, y: stageFrame.maxY + stageInset), anchor: .topLeading,
-                              proposal: ProposedViewSize(width: bounds.width, height: footerHeight))
-        }
     }
 
-    private func measuredFooterHeight(in width: CGFloat, subviews: Subviews) -> CGFloat {
-        guard subviews.count > 1 else { return 0 }
-        return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
-    }
-
-    private func stageWidth(for width: CGFloat, footerHeight: CGFloat) -> CGFloat {
+    private func stageWidth(for width: CGFloat) -> CGFloat {
         let widthLimit = max(0, width - 2 * stageInset)
-        let heightLimit = max(0, availableHeight - footerHeight - 2 * stageInset) * 16 / 9
+        let heightLimit = max(0, availableHeight - 2 * stageInset) * 16 / 9
         return min(widthLimit, heightLimit)
     }
 }
@@ -253,7 +240,7 @@ private struct PlaybackCommandFailureNotice: View {
     }
 }
 
-private struct PlayerMediaDetails: View {
+struct PlayerMediaDetails: View {
     let url: URL
 
     private var fileSize: String? {
@@ -296,6 +283,39 @@ private struct PlayerMediaDetails: View {
                     .stroke(AppTheme.separator, lineWidth: 1)
             }
     }
+}
+
+struct PlayerMediaInfoButton: View {
+    let url: URL
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        Button { isPresented.toggle() } label: {
+            Image(systemName: "info.circle")
+                .font(AppTheme.Typography.Symbol.playerMediaInfo)
+                .foregroundStyle(.white)
+                .frame(width: AppTheme.Layout.toolbarControlSize,
+                       height: AppTheme.Layout.toolbarControlSize)
+                .background(AppTheme.playerToolbarBackground(reduceTransparency: reduceTransparency),
+                            in: RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+                .overlay {
+                    RoundedRectangle(cornerRadius: AppTheme.Corners.control)
+                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: AppTheme.Corners.control))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("player.mediaInfo"))
+        .help(Text("player.mediaInfo"))
+        .popover(isPresented: $isPresented, arrowEdge: .top) {
+            PlayerMediaDetails(url: url)
+                .padding(16)
+                .frame(minWidth: 320, maxWidth: 440)
+                .background(.regularMaterial)
+        }
+    }
+
+    @State private var isPresented = false
 }
 
 private struct PlayerCompletionButtonStyle: ButtonStyle {
