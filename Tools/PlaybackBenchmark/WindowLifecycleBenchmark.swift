@@ -76,6 +76,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
         window.delegate = self
         window.contentView = NSHostingView(rootView: PlayerScreen(player: player,
             videoView: engine.videoView, nowPlaying: NowPlayingController(player: player),
+            isFavorite: false, canToggleFavorite: false, onToggleFavorite: {},
             onReturnToLibrary: { player.stop() }))
         recordWindowLocation(window, event: "created")
         defer {
