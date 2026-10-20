@@ -19,6 +19,7 @@ struct PlaybackControls: View {
     @State private var hoveredRegions: Set<Region> = []
     @State private var interaction = 0
     @State private var idleExpired = false
+    @State private var isMediaInfoPresented = false
 
     private enum Region { case header, transport, timeline }
     private enum Control: Hashable { case back, speed, tracks, queue, favorite, info, backSeek, pause, forward, seek, volume, fullscreen }
@@ -30,7 +31,8 @@ struct PlaybackControls: View {
 
     private var isPinned: Bool {
         player.isPaused || isVoiceOverEnabled || isScrubbing || isAdjustingVolume
-            || player.state.activity != nil || focusedControl != nil || !hoveredRegions.isEmpty
+            || player.state.activity != nil || focusedControl != nil || isMediaInfoPresented
+            || !hoveredRegions.isEmpty
     }
 
     private var isVisible: Bool { !idleExpired || isPinned }
@@ -155,7 +157,7 @@ struct PlaybackControls: View {
             queueMenu.focused($focusedControl, equals: .queue)
             favoriteButton
             if let url = player.state.request?.url {
-                PlayerMediaInfoButton(url: url)
+                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
                     .focused($focusedControl, equals: .info)
             }
         }

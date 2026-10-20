@@ -122,6 +122,7 @@ enum AppTheme {
     static let thumbnailPlaceholder = Color(red: 218 / 255, green: 229 / 255, blue: 231 / 255)
     static let selectionAccent = Color(red: 239 / 255, green: 185 / 255, blue: 143 / 255)
     static let playerFallback = Color(red: 17 / 255, green: 23 / 255, blue: 34 / 255)
+    static let playerInfoSurface = Color(red: 34 / 255, green: 43 / 255, blue: 56 / 255)
     static func playerToolbarBackground(reduceTransparency: Bool) -> Color {
         reduceTransparency
             ? playerFallback

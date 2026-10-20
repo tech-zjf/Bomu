@@ -11,6 +11,7 @@ struct PlayerScreen: View {
     let onReturnToLibrary: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var isMediaInfoPresented = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -111,7 +112,7 @@ struct PlayerScreen: View {
                 }
             }
             if let url = player.state.request?.url, player.state.phase != .ready {
-                PlayerMediaInfoButton(url: url)
+                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
             }
@@ -159,7 +160,7 @@ struct PlayerScreen: View {
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
         .overlay(alignment: .topTrailing) {
             if let url = player.state.request?.url {
-                PlayerMediaInfoButton(url: url)
+                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
                     .padding(16)
             }
         }
@@ -253,11 +254,11 @@ struct PlayerMediaDetails: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(url.deletingPathExtension().lastPathComponent)
                     .font(AppTheme.Typography.playerMediaTitle)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(.white)
                     .lineLimit(1)
                 Text(url.deletingLastPathComponent().path)
                     .font(AppTheme.Typography.mediaPath)
-                    .foregroundStyle(AppTheme.textSecondary)
+                    .foregroundStyle(.white.opacity(0.72))
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
@@ -275,18 +276,19 @@ struct PlayerMediaDetails: View {
     private func metadataBadge(_ value: String) -> some View {
         Text(value)
             .font(AppTheme.Typography.compactBadge)
-            .foregroundStyle(AppTheme.textSecondary)
+            .foregroundStyle(.white.opacity(0.72))
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .overlay {
                 RoundedRectangle(cornerRadius: AppTheme.Corners.badge)
-                    .stroke(AppTheme.separator, lineWidth: 1)
+                    .stroke(.white.opacity(0.2), lineWidth: 1)
             }
     }
 }
 
 struct PlayerMediaInfoButton: View {
     let url: URL
+    @Binding var isPresented: Bool
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
@@ -307,15 +309,22 @@ struct PlayerMediaInfoButton: View {
         .buttonStyle(.plain)
         .accessibilityLabel(Text("player.mediaInfo"))
         .help(Text("player.mediaInfo"))
-        .popover(isPresented: $isPresented, arrowEdge: .top) {
-            PlayerMediaDetails(url: url)
-                .padding(16)
-                .frame(minWidth: 320, maxWidth: 440)
-                .background(.regularMaterial)
+        .overlay(alignment: .topTrailing) {
+            if isPresented {
+                PlayerMediaDetails(url: url)
+                    .padding(16)
+                    .frame(width: 320)
+                    .background(AppTheme.playerInfoSurface,
+                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: AppTheme.Corners.surface)
+                            .stroke(.white.opacity(0.12), lineWidth: 1)
+                    }
+                    .offset(x: -8, y: AppTheme.Layout.toolbarControlSize + 12)
+                    .zIndex(1)
+            }
         }
     }
-
-    @State private var isPresented = false
 }
 
 private struct PlayerCompletionButtonStyle: ButtonStyle {

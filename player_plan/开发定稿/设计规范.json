@@ -14,7 +14,8 @@
     "contentCanvas": "#FFFFFF",
     "separator": "#E5EAF0",
     "warmAccent": "#EFB98F",
-    "playerFallback": "#111722"
+    "playerFallback": "#111722",
+    "playerInfoSurface": "#222B38"
   },
   "typography": {
     "interfaceFamily": "System sans (SF / localized platform fallback)",
@@ -84,7 +85,8 @@
     "原生应用使用 macOS 系统标题栏与交通灯，不复刻 HTML 原型的自绘标题栏。",
     "原生界面沿用灰色侧栏与白色内容区的连续分栏结构；媒体项没有独立外框，圆角仅用于封面、选中项和控件。",
     "菜单、文件面板和系统提示沿用 macOS 原生外观，不强制套用原型中的菜单与对话框圆角。",
-    "设计原型包含示例媒体画面和中文文案；原生应用只展示真实媒体信息，默认界面为英文。"
+    "设计原型包含示例媒体画面和中文文案；原生应用只展示真实媒体信息，默认界面为英文。",
+    "按用户后续要求，播放时不在舞台下方保留文件详情行；通过 16:9 舞台内的信息按钮显示详情。"
   ],
   "player": {
     "centralButton": 88,
