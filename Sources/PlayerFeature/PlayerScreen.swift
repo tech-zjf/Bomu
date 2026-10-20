@@ -260,8 +260,8 @@ struct PlayerMediaDetails: View {
                 Text(url.deletingLastPathComponent().path)
                     .font(AppTheme.Typography.mediaPath)
                     .foregroundStyle(.white.opacity(0.72))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             HStack(spacing: 8) {
