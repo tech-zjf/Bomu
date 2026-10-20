@@ -250,24 +250,28 @@ struct PlayerMediaDetails: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(url.deletingPathExtension().lastPathComponent)
                     .font(AppTheme.Typography.playerMediaTitle)
                     .foregroundStyle(.white)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(url.deletingLastPathComponent().path)
                     .font(AppTheme.Typography.mediaPath)
                     .foregroundStyle(.white.opacity(0.72))
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Spacer(minLength: 8)
-            if let fileSize {
-                metadataBadge(fileSize)
-            }
-            if !url.pathExtension.isEmpty {
-                metadataBadge(url.pathExtension.uppercased())
+
+            HStack(spacing: 8) {
+                Spacer(minLength: 0)
+                if let fileSize {
+                    metadataBadge(fileSize)
+                }
+                if !url.pathExtension.isEmpty {
+                    metadataBadge(url.pathExtension.uppercased())
+                }
             }
         }
         .accessibilityElement(children: .combine)
