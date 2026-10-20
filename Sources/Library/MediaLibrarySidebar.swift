@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MediaLibrarySidebar: View {
-    let selection: LibraryDestination
+    let selection: LibraryDestination?
     let onlineRoots: [MediaSourceRoot]
     let offlineRoots: [MediaSourceRoot]
     let isStorageAvailable: Bool
@@ -54,6 +54,7 @@ struct MediaLibrarySidebar: View {
                     Label("library.nav.settings", systemImage: "gearshape")
                 }
                 .buttonStyle(SidebarRowButtonStyle(isSelected: isSettingsSelected))
+                .accessibilityAddTraits(isSettingsSelected ? .isSelected : [])
             }
             .font(AppTheme.Typography.sidebarLabel)
             .padding(.horizontal, AppTheme.Layout.sidebarHorizontalInset)

@@ -35,11 +35,11 @@ private enum LibraryPage: Equatable {
     case continueWatching
     case settings
 
-    var sidebarSelection: LibraryDestination {
+    var sidebarSelection: LibraryDestination? {
         switch self {
         case .destination(let destination): destination
         case .continueWatching: .home
-        case .settings: .home
+        case .settings: nil
         }
     }
 }
