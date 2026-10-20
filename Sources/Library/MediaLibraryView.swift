@@ -247,19 +247,25 @@ struct MediaLibraryView: View {
             }
         case .search:
             ScrollView {
-                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
+                VStack(alignment: .leading, spacing: 0) {
                     pageHeader(title: "library.nav.search", subtitle: "library.searchSubtitle")
                     searchField
-                    if !model.hasSearchQuery {
-                        emptyState(title: "library.searchEmptyTitle", message: "library.searchEmptyMessage",
-                                   systemImage: "magnifyingglass")
-                    } else if model.searchResults.isEmpty {
-                        emptyState(title: "library.noSearchResultsTitle", message: "library.noSearchResultsMessage",
-                                   systemImage: "magnifyingglass")
-                    } else {
-                        filterControls
-                        filteredMediaGrid(model.searchResults)
+                        .padding(.top, AppTheme.Layout.searchFieldTopGap)
+                    Group {
+                        if !model.hasSearchQuery {
+                            emptyState(title: "library.searchEmptyTitle", message: "library.searchEmptyMessage",
+                                       systemImage: "magnifyingglass")
+                        } else if model.searchResults.isEmpty {
+                            emptyState(title: "library.noSearchResultsTitle", message: "library.noSearchResultsMessage",
+                                       systemImage: "magnifyingglass")
+                        } else {
+                            VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
+                                filterControls
+                                filteredMediaGrid(model.searchResults)
+                            }
+                        }
                     }
+                    .padding(.top, AppTheme.Layout.sectionGap)
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
@@ -280,12 +286,12 @@ struct MediaLibraryView: View {
             .accessibilityLabel(Text("library.searchPrompt"))
         }
         .font(AppTheme.Typography.body)
-        .padding(.horizontal, 13)
-        .padding(.vertical, 10)
-        .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.field))
+        .padding(.horizontal, AppTheme.Layout.searchFieldHorizontalInset)
+        .padding(.vertical, AppTheme.Layout.searchFieldVerticalInset)
+        .background(AppTheme.searchFieldSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.field))
         .overlay {
             RoundedRectangle(cornerRadius: AppTheme.Corners.field)
-                .stroke(AppTheme.separator.opacity(0.8), lineWidth: 1)
+                .stroke(AppTheme.separator, lineWidth: 1)
         }
         .frame(maxWidth: .infinity)
     }

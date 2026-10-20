@@ -10,6 +10,7 @@
     "surface": "#FFFFFF",
     "sidebar": "#F0F4F8",
     "mutedSurface": "#F0F4F8",
+    "searchFieldSurface": "#F4F7FA",
     "contentCanvas": "#FFFFFF",
     "separator": "#E5EAF0",
     "warmAccent": "#EFB98F",
@@ -60,6 +61,8 @@
     "mediaGridColumnGap": 17,
     "mediaGridRowGap": 23,
     "sectionGap": 28,
+    "searchFieldTopGap": 22,
+    "searchFieldInsets": [9, 12],
     "playerHorizontalInset": 22
   },
   "radius": {

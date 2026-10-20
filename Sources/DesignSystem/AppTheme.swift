@@ -117,6 +117,7 @@ enum AppTheme {
     static let textSecondary = Color(red: 100 / 255, green: 112 / 255, blue: 132 / 255)
     static let surface = Color.white
     static let mutedSurface = Color(red: 240 / 255, green: 244 / 255, blue: 248 / 255)
+    static let searchFieldSurface = Color(red: 244 / 255, green: 247 / 255, blue: 250 / 255)
     static let separator = Color(red: 229 / 255, green: 234 / 255, blue: 240 / 255)
     static let thumbnailPlaceholder = Color(red: 218 / 255, green: 229 / 255, blue: 231 / 255)
     static let selectionAccent = Color(red: 239 / 255, green: 185 / 255, blue: 143 / 255)
@@ -215,6 +216,9 @@ enum AppTheme {
         static let mediaGridRowGap: CGFloat = 23
         static let mediaSummaryHeight: CGFloat = 28
         static let sectionGap: CGFloat = 28
+        static let searchFieldTopGap: CGFloat = 22
+        static let searchFieldHorizontalInset: CGFloat = 12
+        static let searchFieldVerticalInset: CGFloat = 9
         static let playerStageInset: CGFloat = 12
         static let playerHorizontalInset: CGFloat = 22
         static let minimumWindowWidth: CGFloat = 900
