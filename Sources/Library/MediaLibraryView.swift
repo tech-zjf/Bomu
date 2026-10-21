@@ -255,14 +255,8 @@ struct MediaLibraryView: View {
                         if !model.hasSearchQuery {
                             emptyState(title: "library.searchEmptyTitle", message: "library.searchEmptyMessage",
                                        systemImage: "magnifyingglass")
-                        } else if model.searchResults.isEmpty {
-                            emptyState(title: "library.noSearchResultsTitle", message: "library.noSearchResultsMessage",
-                                       systemImage: "magnifyingglass")
                         } else {
-                            VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
-                                filterControls
-                                filteredMediaGrid(model.searchResults)
-                            }
+                            searchResultsContent
                         }
                     }
                     .padding(.top, AppTheme.Layout.sectionGap)
@@ -284,6 +278,18 @@ struct MediaLibraryView: View {
             ))
             .textFieldStyle(.plain)
             .accessibilityLabel(Text("library.searchPrompt"))
+            if !model.searchText.isEmpty {
+                Button {
+                    model.searchText = ""
+                } label: {
+                    Image(systemName: "xmark")
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(AppTheme.textSecondary)
+                .accessibilityLabel(Text("library.clearSearch"))
+            }
         }
         .font(AppTheme.Typography.body)
         .padding(.horizontal, AppTheme.Layout.searchFieldHorizontalInset)
@@ -294,6 +300,40 @@ struct MediaLibraryView: View {
                 .stroke(AppTheme.separator, lineWidth: 1)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var searchResultsContent: some View {
+        let results = model.searchResults
+        return VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("library.searchResults")
+                    .font(AppTheme.Typography.sectionTitle)
+                Spacer()
+                Text(verbatim: searchResultCountText(results.count))
+                    .font(AppTheme.Typography.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+
+            if results.isEmpty {
+                emptyState(title: "library.noSearchResultsTitle", message: "library.noSearchResultsMessage",
+                           systemImage: "magnifyingglass")
+            } else {
+                mediaGrid(results)
+            }
+        }
+    }
+
+    private func searchResultCountText(_ count: Int) -> String {
+        let key: String
+        if count == 1 {
+            key = "library.searchResultCount.one"
+        } else {
+            key = "library.searchResultCount.other"
+        }
+        return String.localizedStringWithFormat(
+            NSLocalizedString(key, comment: "Search result count"),
+            count
+        )
     }
 
     private func undoNoticeBanner(_ notice: MediaLibraryUndoNotice) -> some View {

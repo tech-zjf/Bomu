@@ -21,6 +21,10 @@
 "library.favoritesSubtitle" = "Your favorite local media.";
 "library.searchSubtitle" = "Find local media by file or folder name.";
 "library.searchPrompt" = "Search files and folders";
+"library.clearSearch" = "Clear search";
+"library.searchResultCount.one" = "%ld video";
+"library.searchResultCount.other" = "%ld videos";
+"library.searchResults" = "Search results";
 "library.searchEmptyTitle" = "Search your local media";
 "library.searchEmptyMessage" = "Enter a file or folder name.";
 "library.continueWatching" = "Continue Watching";
@@ -144,6 +148,7 @@
 "failure.engine.title" = "The player encountered a problem";
 "failure.engine.message" = "The playback operation could not be completed. Reopen the file; if the problem continues, stop playback and try again.";
 "failure.technicalDetails" = "Technical details";
+"failure.hideDetails" = "Hide details";
 "player.retry" = "Retry";
 "settings.playback.navigation" = "Playback";
 "settings.playback.section" = "Playback defaults";

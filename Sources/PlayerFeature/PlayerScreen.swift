@@ -12,6 +12,7 @@ struct PlayerScreen: View {
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var isMediaInfoPresented = false
+    @State private var isFailureDetailPresented = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -142,14 +143,6 @@ struct PlayerScreen: View {
                 .multilineTextAlignment(.center)
                 .textSelection(.enabled)
                 .foregroundStyle(.white.opacity(0.75))
-            if let detail = failure.detail {
-                Text(detail)
-                    .font(AppTheme.Typography.diagnostic)
-                    .textSelection(.enabled)
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
-            }
             HStack(spacing: 10) {
                 if failure.kind != .engine {
                     Button("player.retry") { player.retryCurrentMedia() }
@@ -159,15 +152,38 @@ struct PlayerScreen: View {
             }
             .buttonStyle(.bordered)
             .tint(.white)
+            if let detail = failure.detail {
+                Button {
+                    isFailureDetailPresented.toggle()
+                } label: {
+                    Label(isFailureDetailPresented ? "failure.hideDetails" : "failure.technicalDetails",
+                          systemImage: isFailureDetailPresented ? "chevron.up" : "chevron.down")
+                }
+                .buttonStyle(.plain)
+                .font(AppTheme.Typography.controlBody)
+                .foregroundStyle(.white.opacity(0.75))
+                .padding(.top, 8)
+                if isFailureDetailPresented {
+                    Text(detail)
+                        .font(AppTheme.Typography.diagnostic)
+                        .textSelection(.enabled)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 560)
+                        .padding(12)
+                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+                }
+            }
             if player.queue.items.count > 1 {
                 PlaybackQueueMenu(player: player)
             }
         }
         .font(AppTheme.Typography.controlBody)
         .padding(30)
-        .frame(maxWidth: .infinity, minHeight: 420, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .foregroundStyle(.white)
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
+        .aspectRatio(16 / 9, contentMode: .fit)
+        .frame(maxWidth: .infinity)
         .overlay(alignment: .topTrailing) {
             if let url = player.state.request?.url {
                 VStack(alignment: .trailing, spacing: 12) {
