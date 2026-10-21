@@ -8,6 +8,7 @@ struct PlaybackControls: View {
     let onToggleFavorite: () -> Void
     let onReturnToLibrary: () -> Void
     let toggleFullScreen: () -> Void
+    @Binding var isMediaInfoPresented: Bool
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -19,8 +20,6 @@ struct PlaybackControls: View {
     @State private var hoveredRegions: Set<Region> = []
     @State private var interaction = 0
     @State private var idleExpired = false
-    @State private var isMediaInfoPresented = false
-
     private enum Region { case header, transport, timeline }
     private enum Control: Hashable { case back, speed, tracks, queue, favorite, info, backSeek, pause, forward, seek, volume, fullscreen }
 
@@ -156,8 +155,8 @@ struct PlaybackControls: View {
             tracksMenu.focused($focusedControl, equals: .tracks)
             queueMenu.focused($focusedControl, equals: .queue)
             favoriteButton
-            if let url = player.state.request?.url {
-                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
+            if player.state.request?.url != nil {
+                PlayerMediaInfoButton(isPresented: $isMediaInfoPresented)
                     .focused($focusedControl, equals: .info)
             }
         }

@@ -59,10 +59,10 @@ struct PlayerScreen: View {
                     isFavorite: isFavorite,
                     canToggleFavorite: canToggleFavorite,
                     onToggleFavorite: onToggleFavorite,
-                    onReturnToLibrary: onReturnToLibrary
-                ) {
-                    videoView.window?.toggleFullScreen(nil)
-                }
+                    onReturnToLibrary: onReturnToLibrary,
+                    toggleFullScreen: { videoView.window?.toggleFullScreen(nil) },
+                    isMediaInfoPresented: $isMediaInfoPresented
+                )
                 // A file owns its scrub/focus/idle state; the video host keeps its identity.
                 .id(player.state.request?.id)
             }
@@ -111,10 +111,18 @@ struct PlayerScreen: View {
                     .padding(16)
                 }
             }
-            if let url = player.state.request?.url, player.state.phase != .ready {
-                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
+            if player.state.request?.url != nil, player.state.phase != .ready {
+                PlayerMediaInfoButton(isPresented: $isMediaInfoPresented)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
+            }
+            if isMediaInfoPresented, let url = player.state.request?.url {
+                PlayerMediaInfoPanel(url: url)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(.top, AppTheme.Layout.toolbarControlSize + 28)
+                    .padding(.trailing, 16)
+                    .allowsHitTesting(true)
+                    .zIndex(2)
             }
         }
         .aspectRatio(16 / 9, contentMode: .fit)
@@ -160,8 +168,13 @@ struct PlayerScreen: View {
         .background(AppTheme.playerFallback, in: RoundedRectangle(cornerRadius: AppTheme.Corners.player))
         .overlay(alignment: .topTrailing) {
             if let url = player.state.request?.url {
-                PlayerMediaInfoButton(url: url, isPresented: $isMediaInfoPresented)
-                    .padding(16)
+                VStack(alignment: .trailing, spacing: 12) {
+                    PlayerMediaInfoButton(isPresented: $isMediaInfoPresented)
+                    if isMediaInfoPresented {
+                        PlayerMediaInfoPanel(url: url)
+                    }
+                }
+                .padding(16)
             }
         }
     }
@@ -291,7 +304,6 @@ struct PlayerMediaDetails: View {
 }
 
 struct PlayerMediaInfoButton: View {
-    let url: URL
     @Binding var isPresented: Bool
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
@@ -313,21 +325,22 @@ struct PlayerMediaInfoButton: View {
         .buttonStyle(.plain)
         .accessibilityLabel(Text("player.mediaInfo"))
         .help(Text("player.mediaInfo"))
-        .overlay(alignment: .topTrailing) {
-            if isPresented {
-                PlayerMediaDetails(url: url)
-                    .padding(16)
-                    .frame(width: 320)
-                    .background(AppTheme.playerInfoSurface,
-                                in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: AppTheme.Corners.surface)
-                            .stroke(.white.opacity(0.12), lineWidth: 1)
-                    }
-                    .offset(x: -8, y: AppTheme.Layout.toolbarControlSize + 12)
-                    .zIndex(1)
+    }
+}
+
+private struct PlayerMediaInfoPanel: View {
+    let url: URL
+
+    var body: some View {
+        PlayerMediaDetails(url: url)
+            .padding(16)
+            .frame(width: 320)
+            .background(AppTheme.playerInfoSurface,
+                        in: RoundedRectangle(cornerRadius: AppTheme.Corners.surface))
+            .overlay {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.surface)
+                    .stroke(.white.opacity(0.12), lineWidth: 1)
             }
-        }
     }
 }
 
