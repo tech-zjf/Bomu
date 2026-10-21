@@ -100,22 +100,28 @@ struct MainWindowView: View {
             dropResolutionTask = nil
         }
         .onOpenURL { url in open(url) }
-        .alert(player.inputError == nil ? "persistence.errorTitle" : "media.importFailedTitle",
-               isPresented: Binding(
-                get: { player.persistenceError != nil || player.inputError != nil },
-                set: {
-                    if !$0 {
-                        player.dismissPersistenceError()
-                        player.dismissInputError()
-                    }
-                }
-               )) {
+        .alert(
+            errorAlertPresentation.map { LocalizedStringKey($0.titleKey) } ?? "",
+            isPresented: errorAlertIsPresented
+        ) {
             Button("common.ok") {
                 player.dismissPersistenceError()
                 player.dismissInputError()
             }
         } message: {
-            Text(player.inputError ?? player.persistenceError ?? "")
+            if let errorAlertPresentation {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(errorAlertPresentation.details.enumerated()), id: \.offset) { _, detail in
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let titleKey = detail.titleKey {
+                                Text(LocalizedStringKey(titleKey))
+                                    .fontWeight(.semibold)
+                            }
+                            Text(detail.message)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -167,6 +173,24 @@ struct MainWindowView: View {
     private var dropPromptBackground: Color {
         if reduceTransparency { return navigation.isPlayerVisible ? .black : .white }
         return navigation.isPlayerVisible ? Color.black.opacity(0.72) : Color.white.opacity(0.94)
+    }
+
+    private var errorAlertPresentation: MainWindowErrorPresentation? {
+        MainWindowErrorPresentation(
+            inputError: player.inputError,
+            persistenceError: player.persistenceError
+        )
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { errorAlertPresentation != nil },
+            set: { isPresented in
+                guard !isPresented else { return }
+                player.dismissPersistenceError()
+                player.dismissInputError()
+            }
+        )
     }
 
     private func open(_ url: URL) {
