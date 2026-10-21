@@ -21,6 +21,8 @@ struct PlayerScreen: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+        .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
+        .padding(.vertical, AppTheme.Layout.contentVerticalInset)
         .background(AppTheme.surface)
         .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
                minHeight: AppTheme.Layout.minimumWindowHeight)
