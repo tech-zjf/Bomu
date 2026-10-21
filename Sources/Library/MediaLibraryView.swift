@@ -287,6 +287,7 @@ struct MediaLibraryView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .focusable(true)
                 .foregroundStyle(AppTheme.textSecondary)
                 .accessibilityLabel(Text("library.clearSearch"))
             }
