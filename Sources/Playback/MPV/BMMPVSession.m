@@ -466,6 +466,9 @@ static const uint64_t BMVideoOutputObservation = 1;
         {"osc", "no"}, {"ytdl", "no"}, {"osd-level", "0"},
         {"vo", "libmpv"}, {"hwdec", "auto-safe"}, {"idle", "yes"},
         {"keep-open", "no"}, {"audio-display", "no"},
+        // External subtitles are chosen explicitly in Bomu. Avoid mpv's implicit
+        // sidecar search while opening media.
+        {"sub-auto", "no"},
         // BMVideoLayer must not wait inside an AppKit draw. Let mpv issue audio-timed
         // frames when due, with no advance-render headroom that would require that wait.
         {"video-sync", "audio"}, {"video-timing-offset", "0"},
