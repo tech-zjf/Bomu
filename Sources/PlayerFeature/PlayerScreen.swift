@@ -194,7 +194,7 @@ private struct PlayerPageLayout: Layout {
         let stageHeight = stageWidth * 9 / 16
         let stageFrame = CGRect(
             x: bounds.minX + (bounds.width - stageWidth) / 2,
-            y: bounds.minY + max(stageInset, (bounds.height - stageHeight) / 2),
+            y: bounds.minY + stageInset,
             width: stageWidth,
             height: stageHeight
         )
