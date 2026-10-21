@@ -466,6 +466,8 @@ static const uint64_t BMVideoOutputObservation = 1;
         {"osc", "no"}, {"ytdl", "no"}, {"osd-level", "0"},
         {"vo", "libmpv"}, {"hwdec", "auto-safe"}, {"idle", "yes"},
         {"keep-open", "no"}, {"audio-display", "no"},
+        // The stage owns its 16:9 geometry; fit source video inside it without crop/stretch.
+        {"keepaspect", "yes"}, {"panscan", "0"},
         // External subtitles are chosen explicitly in Bomu. Avoid mpv's implicit
         // sidecar search while opening media.
         {"sub-auto", "no"},
