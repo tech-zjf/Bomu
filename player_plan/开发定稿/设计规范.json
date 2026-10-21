@@ -65,7 +65,8 @@
     "sectionGap": 28,
     "searchFieldTopGap": 22,
     "searchFieldInsets": [9, 12],
-    "playerHorizontalInset": 22
+    "playerHorizontalInset": 22,
+    "playerStageInset": 12
   },
   "radius": {
     "windowVisual": 20,
