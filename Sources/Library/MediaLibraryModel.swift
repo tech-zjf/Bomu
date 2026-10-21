@@ -241,7 +241,20 @@ final class MediaLibraryModel {
             let uniqueItems = Self.deduplicatingItems(loadedItems)
             let uniqueItemIDs = Set(uniqueItems.map(\.id))
             mountedVolumes = mounted
-            roots = snapshot.roots
+            roots = snapshot.roots.map { root in
+                guard let volumeURL = mounted[root.volumeID] else {
+                    return root.updatingAvailability(isOnline: false)
+                }
+                let sourceURL = root.relativePath.isEmpty
+                    ? volumeURL
+                    : volumeURL.appending(path: root.relativePath, directoryHint: .isDirectory)
+                let hasScopedAccess = sourceURL.startAccessingSecurityScopedResource()
+                defer {
+                    if hasScopedAccess { sourceURL.stopAccessingSecurityScopedResource() }
+                }
+                let isDirectory = (try? sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+                return root.updatingAvailability(isOnline: isDirectory)
+            }
             itemsByRoot = snapshot.itemsByRoot
             directoriesByRoot = snapshot.directoriesByRoot
             items = uniqueItems
@@ -488,7 +501,9 @@ final class MediaLibraryModel {
     }
 
     func fileURL(for item: MediaLibraryItem) -> URL? {
-        guard item.isPresent, let volume = mountedVolumes[item.volumeID] else { return nil }
+        guard item.isPresent,
+              roots.contains(where: { $0.id == item.sourceRootID && $0.isOnline }),
+              let volume = mountedVolumes[item.volumeID] else { return nil }
         return volume.appending(path: item.relativePath)
     }
 

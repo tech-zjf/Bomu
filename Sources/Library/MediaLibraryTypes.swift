@@ -22,6 +22,12 @@ struct MediaSourceRoot: Equatable, Identifiable, Sendable {
     let includingSubfolders: Bool
     let lastSuccessfulScanAt: Date?
     let isOnline: Bool
+
+    func updatingAvailability(isOnline: Bool) -> Self {
+        Self(id: id, volumeID: volumeID, volumeName: volumeName, relativePath: relativePath,
+             displayName: displayName, includingSubfolders: includingSubfolders,
+             lastSuccessfulScanAt: lastSuccessfulScanAt, isOnline: isOnline)
+    }
 }
 
 struct MediaLibraryDirectory: Equatable, Hashable, Identifiable, Sendable {

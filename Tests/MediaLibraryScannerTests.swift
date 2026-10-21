@@ -1048,6 +1048,57 @@ final class MediaLibraryScannerTests: XCTestCase {
     }
 
     @MainActor
+    func testMountedVolumeWithMissingSourceDirectoryIsOfflineAndRecoversWithoutLosingHistory() async throws {
+        let volumeValues = try URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .resourceValues(forKeys: [.volumeUUIDStringKey, .volumeURLKey])
+        let volumeID = try XCTUnwrap(volumeValues.volumeUUIDString)
+        let mountedVolumeURL = try XCTUnwrap(volumeValues.volume)
+        let temporaryLibrary = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appending(path: "Bomu-Missing-Root-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let sourceURL = temporaryLibrary.appending(path: "Selected", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: temporaryLibrary) }
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        let mediaURL = sourceURL.appending(path: "retained.mp4")
+        try Data("retained media".utf8).write(to: mediaURL)
+
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let scanner = MediaLibraryScanner(historyStore: store)
+        for try await _ in scanner.scan(folder: sourceURL).events { }
+        try await store.save(for: mediaURL, position: 42, volume: 70)
+
+        var mounted: [String: URL] = [volumeID: mountedVolumeURL]
+        let model = MediaLibraryModel(store: store, thumbnailCache: nil, scanner: scanner,
+                                      mountedVolumeSnapshot: { mounted })
+        await model.refresh()
+        let savedRoot = try XCTUnwrap(model.roots.first)
+        let savedItem = try XCTUnwrap(model.items.first)
+        XCTAssertTrue(savedRoot.isOnline)
+        XCTAssertNotNil(model.fileURL(for: savedItem))
+
+        let temporarilyMovedSource = temporaryLibrary.appending(path: "TemporarilyMoved",
+                                                               directoryHint: .isDirectory)
+        try FileManager.default.moveItem(at: sourceURL, to: temporarilyMovedSource)
+        await model.refresh()
+
+        XCTAssertTrue(model.onlineRoots.isEmpty)
+        XCTAssertEqual(model.offlineRoots.map(\.id), [savedRoot.id])
+        XCTAssertNil(model.fileURL(for: savedItem), "A removed source folder must not yield a playable URL")
+        XCTAssertEqual(model.items.first?.playbackPosition, 42,
+                       "A missing source directory must not erase saved playback history")
+
+        try FileManager.default.moveItem(at: temporarilyMovedSource, to: sourceURL)
+        mounted[volumeID] = mountedVolumeURL
+        await model.refresh()
+
+        XCTAssertEqual(model.onlineRoots.map(\.id), [savedRoot.id])
+        let restoredItem = try XCTUnwrap(model.items.first)
+        XCTAssertEqual(model.fileURL(for: restoredItem)?.standardizedFileURL, mediaURL.standardizedFileURL)
+        let restoredHistory = try await store.history(for: mediaURL)
+        XCTAssertEqual(restoredHistory?.position, 42)
+        await model.shutdown()
+    }
+
+    @MainActor
     func testLaunchReconciliationRecoversChangesWithoutAFileEvent() async throws {
         let root = FileManager.default.temporaryDirectory.appending(
             path: UUID().uuidString,

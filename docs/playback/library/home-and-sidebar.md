@@ -4,7 +4,7 @@
 
 `MainWindowView` 持有 `MainWindowNavigation`，由它拥有主窗口页面路由及异步返回任务。`MediaLibraryView` 展示媒体库；`PlayerScreen` 持续挂载在同一窗口中，保留现有 `PlayerModel`、AppKit 视频宿主和原生播放会话。选择已索引媒体后切到播放页；返回媒体库时继续播放，并显示当前播放栏。停止播放后回到媒体库。
 
-侧栏提供首页、视频库、文件夹、收藏和搜索入口；设置仍使用系统设置场景。选择文件夹后启动 `MediaLibraryScanner`，进度栏展示发现数、索引数和最多五个最近发现的文件名，也可取消扫描；文件名预览在扫描结束后清除，索引完成的项目由数据库快照发布。来源在线状态根据已挂载卷 UUID 推导，媒体文件使用身份层保存的卷相对路径定位。主导航留在 `MediaLibraryView.swift`；卡片和列表行分别由 `MediaLibraryCard.swift` 与 `MediaLibraryListRow.swift` 呈现，共用的缩略图视图位于 `MediaLibraryPresentation.swift`，技术属性格式化与辅助功能摘要分别位于 `MediaTechnicalMetadataText.swift` 和 `MediaLibraryAccessibilitySummary.swift`。卡片和列表行单击只更新媒体库模型中的选中媒体；独立播放按钮才创建播放请求，选中项在库刷新和播放器/浏览切换时保留。
+侧栏提供首页、视频库、文件夹、收藏和搜索入口；设置仍使用系统设置场景。选择文件夹后启动 `MediaLibraryScanner`，进度栏展示发现数、索引数和最多五个最近发现的文件名，也可取消扫描；文件名预览在扫描结束后清除，索引完成的项目由数据库快照发布。刷新时来源状态同时检查卷 UUID 是否挂载，以及卷相对路径指向的来源目录是否仍为目录；文件路径只对在线来源解析。临时离线不会删除来源、媒体条目或播放历史，目录恢复后模型刷新即可重新联机。媒体文件使用身份层保存的卷相对路径定位。主导航留在 `MediaLibraryView.swift`；卡片和列表行分别由 `MediaLibraryCard.swift` 与 `MediaLibraryListRow.swift` 呈现，共用的缩略图视图位于 `MediaLibraryPresentation.swift`，技术属性格式化与辅助功能摘要分别位于 `MediaTechnicalMetadataText.swift` 和 `MediaLibraryAccessibilitySummary.swift`。卡片和列表行单击只更新媒体库模型中的选中媒体；独立播放按钮才创建播放请求，选中项在库刷新和播放器/浏览切换时保留。
 
 ## 继续观看完整列表
 
