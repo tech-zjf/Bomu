@@ -288,6 +288,14 @@ struct MediaLibraryView: View {
                 }
                 .buttonStyle(.plain)
                 .focusable(true)
+                .onKeyPress(.space) {
+                    model.searchText = ""
+                    return .handled
+                }
+                .onKeyPress(.return) {
+                    model.searchText = ""
+                    return .handled
+                }
                 .foregroundStyle(AppTheme.textSecondary)
                 .accessibilityLabel(Text("library.clearSearch"))
             }
