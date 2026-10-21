@@ -1,22 +1,26 @@
 # First-version settings
 
-`PlaybackPreferences` owns installation-wide player defaults in `UserDefaults`; it does not mix preferences with per-file history in SQLite. Values are read when a file reaches the ready state or when the queue reaches its natural end:
+`PlaybackPreferences` owns installation-wide playback defaults in `UserDefaults`. Per-file playback history stays in the media-library persistence layer; settings views do not access database types. The settings page lives in the main application window and opens on Appearance. Its five in-page vertical sections are Appearance, Playback, Subtitles, Storage, and About. Section selection is view state; preference values are persisted separately.
 
-- Default speed is constrained to the speeds supported by the playback controls.
-- Default subtitle offset is constrained to ±30 seconds and is applied to each newly loaded file.
-- Resume position and automatic queue advance can each be turned off independently.
-- Appearance stays light in this release, matching the agreed baseline.
+## Sections
 
-After explicit confirmation, the Data tab clears both current and deferred legacy playback-history tables in one transaction, then refreshes Continue Watching through the application-owned record-operation coordinator. Favorites, categories, source indexes, and privacy rules are preserved; a failed delete rolls back both history tables and remains retryable. The active file is marked as excluded from subsequent periodic saves so its row does not reappear immediately after clearing. Original media is never touched.
+- **Appearance** explains that this release uses a light interface and does not follow system Dark Mode.
+- **Playback** controls resume from the last position, automatic queue advance, and default playback speed. Supported speeds are constrained to the values exposed by the player controls.
+- **Subtitles** controls the default subtitle delay from −30 to +30 seconds in 0.5-second steps. The delay and speed are applied when a file reaches the ready state. Non-finite delay values are normalized to zero.
+- **Storage** identifies local-only data, clears viewing history after confirmation, manages folders excluded from history, and imports, exports, or clears media-library records. Archive import is previewed before the user confirms applying it. These operations go through `MediaLibraryRecordOperations`; original media files are never moved or deleted.
+- **About** displays the installed version and explains that update service is unavailable in the development build. The update action is disabled.
 
-The Updates tab displays the installed version and states that update service is not available in this development build. Its action remains disabled until the signed update channel is implemented; no dormant preference pretends that checks are running.
+`PlaybackPreferences` applies safe bounds when values are loaded or changed. Default speed is normalized to the nearest supported speed; subtitle delay is clamped to its supported range. Resume and automatic-next preferences can be changed independently. Archive settings are applied through the same preference owner.
 
-The settings are presented through the native macOS Settings scene and standard labeled SwiftUI form controls, so they use the platform keyboard and VoiceOver navigation. Visible accessibility and localization review remains part of the unlocked-host acceptance pass.
+## Ownership and failure handling
 
-## Verification
+`SettingsView` renders state and submits user actions. `PlaybackPreferences` owns player defaults; `PlayerModel` exposes playback-history actions; `MediaLibraryRecordOperations` coordinates library record and archive operations. Storage errors remain visible in Settings and do not affect the original media files. Import preparation is cancelled when Settings disappears or another record operation starts.
 
-- App Debug build and app-host test-target compilation pass with the pinned Xcode 27.0 toolchain.
-- The hostless logic target covers preference persistence and value validation, applying defaults on media load, disabling automatic queue advance, and ensuring cleared history stays cleared for the current session.
-- Manual inspection of the Settings scene, VoiceOver, and keyboard navigation is pending Screen 1 availability.
+History clearing, data reset, and archive restore are coordinated by `MediaLibraryRecordOperations`; see [data management](../library/data-management.md) for scan/write draining, failure recovery, and exit ownership. Destructive history and library actions require an in-app confirmation.
 
-History clearing, data reset, and archive restore are coordinated by `MediaLibraryRecordOperations`; see [data management](../library/data-management.md) for scan/write draining, failure recovery, and exit ownership. Settings submits confirmed intents and shows a busy indicator while those operations run.
+## Verification and remaining acceptance
+
+- Hostless logic coverage exercises preference persistence and validation, applying defaults on media load, and playback behavior that depends on resume and automatic-next settings. The full verification record is in [`v0.0-acceptance-todo.md`](../../engineering/roadmap/v0.0-acceptance-todo.md).
+- The canonical Debug build uses the pinned Xcode 27.1 toolchain. Recent visible checks covered all five sections at 960×640, 1280×800, and 1440×900 pt and confirmed Storage content can be reached by scrolling. This establishes reachability only; exact visual comparison against the approved UI reference remains open.
+- Keyboard navigation has been spot-checked for Settings controls. Full cross-page focus order and VoiceOver browsing remain open.
+- The vertical navigation is a user-directed change from the horizontal tabs in [`UI设计稿.html`](../../../player_plan/开发定稿/UI设计稿.html); its 164 pt width is recorded in [`设计规范.json`](../../../player_plan/开发定稿/设计规范.json). The app implementation and reference are not pixel-identical for this change.
