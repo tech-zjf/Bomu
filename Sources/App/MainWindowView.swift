@@ -280,6 +280,7 @@ private struct StartupFailureView: View {
                 .accessibilityHidden(true)
             Text("app.startupFailed")
                 .font(AppTheme.Typography.sectionTitle)
+                .tracking(AppTheme.Typography.sectionTitleTracking)
             Text("app.relaunchInstruction")
                 .font(AppTheme.Typography.body)
                 .foregroundStyle(AppTheme.textSecondary)

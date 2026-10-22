@@ -22,9 +22,9 @@
     "displayFamily": "System serif design, reserved for brand moments (localized platform fallback)",
     "roles": {
       "brand": { "family": "display", "size": 32, "weight": "semibold" },
-      "pageTitle": { "family": "interface", "size": 27, "weight": "bold" },
+      "pageTitle": { "family": "interface", "size": 27, "weight": "bold", "tracking": -0.8 },
       "pageSubtitle": { "family": "interface", "size": 12, "weight": "regular" },
-      "sectionTitle": { "family": "interface", "size": 18, "weight": "semibold" },
+      "sectionTitle": { "family": "interface", "size": 18, "weight": "semibold", "tracking": -0.4 },
       "sidebarLabel": { "family": "interface", "size": 13, "weight": "regular" },
       "sidebarSelected": { "family": "interface", "size": 13, "weight": "semibold" },
       "sidebarSection": { "family": "interface", "size": 10, "weight": "semibold", "tracking": 0.7 },

@@ -152,6 +152,7 @@ struct MediaLibraryOfflineSources: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("library.offlineTitle")
                     .font(AppTheme.Typography.sectionTitle)
+                    .tracking(AppTheme.Typography.sectionTitleTracking)
                 ForEach(roots) { root in
                     HStack(spacing: 10) {
                         Label("\(root.displayName) · \(root.volumeName)", systemImage: "externaldrive.badge.xmark")

@@ -317,6 +317,7 @@ struct MediaLibraryView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("library.searchResults")
                     .font(AppTheme.Typography.sectionTitle)
+                    .tracking(AppTheme.Typography.sectionTitleTracking)
                 Spacer()
                 Text(verbatim: searchResultCountText(results.count))
                     .font(AppTheme.Typography.caption)
@@ -529,6 +530,7 @@ struct MediaLibraryView: View {
                 HStack(alignment: .center) {
                     Text(directory.displayName)
                         .font(AppTheme.Typography.pageTitle)
+                        .tracking(AppTheme.Typography.pageTitleTracking)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .help(directory.displayName)
@@ -635,7 +637,9 @@ struct MediaLibraryView: View {
     private func pageHeader(title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 7) {
-                Text(title).font(AppTheme.Typography.pageTitle)
+                Text(title)
+                    .font(AppTheme.Typography.pageTitle)
+                    .tracking(AppTheme.Typography.pageTitleTracking)
                 Text(subtitle)
                     .font(AppTheme.Typography.pageSubtitle)
                     .foregroundStyle(AppTheme.textSecondary)
@@ -661,7 +665,9 @@ struct MediaLibraryView: View {
                               presentation: MediaLibraryCard.Presentation = .standard) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
-                Text(title).font(AppTheme.Typography.sectionTitle)
+                Text(title)
+                    .font(AppTheme.Typography.sectionTitle)
+                    .tracking(AppTheme.Typography.sectionTitleTracking)
                 Spacer()
                 if let onViewAll {
                     Button(action: onViewAll) {
@@ -734,6 +740,7 @@ struct MediaLibraryView: View {
                 .accessibilityHidden(true)
             Text(title)
                 .font(AppTheme.Typography.sectionTitle)
+                .tracking(AppTheme.Typography.sectionTitleTracking)
                 .foregroundStyle(AppTheme.textPrimary)
             Text(message)
                 .font(AppTheme.Typography.subtitle)

@@ -135,7 +135,9 @@ enum AppTheme {
     enum Typography {
         // The serif face is reserved for the brand; all working interface text stays sans-serif.
         static let pageTitle = Font.system(size: 27, weight: .bold)
+        static let pageTitleTracking: CGFloat = -0.8
         static let sectionTitle = Font.system(size: 18, weight: .semibold)
+        static let sectionTitleTracking: CGFloat = -0.4
         static let brandName = Font.system(size: 32, weight: .semibold, design: .serif)
         static let mediaTitle = Font.system(size: 13, weight: .semibold)
         static let mediaMetadata = Font.system(size: 11, weight: .regular)

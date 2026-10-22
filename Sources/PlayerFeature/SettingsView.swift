@@ -49,6 +49,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text("library.nav.settings")
                     .font(AppTheme.Typography.pageTitle)
+                    .tracking(AppTheme.Typography.pageTitleTracking)
                     .foregroundStyle(AppTheme.textPrimary)
                 Text("settings.pageSubtitle")
                     .font(AppTheme.Typography.pageSubtitle)
