@@ -34,6 +34,6 @@ A04 的素材准备与播放器兼容性通过率是两件不同的事。30 个�
 
 ## 实现状态与完整链路
 
-媒体生成、真实参数校验、单窗口播放验证与结果归档已实现，调用链见 [flow.md](flow.md)。正式运行库的 TS 定位故障仍未关闭。独立解封装候选修正已通过后台内核对照、长文件定位，以及连续定位、替换/停止、加载后立即关闭的交错回归，见 [seek-investigation.md](seek-investigation.md)。
+媒体生成、真实参数校验、单窗口播放验证与结果归档已实现，[最终设计](technical-design.md)记录资源所有权和判定规则，[调用链](flow.md)记录执行顺序。2026-10-13 的初次正式运行库测试曾因 TS 定位失败而为 29/30；当时的候选排查、播放格式配置与单窗口结果分别见 [定位调查](seek-investigation.md)、[候选运行库](runtime-candidate.md) 和 [候选桌面验证](desktop-candidate-validation.md)。这些是修复前的历史证据。
 
-播放用候选进一步恢复压缩头、字符转换、TLS 和解封装依赖的解码配置；清单/导出符号核验、9 组媒体回归及重复构建一致性检查通过，见 [runtime-candidate.md](runtime-candidate.md)。2026-10-14 进一步完成候选单窗口 OpenGL 自动场景：30/30 素材、100 次暂停恢复、120 秒持续播放与停止/退出检查通过，原始记录见 [desktop-candidate-validation.md](desktop-candidate-validation.md)。用户随后选择 Xcode 27.0，新工具链下已重新构建并通过自动回归，见 [工具链升级记录](../../engineering/toolchain/requirements.md)。人工观感未确认，正式运行库未切换。
+2026-10-14，通用 TS 关键帧定位修复已接入固定的开发依赖并通过正式应用 30 项素材回归，见 [修复接入](ts-seek-integration.md)。2026-10-15 在锁定运行库和 Xcode 27.0 下再次完成 30/30，见 [A04 实测记录](validation.md#2026-10-15-锁定运行库复验)。当前 Xcode 27.1 工程尚未重跑整套 30 项；素材通过率也不代替逐项听感、色准或全部 v0.0 验收。

@@ -70,7 +70,7 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     try await PlaybackBenchmark().run(
                         media: URL(fileURLWithPath: mediaPath, isDirectory: true),
                         syncMedia: URL(fileURLWithPath: syncPath), output: URL(fileURLWithPath: outputPath))
-                case "single-window", "media-suite", "b11-suite", "replacement-burst", "display-transitions":
+                case "single-window", "ordinary-resize", "media-suite", "b11-suite", "replacement-burst", "display-transitions":
                     guard let rawScenario = mode,
                           let scenario = WindowScenario(rawValue: rawScenario) else {
                         throw BenchmarkError.failed("Unknown window scenario")
@@ -110,12 +110,25 @@ private final class BenchmarkAppDelegate: NSObject, NSApplicationDelegate {
                     } else {
                         initialDisplayID = nil
                     }
+                    let minimizeRestoreProbe: Bool
+                    if scenario == .ordinaryResize {
+                        minimizeRestoreProbe = false
+                    } else if let configured = configuration?.minimizeRestoreProbe {
+                        minimizeRestoreProbe = configured
+                    } else if let raw = environment["BOMU_BENCHMARK_MINIMIZE_RESTORE_PROBE"] {
+                        guard raw == "0" || raw == "1" else {
+                            throw BenchmarkError.failed("Minimize/restore probe must be 0 or 1")
+                        }
+                        minimizeRestoreProbe = raw == "1"
+                    } else {
+                        minimizeRestoreProbe = true
+                    }
                     try await WindowLifecycleBenchmark().run(media: URL(fileURLWithPath: mediaPath),
                         output: URL(fileURLWithPath: outputPath), scenario: scenario,
                         cycles: cycles, soakSeconds: soak, suiteDirectory: suiteDirectory, previewSeconds: preview,
                         initialDisplayID: initialDisplayID, replacementMedia: replacementMedia,
                         activationGraceSeconds: activationGrace,
-                        minimizeRestoreProbe: configuration?.minimizeRestoreProbe ?? true,
+                        minimizeRestoreProbe: minimizeRestoreProbe,
                         syncMedia: (configuration?.syncMedia ?? environment["BOMU_BENCHMARK_SYNC_MEDIA"]).map {
                             URL(fileURLWithPath: $0)
                         })

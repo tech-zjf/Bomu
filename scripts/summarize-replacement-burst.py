@@ -16,7 +16,7 @@ def main():
     after_seek = result.get('afterSeek') or {}
     shutdown = report.get('shutdown') or {}
     valid = (
-        report.get('schemaVersion') == 4 and report.get('completed')
+        report.get('schemaVersion') == 9 and report.get('completed')
         and len(cancelled) == 12 and len(set(cancelled)) == 12
         and len(replacements) == 24 and len(set(replacements)) == 24
         and replacements[-1] == final_id and final_id > max(cancelled)

@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 @MainActor
 enum OpenMediaPanel {
     static func present(for player: PlayerModel) {
-        guard let window = NSApp.mainWindow, window.attachedSheet == nil else { return }
+        guard let window = presentationWindow, window.attachedSheet == nil else { return }
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = true
@@ -18,7 +18,7 @@ enum OpenMediaPanel {
 
     static func presentSubtitle(for player: PlayerModel, requestID: UInt64) {
         guard player.canControlPlayback, player.state.request?.id == requestID,
-              let window = NSApp.mainWindow, window.attachedSheet == nil else { return }
+              let window = presentationWindow, window.attachedSheet == nil else { return }
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -29,5 +29,11 @@ enum OpenMediaPanel {
             guard response == .OK, let url = panel.url else { return }
             player.addExternalSubtitle(url, requestID: requestID)
         }
+    }
+
+    private static var presentationWindow: NSWindow? {
+        if let window = NSApp.mainWindow { return window }
+        // Accessibility actions can run while the app is inactive, leaving mainWindow nil.
+        return NSApp.windows.first { $0.isVisible && $0.canBecomeMain && !($0 is NSPanel) }
     }
 }

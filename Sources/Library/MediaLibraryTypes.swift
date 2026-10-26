@@ -114,9 +114,9 @@ enum MediaLibraryScanError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unavailableRoot(let url):
-            "The selected folder is unavailable: \(url.path)"
+            String(format: NSLocalizedString("error.unavailableRoot", comment: ""), url.path)
         case .cannotEnumerate(let url):
-            "The selected folder could not be scanned: \(url.path)"
+            String(format: NSLocalizedString("error.cannotEnumerate", comment: ""), url.path)
         }
     }
 }

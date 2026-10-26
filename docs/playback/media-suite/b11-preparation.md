@@ -2,6 +2,8 @@
 
 B11 requires 60 local samples, 30 minutes of synchronization acceptance, 100 file switches, and sleep/wake recovery. The source preparation below enables those checks; it does not close B11 or its dependencies.
 
+The earlier app-host and incomplete long-run results are retained in the [dated B11 validation record](../native-poc/b11-validation-2026-10-15.md). That record is historical evidence; the full B11 acceptance remains open.
+
 ## Matrix and ownership
 
 `generate-media-suite.py --suite b11` reuses A04's audiovisual cases and adds distinct codec, container, frame-rate, dimension and audio-format combinations. A04's 30-case matrix, including audio-only, silent and invalid inputs, remains unchanged. Fixtures contain only generated patterns and mathematical tones and are dedicated to CC0-1.0.

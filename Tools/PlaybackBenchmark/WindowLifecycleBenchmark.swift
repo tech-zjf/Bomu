@@ -61,6 +61,7 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             defer: false, screen: selectedScreen)
         switch scenario {
         case .singleWindow: window.title = "Bomu · 单窗口播放测试（静音）"
+        case .ordinaryResize: window.title = "Bomu · 单窗口缩放测试（静音）"
         case .mediaSuite: window.title = "Bomu · 30 个素材测试（单窗口，静音）"
         case .b11Suite: window.title = "Bomu · B11 回归（60 个素材，单窗口）"
         case .replacementBurst: window.title = "Bomu · 快速替换 / 取消测试（单窗口，静音）"
@@ -127,10 +128,26 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 try require(window.occlusionState.contains(.visible) && window.isOnActiveSpace,
                     "Test window became occluded during the desktop handoff")
             }
+            if initialDisplayID == nil, let visibleScreen = window.screen {
+                // A centered window may be restored close to a display boundary
+                // when the app is activated. Center it within the display on
+                // which it is already visible before changing content size.
+                let visibleFrame = visibleScreen.visibleFrame
+                let frame = window.frame
+                window.setFrameOrigin(NSPoint(x: visibleFrame.midX - frame.width / 2,
+                    y: visibleFrame.midY - frame.height / 2))
+                recordWindowLocation(window, event: "centeredOnVisibleScreen")
+            }
             try await Task.sleep(for: .seconds(1))
-            guard let activeScreen = window.screen,
-                  try DisplayMeasurement.id(of: activeScreen) == selectedDisplayID else {
-                throw BenchmarkError.failed("Window moved away from its initial display during startup")
+            guard let activeScreen = window.screen else {
+                throw BenchmarkError.failed("Test window has no display during startup")
+            }
+            // Without an explicit display request, AppKit may place a newly centered
+            // window on the active desktop's display rather than NSScreen.main.
+            // Establish the stationary baseline from its actual visible location.
+            if initialDisplayID != nil,
+               try DisplayMeasurement.id(of: activeScreen) != selectedDisplayID {
+                throw BenchmarkError.failed("Window moved away from its requested display during startup")
             }
             player.prepare()
             try await waitUntil("player prepared") { player.isPrepared || player.startupError != nil }
@@ -181,6 +198,16 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                 var migratedDisplayID: UInt32?
                 if scenario == .displayTransitions {
                     migratedDisplayID = try await migrate(window, cycle: cycle, screens: screens)
+                } else if scenario == .ordinaryResize {
+                    let size = cycle.isMultiple(of: 2)
+                        ? NSSize(width: 960, height: 600)
+                        : NSSize(width: 920, height: 640)
+                    window.setContentSize(size)
+                    try await waitUntil("cycle \(cycle) content resize") {
+                        guard let content = window.contentView else { return false }
+                        return abs(content.bounds.width - size.width) < 1
+                            && abs(content.bounds.height - size.height) < 1
+                    }
                 }
 
                 // Pausing through the production model pins and redraws the real SwiftUI controls.
@@ -217,6 +244,13 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
                     try require(checkpoint.displayID == migratedDisplayID, "Fullscreen returned to a different display")
                 } else {
                     try require(checkpoint.displayID == initialDisplayID, "Single-window test changed displays")
+                }
+                if scenario == .ordinaryResize {
+                    let expectedWidth: Double = cycle.isMultiple(of: 2) ? 960 : 920
+                    let expectedHeight: Double = cycle.isMultiple(of: 2) ? 600 : 640
+                    try require(abs(checkpoint.contentWidth - expectedWidth) < 1
+                        && abs(checkpoint.contentHeight - expectedHeight) < 1,
+                        "The production content view did not retain the requested resize")
                 }
                 try require(checkpoint.process.windowVisible, "The stress window is occluded")
                 report.rounds.append(WindowRound(cycle: cycle, enterFullScreenMilliseconds: enterTime,
@@ -457,8 +491,10 @@ final class WindowLifecycleBenchmark: NSObject, NSWindowDelegate {
             // Cases are independent. Preserve a failed result and still exercise
             // the next file's recovery path; the overall run fails after teardown.
             try require(visibilityObservation?.wasInterrupted == false, "Media suite window was occluded")
-            try require(result.displayID == report.mediaSamples.first?.displayID,
-                "Media suite changed displays")
+            let originalDisplayID = report.mediaSamples.first?.displayID
+            try require(result.endingDisplayID == originalDisplayID,
+                "Media suite changed displays (start=\(result.displayID), " +
+                "end=\(result.endingDisplayID.map(String.init) ?? "none"))")
             print("Media suite \(result.passed ? "passed" : "FAILED"): \(index + 1)/\(manifest.samples.count) \(sample.file)")
             fflush(nil)
             // Optional time for actual visual inspection, applied uniformly to every case.

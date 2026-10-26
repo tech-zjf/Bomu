@@ -607,6 +607,123 @@ final class MPVIntegrationTests: XCTestCase {
         }
     }
 
+    func testNativePlaybackRejectsCheckpointAfterAtomicFileReplacement() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer {
+            window.contentView = originalContent
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let media = directory.appending(path: "active.mp4")
+        try FileManager.default.copyItem(at: fixture("h264-sdr"), to: media)
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+        let originalID = try await store.indexMediaFile(at: media)
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store)
+        window.contentView = engine.videoView
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(media)
+            try await waitUntil { player.canSeek && (player.state.snapshot?.position ?? 0) > 0.2 }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            player.seek(to: 5, requestID: try XCTUnwrap(player.state.request?.id))
+            try await waitUntil { self.hasSettledPosition(player, seconds: 5) }
+            try await player.checkpointPlaybackHistory()
+            let originalRequestID = try XCTUnwrap(player.state.request?.id)
+            let originalHistory = try await store.history(for: media)
+            XCTAssertEqual(originalHistory?.position ?? -1, 5, accuracy: 0.3)
+
+            // The old mpv session still owns its opened file while this path gains a new identity.
+            try Data(contentsOf: fixture("h265-main10-sdr")).write(to: media, options: .atomic)
+            let replacementID = try await store.indexMediaFile(at: media)
+            XCTAssertNotEqual(originalID, replacementID)
+            do {
+                try await player.checkpointPlaybackHistory()
+                XCTFail("The old native session must reject a checkpoint for replacement content")
+            } catch PlaybackHistoryError.mediaFileChanged { }
+            let replacementHistory = try await store.history(for: media)
+            XCTAssertNil(replacementHistory, "Old progress must not enter the new file")
+
+            player.open(media)
+            try await waitUntil {
+                player.canSeek && player.state.snapshot?.requestID != originalRequestID
+                    && abs((player.state.snapshot?.duration ?? 0) - 15) < 0.2
+            }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            player.seek(to: 2, requestID: try XCTUnwrap(player.state.request?.id))
+            try await waitUntil { self.hasSettledPosition(player, seconds: 2) }
+            await player.shutdown()
+
+            let saved = try await store.history(for: media)
+            XCTAssertEqual(saved?.position ?? -1, 2, accuracy: 0.3,
+                           "The replacement must save only its own playback position")
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+    func testNativePlaybackHonorsPrivateFolderRuleDuringActiveSession() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let privateFolder = directory.appending(path: "Private", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: privateFolder, withIntermediateDirectories: true)
+        defer {
+            window.contentView = originalContent
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let media = privateFolder.appending(path: "active.mp4")
+        try FileManager.default.copyItem(at: fixture("h264-sdr"), to: media)
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store)
+        window.contentView = engine.videoView
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(media)
+            try await waitUntil { player.canSeek && (player.state.snapshot?.position ?? 0) > 0.2 }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            player.seek(to: 5, requestID: try XCTUnwrap(player.state.request?.id))
+            try await waitUntil { self.hasSettledPosition(player, seconds: 5) }
+            try await player.checkpointPlaybackHistory()
+            let existing = try await store.history(for: media)
+            XCTAssertEqual(existing?.position ?? -1, 5, accuracy: 0.3)
+
+            try await store.setHistoryExcludedFolder(privateFolder, excluded: true)
+            let erased = try await store.history(for: media)
+            XCTAssertNil(erased, "Adding a private folder must erase previously saved playback facts")
+            try await player.checkpointPlaybackHistory()
+            await player.shutdown()
+            let afterShutdown = try await store.history(for: media)
+            XCTAssertNil(afterShutdown, "The active native session must not recreate private history on exit")
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+            XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
     private func hasSettledPosition(_ player: PlayerModel, seconds: Double) -> Bool {
         guard let snapshot = player.state.snapshot else { return false }
         return !snapshot.isSeeking && abs(snapshot.position - seconds) < 0.15

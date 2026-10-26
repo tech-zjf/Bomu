@@ -25,10 +25,24 @@ struct MediaFileIdentity: Equatable, Sendable {
     let modifiedAt: Date
 }
 
+/// Captured before opening media. A later checkpoint must never resolve a replacement
+/// at the same path as the file that produced the playback snapshot.
+struct PlaybackHistoryBinding: Equatable, Sendable {
+    let url: URL
+    let identity: MediaFileIdentity
+}
+
+struct PlaybackHistorySession: Sendable {
+    let binding: PlaybackHistoryBinding
+    // Identity capture is independent of checkpoint I/O: a busy database must not
+    // prevent a later retry from saving against the original file version.
+    let history: Result<PlaybackHistory?, any Error>
+}
+
 /// The playback feature depends on checkpoint behavior, not on SQLite or GRDB.
 protocol PlaybackHistoryPersisting: Sendable {
-    func history(for url: URL) async throws -> PlaybackHistory?
-    func save(for url: URL, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
               volume: Double, updatedAt: Date) async throws
     func clearAll() async throws
 }
@@ -57,6 +71,7 @@ enum PlaybackHistoryError: LocalizedError {
     case invalidVolume
     case mediaFileUnavailable(String)
     case identityUnavailable(String, underlying: String)
+    case mediaFileChanged
     case ambiguousMediaIdentity
     case missingSourceRoot
     case unknownScan(String)
@@ -68,27 +83,29 @@ enum PlaybackHistoryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidPosition:
-            "Playback position must be a finite nonnegative value."
+            String(localized: "error.invalidPlaybackPosition")
         case .invalidVolume:
-            "Playback volume must be between 0 and 100."
+            String(localized: "error.invalidPlaybackVolume")
         case .mediaFileUnavailable(let path):
-            "The media file is no longer available at \(path)."
+            String(format: NSLocalizedString("error.mediaFileUnavailable", comment: ""), path)
         case .identityUnavailable(let path, let underlying):
-            "Unable to identify media file at \(path): \(underlying)"
+            String(format: NSLocalizedString("error.identityUnavailable", comment: ""), path, underlying)
+        case .mediaFileChanged:
+            String(localized: "persistence.mediaFileChanged")
         case .ambiguousMediaIdentity:
             String(localized: "error.mediaIdentityConflict")
         case .missingSourceRoot:
-            "The selected media folder could not be recorded."
+            String(localized: "error.missingSourceRoot")
         case .unknownScan(let scanID):
-            "The library scan is no longer active: \(scanID)"
+            String(format: NSLocalizedString("error.unknownScan", comment: ""), scanID)
         case .missingMediaFile(let id):
-            "The media file is no longer indexed: \(id)"
+            String(format: NSLocalizedString("error.missingMediaFile", comment: ""), id)
         case .invalidLibraryPreference:
-            "The requested media library preference is not supported."
+            String(localized: "error.invalidLibraryPreference")
         case .scanAlreadyRunning:
-            "This media folder is already being scanned."
+            String(localized: "error.scanAlreadyRunning")
         case .libraryUnavailable:
-            "The local media library is unavailable."
+            String(localized: "error.libraryUnavailable")
         }
     }
 }

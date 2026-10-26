@@ -8,41 +8,10 @@ struct SettingsView: View {
     let records: MediaLibraryRecordOperations
     @State private var isConfirmingHistoryClear = false
     @State private var isConfirmingLibraryClear = false
-    @State private var isChoosingPrivateFolder = false
-    @State private var isChoosingArchive = false
     @State private var privateFolders: [HistoryExcludedFolder] = []
     @State private var importPreparation = MediaLibraryImportPreparation()
     @State private var importStatus: String?
-    @State private var selectedSection = SettingsSection.appearance
-
-    private enum SettingsSection: String, CaseIterable, Identifiable {
-        case appearance
-        case playback
-        case subtitles
-        case storage
-        case about
-
-        var id: String { rawValue }
-        var title: LocalizedStringKey {
-            switch self {
-            case .appearance: "settings.appearance.section"
-            case .playback: "settings.playback.navigation"
-            case .subtitles: "settings.subtitles.navigation"
-            case .storage: "settings.storage.navigation"
-            case .about: "settings.about.navigation"
-            }
-        }
-
-        var symbol: String {
-            switch self {
-            case .appearance: "sun.max"
-            case .playback: "play"
-            case .subtitles: "captions.bubble"
-            case .storage: "externaldrive"
-            case .about: "info.circle"
-            }
-        }
-    }
+    let navigation: MainWindowNavigation
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -61,11 +30,11 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(SettingsSection.allCases) { section in
                         Button {
-                            selectedSection = section
+                            navigation.settingsSection = section
                         } label: {
                             Label {
                                 Text(section.title)
-                                    .font(selectedSection == section
+                                    .font(navigation.settingsSection == section
                                           ? AppTheme.Typography.sidebarSelected
                                           : AppTheme.Typography.sidebarLabel)
                                     .lineLimit(1)
@@ -74,11 +43,11 @@ struct SettingsView: View {
                                     .font(AppTheme.Typography.Symbol.sidebar)
                                     .frame(width: AppTheme.Layout.sidebarIconWidth)
                             }
-                            .foregroundStyle(selectedSection == section ? AppTheme.textPrimary : AppTheme.textSecondary)
+                            .foregroundStyle(navigation.settingsSection == section ? AppTheme.textPrimary : AppTheme.textSecondary)
                             .frame(maxWidth: .infinity, minHeight: AppTheme.Layout.sidebarRowHeight, alignment: .leading)
                             .padding(.horizontal, AppTheme.Layout.sidebarRowHorizontalInset)
                             .background {
-                                if selectedSection == section {
+                                if navigation.settingsSection == section {
                                     RoundedRectangle(cornerRadius: AppTheme.Corners.selection)
                                         .fill(AppTheme.mutedSurface)
                                 }
@@ -86,7 +55,7 @@ struct SettingsView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityAddTraits(selectedSection == section ? .isSelected : [])
+                        .accessibilityAddTraits(navigation.settingsSection == section ? .isSelected : [])
                     }
                     Spacer(minLength: 0)
                 }
@@ -99,7 +68,7 @@ struct SettingsView: View {
                     .padding(.trailing, 20)
 
                 Group {
-                    switch selectedSection {
+                    switch navigation.settingsSection {
                     case .appearance: appearanceSettings
                     case .playback: playbackSettings
                     case .subtitles: subtitleSettings
@@ -158,10 +127,14 @@ struct SettingsView: View {
                         do {
                             let result = try await records.importArchive(data)
                             await reloadPrivateFolders()
-                            importStatus = String.localizedStringWithFormat(
+                            var message = String.localizedStringWithFormat(
                                 NSLocalizedString("settings.import.success", comment: ""),
                                 result.importedFileCount, result.unmatchedFileCount
                             )
+                            if result.unmatchedFileCount > 0 {
+                                message += " " + String(localized: "settings.import.retryAfterScan")
+                            }
+                            importStatus = message
                         } catch {
                             player.reportDataManagementError(error)
                         }
@@ -170,24 +143,14 @@ struct SettingsView: View {
             }
         } message: {
             if let preview = importPreparation.prepared?.preview {
-                Text(String.localizedStringWithFormat(
+                let summary = String.localizedStringWithFormat(
                     NSLocalizedString("settings.import.confirmMessage", comment: ""),
                     preview.matchedFileCount, preview.unmatchedFileCount, preview.replacedRecordCount
-                ))
-            }
-        }
-        .fileImporter(isPresented: $isChoosingPrivateFolder, allowedContentTypes: [.folder],
-                      allowsMultipleSelection: false) { result in
-            Task {
-                do {
-                    let urls = try result.get()
-                    if let folder = urls.first {
-                        try await records.excludeHistory(in: folder)
-                        await reloadPrivateFolders()
-                    }
-                } catch {
-                    if (error as? CocoaError)?.code == .userCancelled { return }
-                    player.reportDataManagementError(error)
+                )
+                if preview.unmatchedFileCount > 0 {
+                    Text(summary + " " + String(localized: "settings.import.retryAfterScan"))
+                } else {
+                    Text(summary)
                 }
             }
         }
@@ -302,7 +265,7 @@ struct SettingsView: View {
                     }
                 }
                 Button("settings.privacy.addFolder", systemImage: "folder.badge.minus") {
-                    isChoosingPrivateFolder = true
+                    choosePrivateFolder()
                 }
                 .disabled(!player.hasMediaLibraryStore)
             }
@@ -316,7 +279,7 @@ struct SettingsView: View {
                 Button("settings.data.import", systemImage: "square.and.arrow.down") {
                     importStatus = nil
                     importPreparation.cancel()
-                    isChoosingArchive = true
+                    chooseArchive()
                 }
                 .disabled(!player.hasMediaLibraryStore)
                 Button("settings.clearLibrary.action", role: .destructive) {
@@ -349,17 +312,43 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .fileImporter(isPresented: $isChoosingArchive, allowedContentTypes: [.json],
-                      allowsMultipleSelection: false) { result in
-            do {
-                guard let url = try result.get().first else { return }
-                importPreparation.prepare(from: url) { data in
-                    try await player.previewLibraryArchive(data)
+    }
+
+    private func choosePrivateFolder() {
+        presentFilePanel(contentType: .folder, choosesDirectories: true) { folder in
+            Task {
+                do {
+                    try await records.excludeHistory(in: folder)
+                    await reloadPrivateFolders()
+                } catch {
+                    player.reportDataManagementError(error)
                 }
-            } catch {
-                if (error as? CocoaError)?.code == .userCancelled { return }
-                player.reportDataManagementError(error)
             }
+        }
+    }
+
+    private func chooseArchive() {
+        presentFilePanel(contentType: .json, choosesDirectories: false) { url in
+            importPreparation.prepare(from: url) { data in
+                try await player.previewLibraryArchive(data)
+            }
+        }
+    }
+
+    private func presentFilePanel(contentType: UTType, choosesDirectories: Bool,
+                                  onChoose: @escaping (URL) -> Void) {
+        let window = NSApp.mainWindow ?? NSApp.windows.first {
+            $0.isVisible && $0.canBecomeMain && !($0 is NSPanel)
+        }
+        guard let window, window.attachedSheet == nil else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = choosesDirectories
+        panel.canChooseFiles = !choosesDirectories
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [contentType]
+        panel.beginSheetModal(for: window) { response in
+            guard response == .OK, let url = panel.url else { return }
+            onChoose(url)
         }
     }
 
@@ -412,6 +401,28 @@ private extension Bundle {
         case let (short?, nil): return short
         case let (nil, build?): return build
         case (nil, nil): return "—"
+        }
+    }
+}
+
+extension SettingsSection {
+    var title: LocalizedStringKey {
+        switch self {
+        case .appearance: "settings.appearance.section"
+        case .playback: "settings.playback.navigation"
+        case .subtitles: "settings.subtitles.navigation"
+        case .storage: "settings.storage.navigation"
+        case .about: "settings.about.navigation"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .appearance: "sun.max"
+        case .playback: "play"
+        case .subtitles: "captions.bubble"
+        case .storage: "externaldrive"
+        case .about: "info.circle"
         }
     }
 }

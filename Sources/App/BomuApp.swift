@@ -8,11 +8,16 @@ struct BomuApp: App {
         Window(Brand.displayName, id: "main") {
             MainWindowView(player: lifecycle.player, library: lifecycle.mediaLibrary,
                            videoView: lifecycle.engine.videoView, nowPlaying: lifecycle.nowPlaying,
-                           preferences: lifecycle.preferences, records: lifecycle.libraryRecords)
+                           preferences: lifecycle.preferences, records: lifecycle.libraryRecords,
+                           navigation: lifecycle.navigation)
         }
         .defaultSize(width: 1100, height: 720)
         .windowResizability(.contentMinSize)
         .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("menu.settings") { lifecycle.navigation.showSettings() }
+                    .keyboardShortcut(",")
+            }
             CommandGroup(replacing: .newItem) {
                 Button("open.video") { OpenMediaPanel.present(for: lifecycle.player) }
                     .keyboardShortcut("o")

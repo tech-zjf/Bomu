@@ -2,8 +2,11 @@ import AppKit
 
 @MainActor
 final class AppLifecycle: NSObject, NSApplicationDelegate {
+    let navigation = MainWindowNavigation()
     let engine = MPVPlaybackEngine()
     let preferences = PlaybackPreferences()
+    private let mediaWorkPermits = AsyncPermitPool(limit: 2)
+    private var mediaWorkloadTask: Task<Void, Never>?
     private var historyStoreStartupError: String?
     private lazy var librarySync: MediaLibrarySyncCoordinator? = {
         guard let historyStore else { return nil }
@@ -21,13 +24,16 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
         }
     }()
     lazy var player: PlayerModel = {
-        PlayerModel(engine: engine, historyStore: historyStore, preferences: preferences)
+        PlayerModel(engine: engine, historyStore: historyStore, preferences: preferences,
+                    onPlaybackActivityChanged: { [weak self] active in
+                        self?.setPlaybackActivity(active)
+                    })
     }()
     lazy var nowPlaying = NowPlayingController(player: player)
     lazy var mediaLibrary = MediaLibraryModel(
         store: historyStore,
-        thumbnailCache: try? MediaThumbnailCache.applicationCache(),
-        metadataProbe: MediaMetadataProbe(),
+        thumbnailCache: try? MediaThumbnailCache.applicationCache(sharedPermits: mediaWorkPermits),
+        metadataProbe: MediaMetadataProbe(sharedPermits: mediaWorkPermits),
         startupError: historyStoreStartupError
     )
     lazy var libraryRecords = MediaLibraryRecordOperations(
@@ -50,6 +56,7 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
         guard !isTerminating else { return .terminateLater }
         isTerminating = true
         Task {
+            await mediaWorkloadTask?.value
             nowPlaying.shutdown()
             await libraryRecords.shutdown()
             await librarySync?.stop()
@@ -58,5 +65,13 @@ final class AppLifecycle: NSObject, NSApplicationDelegate {
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
+    }
+    private func setPlaybackActivity(_ active: Bool) {
+        guard !isTerminating else { return }
+        let previous = mediaWorkloadTask
+        mediaWorkloadTask = Task { [mediaWorkPermits] in
+            await previous?.value
+            await mediaWorkPermits.setLimit(active ? 1 : 2)
+        }
     }
 }

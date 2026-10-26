@@ -9,6 +9,24 @@ enum MediaWatchedFilter: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum MediaLibrarySortOrder: String, CaseIterable, Identifiable {
+    case recentlyAdded
+    case name
+    case duration
+
+    var id: String { rawValue }
+}
+
+struct MediaDurationFact: Equatable, Sendable {
+    let contentRevision: String
+    let seconds: TimeInterval
+}
+
+struct MediaDurationSortProgress: Equatable, Sendable {
+    let completed: Int
+    let total: Int
+}
+
 enum MediaLibraryUndoKind: Equatable {
     case favoriteAdded
     case favoriteRemoved
@@ -73,7 +91,7 @@ enum MediaCategoryFilter: Hashable, Identifiable, CaseIterable {
     case category(MediaManualCategory)
 
     static var allCases: [MediaCategoryFilter] {
-        [.all, .unclassified] + MediaManualCategory.allCases.map(MediaCategoryFilter.category)
+        [.all] + MediaManualCategory.allCases.map(MediaCategoryFilter.category) + [.unclassified]
     }
 
     var id: String {
@@ -92,6 +110,7 @@ final class MediaLibraryModel {
     private(set) var itemsByRoot: [Int64: [MediaLibraryItem]] = [:]
     private(set) var directoriesByRoot: [Int64: [MediaLibraryDirectory]] = [:]
     private(set) var isLoading = false
+    private(set) var hasLoadedSnapshot = false
     private(set) var isReplacingRecords = false
     private(set) var discoveredCount = 0
     private(set) var indexedCount = 0
@@ -99,6 +118,9 @@ final class MediaLibraryModel {
     private(set) var errorMessage: String?
     private(set) var selectedItemID: Int64?
     private(set) var undoNotice: MediaLibraryUndoNotice?
+    private(set) var durationFacts: [Int64: MediaDurationFact] = [:]
+    private(set) var durationSortProgress: MediaDurationSortProgress?
+    private(set) var catalogGeneration = 0
     var searchText = ""
 
     @ObservationIgnored private let store: PlaybackHistoryStore?
@@ -107,6 +129,7 @@ final class MediaLibraryModel {
     @ObservationIgnored private let scanner: (any MediaLibraryScanning)?
     @ObservationIgnored private var scanTask: Task<Void, Never>?
     private var activeScanID: UUID?
+    private var playableURLsByID: [Int64: URL] = [:]
     private var mountedVolumes: [String: URL] = [:]
     @ObservationIgnored private let mountedVolumeSnapshot: () -> [String: URL]
     @ObservationIgnored private var refreshGeneration = 0
@@ -116,6 +139,8 @@ final class MediaLibraryModel {
     @ObservationIgnored private var undoExpiryTask: Task<Void, Never>?
     @ObservationIgnored private var isShuttingDown = false
     @ObservationIgnored private var shutdownTask: Task<Void, Never>?
+    @ObservationIgnored private var contentRevisionsByID: [Int64: String] = [:]
+    @ObservationIgnored private var durationSortID: UUID?
 
     init(store: PlaybackHistoryStore?, thumbnailCache: MediaThumbnailCache?,
          metadataProbe: MediaMetadataProbe? = nil, scanner: (any MediaLibraryScanning)? = nil,
@@ -220,6 +245,108 @@ final class MediaLibraryModel {
         }
     }
 
+    nonisolated static func sorting(
+        _ items: [MediaLibraryItem], by order: MediaLibrarySortOrder,
+        durationFacts: [Int64: MediaDurationFact] = [:]
+    ) -> [MediaLibraryItem] {
+        items.sorted { first, second in
+            switch order {
+            case .recentlyAdded:
+                if first.addedAt != second.addedAt { return first.addedAt > second.addedAt }
+            case .name:
+                let comparison = first.displayName.localizedStandardCompare(second.displayName)
+                if comparison != .orderedSame { return comparison == .orderedAscending }
+            case .duration:
+                let firstDuration = durationFacts[first.id].flatMap {
+                    $0.contentRevision == first.contentRevision ? $0.seconds : nil
+                }
+                let secondDuration = durationFacts[second.id].flatMap {
+                    $0.contentRevision == second.contentRevision ? $0.seconds : nil
+                }
+                switch (firstDuration, secondDuration) {
+                case (.some(let left), .some(let right)) where left != right:
+                    return left < right
+                case (.some, .none): return true
+                case (.none, .some): return false
+                default: break
+                }
+            }
+            return first.id < second.id
+        }
+    }
+
+    func unknownDurationCount(in items: [MediaLibraryItem]) -> Int {
+        items.reduce(0) { count, item in
+            let fact = durationFacts[item.id]
+            return count + (fact?.contentRevision == item.contentRevision ? 0 : 1)
+        }
+    }
+
+    /// The Library view owns and cancels this sweep when its sort/filter or page changes.
+    /// Probing uses the same shared permit budget as visible cards and playback.
+    func loadDurationsForSort(in matches: [MediaLibraryItem]) async {
+        guard !isShuttingDown, let metadataProbe else { return }
+        let sortID = UUID()
+        durationSortID = sortID
+        defer {
+            if durationSortID == sortID {
+                durationSortProgress = nil
+                durationSortID = nil
+            }
+        }
+        struct Input: Sendable {
+            let id: Int64
+            let revision: String
+            let url: URL
+        }
+        let pending = matches.compactMap { item -> Input? in
+            guard durationFacts[item.id]?.contentRevision != item.contentRevision,
+                  let url = fileURL(for: item) else { return nil }
+            return Input(id: item.id, revision: item.contentRevision, url: url)
+        }
+        guard !pending.isEmpty else {
+            return
+        }
+        durationSortProgress = .init(completed: 0, total: pending.count)
+        var staged: [Int64: MediaDurationFact] = [:]
+        var completed = 0
+        var next = pending.startIndex
+        await withTaskGroup(of: (Int64, String, TimeInterval?).self) { group in
+            func addNext() {
+                guard next < pending.endIndex, !Task.isCancelled else { return }
+                let input = pending[next]
+                next += 1
+                group.addTask {
+                    let metadata = await metadataProbe.metadata(mediaFileID: input.id,
+                        contentRevision: input.revision, sourceURL: input.url)
+                    return (input.id, input.revision, metadata.duration)
+                }
+            }
+            addNext()
+            addNext()
+            while let (id, revision, seconds) = await group.next() {
+                guard !Task.isCancelled else {
+                    group.cancelAll()
+                    break
+                }
+                completed += 1
+                if let seconds, seconds.isFinite, seconds >= 0 {
+                    staged[id] = MediaDurationFact(contentRevision: revision, seconds: seconds)
+                }
+                if completed.isMultiple(of: 16) || completed == pending.count {
+                    for (id, fact) in staged where contentRevisionsByID[id] == fact.contentRevision {
+                        durationFacts[id] = fact
+                    }
+                    staged.removeAll(keepingCapacity: true)
+                    if durationSortID == sortID {
+                        durationSortProgress = .init(completed: completed, total: pending.count)
+                    }
+                }
+                addNext()
+            }
+        }
+    }
+
     @discardableResult
     func refresh() async -> Bool {
         guard !isShuttingDown, !isReplacingRecords else { return false }
@@ -255,13 +382,27 @@ final class MediaLibraryModel {
                 let isDirectory = (try? sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
                 return root.updatingAvailability(isOnline: isDirectory)
             }
+            // Membership dates choose the aggregate's display record; availability instead
+            // considers every source, including a parent of an unavailable child folder.
+            let onlineRootIDs = Set(roots.filter(\.isOnline).map(\.id))
+            var playableURLs: [Int64: URL] = [:]
+            for item in loadedItems where item.isPresent && onlineRootIDs.contains(item.sourceRootID) {
+                if let volumeURL = mounted[item.volumeID] {
+                    playableURLs[item.id] = volumeURL.appending(path: item.relativePath)
+                }
+            }
+            playableURLsByID = playableURLs
             itemsByRoot = snapshot.itemsByRoot
             directoriesByRoot = snapshot.directoriesByRoot
             items = uniqueItems
+            contentRevisionsByID = Dictionary(uniqueKeysWithValues: uniqueItems.map { ($0.id, $0.contentRevision) })
+            durationFacts = durationFacts.filter { contentRevisionsByID[$0.key] == $0.value.contentRevision }
+            catalogGeneration &+= 1
             if let selectedItemID, !uniqueItemIDs.contains(selectedItemID) {
                 self.selectedItemID = nil
             }
             errorMessage = nil
+            hasLoadedSnapshot = true
             return true
         } catch {
             guard refreshGeneration == generation else { return false }
@@ -501,10 +642,8 @@ final class MediaLibraryModel {
     }
 
     func fileURL(for item: MediaLibraryItem) -> URL? {
-        guard item.isPresent,
-              roots.contains(where: { $0.id == item.sourceRootID && $0.isOnline }),
-              let volume = mountedVolumes[item.volumeID] else { return nil }
-        return volume.appending(path: item.relativePath)
+        guard item.isPresent else { return nil }
+        return playableURLsByID[item.id]
     }
 
     func item(matchingMediaURL url: URL) -> MediaLibraryItem? {
@@ -559,14 +698,26 @@ final class MediaLibraryModel {
                                                    sourceURL: sourceURL)
     }
 
+    func thumbnailImage(for item: MediaLibraryItem) async -> CGImage? {
+        guard let thumbnailCache else { return nil }
+        let url = await thumbnailURL(for: item)
+        return await thumbnailCache.decodedImage(at: url)
+    }
+
     func metadata(for item: MediaLibraryItem) async -> MediaTechnicalMetadata? {
         guard let metadataProbe else { return nil }
         guard let sourceURL = fileURL(for: item) else {
             return await metadataProbe.cachedMetadata(mediaFileID: item.id,
                 contentRevision: item.contentRevision)
         }
-        return await metadataProbe.metadata(mediaFileID: item.id,
+        let metadata = await metadataProbe.metadata(mediaFileID: item.id,
             contentRevision: item.contentRevision, sourceURL: sourceURL)
+        if !Task.isCancelled, let seconds = metadata.duration,
+           seconds.isFinite, seconds >= 0,
+           contentRevisionsByID[item.id] == item.contentRevision {
+            durationFacts[item.id] = MediaDurationFact(contentRevision: item.contentRevision, seconds: seconds)
+        }
+        return metadata
     }
 
     private static func path(_ path: String, below parent: String) -> String? {

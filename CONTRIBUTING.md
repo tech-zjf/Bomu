@@ -36,6 +36,7 @@ For explicit APFS remount and capacity-failure acceptance, run `./scripts/test-d
 - Run `python3 scripts/license_audit.py check` after dependency or notice changes. CI runs this audit against the complete current manifest, in addition to the audit tool's regression tests; a passing audit does not authorize public binary distribution.
 - Add behavior-focused tests for observable changes, state races, and resource boundaries. Do not replace runtime or visible acceptance with source-text checks.
 - Update the feature's `docs/<domain>/<feature>/` page with its final design, real call flow, and verification evidence. Do not describe unverified behavior as complete.
+- Use repository-relative paths in tracked documentation. Keep personal home-directory paths and captures showing local source locations out of the public tree. README screenshots should show the built app with media whose reuse terms are recorded, and their captions should stay within the behavior actually verified.
 
 ## Pull requests
 

@@ -4,12 +4,12 @@ struct MediaLibrarySourceFolderRow: View {
     let root: MediaSourceRoot
 
     var body: some View {
-        HStack(spacing: 13) {
-            Image(systemName: "folder.fill")
+        HStack(spacing: AppTheme.Layout.folderRowContentGap) {
+            Image(systemName: "folder")
                 .font(AppTheme.Typography.Symbol.folderRow)
-                .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: AppTheme.Layout.folderListIconSize, height: AppTheme.Layout.folderListIconSize)
-                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
+                .foregroundStyle(AppTheme.folderRowIconForeground)
+                .frame(width: AppTheme.Layout.folderListIconWidth, height: AppTheme.Layout.folderListIconHeight)
+                .background(AppTheme.folderRowIconSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderRowIcon))
             VStack(alignment: .leading, spacing: 4) {
                 Text(root.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
                 Text("\(root.volumeName) · \(root.relativePath)")
@@ -126,12 +126,12 @@ struct MediaLibraryFolderRow: View {
     let directory: MediaLibraryDirectory
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "folder.fill")
+        HStack(spacing: AppTheme.Layout.folderRowContentGap) {
+            Image(systemName: "folder")
                 .font(AppTheme.Typography.Symbol.folderRow)
-                .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: AppTheme.Layout.folderListIconSize, height: AppTheme.Layout.folderListIconSize)
-                .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderIcon))
+                .foregroundStyle(AppTheme.folderRowIconForeground)
+                .frame(width: AppTheme.Layout.folderListIconWidth, height: AppTheme.Layout.folderListIconHeight)
+                .background(AppTheme.folderRowIconSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderRowIcon))
             Text(directory.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
             Spacer()
             Image(systemName: "chevron.right")

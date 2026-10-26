@@ -6,6 +6,14 @@
 
 侧栏提供首页、视频库、文件夹、收藏和搜索入口；设置仍使用系统设置场景。选择文件夹后启动 `MediaLibraryScanner`，进度栏展示发现数、索引数和最多五个最近发现的文件名，也可取消扫描；文件名预览在扫描结束后清除，索引完成的项目由数据库快照发布。刷新时来源状态同时检查卷 UUID 是否挂载，以及卷相对路径指向的来源目录是否仍为目录；文件路径只对在线来源解析。临时离线不会删除来源、媒体条目或播放历史，目录恢复后模型刷新即可重新联机。媒体文件使用身份层保存的卷相对路径定位。主导航留在 `MediaLibraryView.swift`；卡片和列表行分别由 `MediaLibraryCard.swift` 与 `MediaLibraryListRow.swift` 呈现，共用的缩略图视图位于 `MediaLibraryPresentation.swift`，技术属性格式化与辅助功能摘要分别位于 `MediaTechnicalMetadataText.swift` 和 `MediaLibraryAccessibilitySummary.swift`。卡片和列表行单击只更新媒体库模型中的选中媒体；独立播放按钮才创建播放请求，选中项在库刷新和播放器/浏览切换时保留。
 
+## 空库欢迎页
+
+没有任何媒体来源且 Home 为当前页面时，首次存储刷新完成后展示独立 Welcome 页面，不显示媒体库侧栏或两个空媒体分区。它不保存独立的“首次启动”标记：是否显示直接由现有来源快照派生。加载、扫描、数据库不可用和已报告的错误优先展示各自状态；已添加但没有媒体的来源仍进入常规 Home。Open Video 复用 `OpenMediaPanel`，Add Folder 复用 `MediaLibraryView` 的文件夹选择及 `MediaLibraryModel.addFolder`；取消选择不会添加来源。如果是从直接打开的单个视频返回，现有播放栏仍显示在 Welcome 底部并可返回播放器。Welcome 只有本地化文案和不代表媒体内容的系统图形，不加载设计稿中的示例视频图片。
+
+2026-10-23：规范 Debug 构建、Xcode 静态分析、英/中资源格式及 token JSON 校验通过。解锁后使用临时 `CFFIXED_USER_HOME` 启动 0.0.1 (2) 英文 Debug 包；`lsof` 确认数据库及 WAL/SHM 位于隔离临时目录。一个普通窗口的约 960×640 pt Welcome 实际显示独立无侧栏布局、完整英文文案和两个操作，未见裁切。Add Folder 打开系统目录选择器，Cancel 返回 Welcome，未添加来源。Open Video 的 AX 按钮操作未观察到面板，随后文件菜单在桌面自动化中无法稳定执行，因此该入口的实际行为仍待复验，不据此判断产品故障或通过。1280×800、1440×900 pt、导入后切回 Home 与播放后返回仍开放。本次测试进程退出、临时库清理，未开启「完整键盘访问」；此前 Home 空库截图已过时并从公开验收素材中移除。
+
+后续源码对照发现参考 Welcome 说明文字有 340 px 宽度上限，原生文字先前会随宽窗口无限放宽。现在通过共享 token 将其限制为 340 pt，并在 `设计规范.json` 同步；Xcode 27.1 Debug 构建与静态分析通过。1280×800、1440×900 pt 的真实换行与垂直间距仍待可见复核。
+
 ## 继续观看完整列表
 
 首页仍展示最近两项续播记录；`View All` 进入独立的继续观看页面，直接使用完整的 `model.continueWatching`，不会跳到整个视频库，也不继承视频库的类型或观看状态筛选。完整页面使用三列卡片、同一续播文案和操作；首页仍为两列预览。集合为空时提供续播专用空状态。`Back to Home` 或侧栏 Home 返回首页，其他侧栏与来源入口直接离开此子页面。
@@ -86,3 +94,7 @@ sequenceDiagram
 ### 2026-10-19 交互一致性复验
 
 新版单窗口中，侧栏 Library/Folders/Favorites/Search、来源与 Add Folder 的右侧留白均能触发对应操作；文件面板随后取消。网格卡片说明区留白、列表封面与行内留白均可选中，菜单与播放仍独立工作；网格封面描边和列表平面底色显示选中状态。暂停于 7.933 秒后返回 Library，条目显示 Continue at 0:07，底栏显示 Play/Show Player。该观察验证当前返回的保存与刷新，不代替多次往返和真实内核计数验收。完整审计范围见[交互一致性](../../product/interaction-consistency.md)。
+
+## Availability across overlapping sources (2026-10-24)
+
+Aggregate display selection retains the earliest source membership, while `MediaLibraryModel` independently builds a media-ID-to-URL index from all online, present memberships. An unavailable child source therefore cannot disable a file found by an online parent source. Home, Favorites, Search and folder actions use the same resolver; going offline removes access without deleting durable facts. The new Welcome settings/recovery entries use the application-owned same-window route. See [implementation and limits](../../engineering/quality-hardening/implementation.md).

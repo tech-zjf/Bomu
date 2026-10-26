@@ -1,7 +1,140 @@
+import CoreGraphics
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 import XCTest
 
 final class MediaThumbnailCacheTests: XCTestCase {
+    func testPresentationDecoderReadsJPEGAndRejectsInvalidOrCancelledLoads() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let jpegURL = directory.appending(path: "artwork.jpg")
+        let context = try XCTUnwrap(CGContext(data: nil, width: 3, height: 2,
+            bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 3, height: 2))
+        let source = try XCTUnwrap(context.makeImage())
+        let destination = try XCTUnwrap(CGImageDestinationCreateWithURL(
+            jpegURL as CFURL, UTType.jpeg.identifier as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, source, nil)
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+
+        let pool = AsyncPermitPool(limit: 1)
+        let cache = MediaThumbnailCache(directory: directory.appending(path: "cache"),
+                                        sharedPermits: pool)
+        try await pool.acquire()
+        let queued = Task { await cache.decodedImage(at: jpegURL) }
+        try await waitUntil {
+            let snapshot = await pool.snapshot()
+            return snapshot.activeCount == 1 && snapshot.waitingCount == 1
+        }
+        queued.cancel()
+        let queuedImage = await queued.value
+        XCTAssertNil(queuedImage)
+        try await waitUntil { await pool.snapshot().waitingCount == 0 }
+        await pool.release()
+
+        let decoded = await cache.decodedImage(at: jpegURL)
+        XCTAssertEqual(decoded?.width, 3)
+        XCTAssertEqual(decoded?.height, 2)
+        let afterDecode = await pool.snapshot()
+        XCTAssertEqual(afterDecode.activeCount, 0)
+
+        let invalidURL = directory.appending(path: "invalid.jpg")
+        try Data("invalid image".utf8).write(to: invalidURL)
+        let invalid = await cache.decodedImage(at: invalidURL)
+        XCTAssertNil(invalid)
+
+        let cancelled = Task { () -> CGImage? in
+            withUnsafeCurrentTask { $0?.cancel() }
+            return await MediaThumbnailImageDecoder.image(at: jpegURL)
+        }
+        let cancelledImage = await cancelled.value
+        XCTAssertNil(cancelledImage)
+    }
+
+    func testReducedPermitBudgetWaitsForActiveWorkAndIncreaseReleasesQueue() async throws {
+        let pool = AsyncPermitPool(limit: 2)
+        try await pool.acquire()
+        try await pool.acquire()
+        await pool.setLimit(1)
+        let admissions = PermitAdmissions()
+        let waiting = Task {
+            try await pool.acquire()
+            await admissions.record()
+        }
+        await pool.release()
+        try await Task.sleep(for: .milliseconds(20))
+        let whileOverBudget = await admissions.count
+        XCTAssertEqual(whileOverBudget, 0, "Shrinking the limit must drain existing work first")
+        await pool.setLimit(2)
+        try await waiting.value
+        let admitted = await admissions.count
+        XCTAssertEqual(admitted, 1, "Increasing the limit must wake queued work without another release")
+        await pool.release()
+        await pool.release()
+    }
+
+    func testCancelledPermitWaiterCannotBlockLaterWork() async throws {
+        let pool = AsyncPermitPool(limit: 1)
+        try await pool.acquire()
+        let cancelled = Task { try await pool.acquire() }
+        cancelled.cancel()
+        do {
+            try await cancelled.value
+            XCTFail("A cancelled waiter must not acquire a permit")
+        } catch is CancellationError { }
+        await pool.release()
+        try await pool.acquire()
+        await pool.release()
+    }
+
+    func testCancellationRacingWithPermitAdmissionDoesNotLeakCapacity() async throws {
+        let pool = AsyncPermitPool(limit: 1)
+        for _ in 0..<50 {
+            try await pool.acquire()
+            let waiting = Task {
+                do {
+                    try await pool.acquire()
+                    await pool.release()
+                } catch is CancellationError { }
+                catch { XCTFail("Permit admission failed unexpectedly: \(error)") }
+            }
+            try await waitUntil { await pool.snapshot().waitingCount == 1 }
+            await pool.release()
+            waiting.cancel()
+            await waiting.value
+            let settled = await pool.snapshot()
+            XCTAssertEqual(settled.activeCount, 0)
+            XCTAssertEqual(settled.waitingCount, 0)
+        }
+    }
+
+    func testMetadataAndThumbnailsShareForegroundPlaybackBudget() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = try makeSourceFiles(in: directory, count: 1)[0]
+        let pool = AsyncPermitPool(limit: 1)
+        let generator = ControlledThumbnailGenerator()
+        let cache = MediaThumbnailCache(directory: directory.appending(path: "cache"),
+                                       sharedPermits: pool, generator: generator)
+        let loader = CountingMetadataLoader()
+        let probe = MediaMetadataProbe(sharedPermits: pool, loader: loader)
+        let thumbnail = Task { try await cache.thumbnail(mediaFileID: 1, contentRevision: "r1", sourceURL: source) }
+        try await waitUntil { await generator.pendingCount() == 1 }
+        let metadata = Task { await probe.metadata(mediaFileID: 1, contentRevision: "r1", sourceURL: source) }
+        try await Task.sleep(for: .milliseconds(20))
+        let whileThumbnailActive = await loader.calls
+        XCTAssertEqual(whileThumbnailActive, 0)
+        thumbnail.cancel()
+        _ = try? await thumbnail.value
+        let result = await metadata.value
+        XCTAssertEqual(result.duration, 42)
+        let afterCancellation = await loader.calls
+        XCTAssertEqual(afterCancellation, 1, "Cancelled work must return its shared permit")
+    }
+
     func testGenerationConcurrencyIsBoundedAndCacheHitsReuseTheFile() async throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -330,5 +463,19 @@ private actor ControlledThumbnailGenerator: ThumbnailFrameGenerating {
         guard let continuation = pending.removeValue(forKey: id) else { return }
         cancellations += 1
         continuation.resume(throwing: CancellationError())
+    }
+}
+
+private actor PermitAdmissions {
+    private(set) var count = 0
+    func record() { count += 1 }
+}
+
+private actor CountingMetadataLoader: MediaMetadataLoading {
+    private(set) var calls = 0
+    func loadMetadata(from url: URL) async throws -> MediaTechnicalMetadata {
+        calls += 1
+        return MediaTechnicalMetadata(duration: 42, width: 640, height: 360,
+                                      videoCodec: "H.264", audioTracks: [])
     }
 }

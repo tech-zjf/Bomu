@@ -95,6 +95,45 @@ def validate_b11(report):
         raise SystemExit('B11 native resources were not confirmed released.')
 
 
+def validate_ordinary_resize(report):
+    rounds = report['rounds']
+    if report['requestedCycles'] != 100 or len(rounds) != 100:
+        raise SystemExit('Ordinary-window resize acceptance requires 100 completed cycles.')
+    if not report.get('minimizeRestoreProbeSkippedReason') or report.get('occlusionProbe'):
+        raise SystemExit('Ordinary-window resize must skip the minimize/restore probe.')
+    displays = set()
+    previous_frame_count = 0
+    for cycle, row in enumerate(rounds, 1):
+        if row.get('cycle') != cycle:
+            raise SystemExit('Ordinary-window resize cycles are missing or out of order.')
+        checkpoint = row.get('checkpoint') or {}
+        width = checkpoint.get('contentWidth')
+        height = checkpoint.get('contentHeight')
+        expected = (960, 600) if cycle % 2 == 0 else (920, 640)
+        if (not all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                    and math.isfinite(value) for value in (width, height))
+                or abs(width - expected[0]) >= 1 or abs(height - expected[1]) >= 1):
+            raise SystemExit(f'Ordinary-window cycle {cycle} lacks its requested content size.')
+        displays.add(checkpoint.get('displayID'))
+        playback = checkpoint.get('playback') or {}
+        if playback.get('coreCreationCount') != 1 or playback.get('renderContextCreationCount') != 1:
+            raise SystemExit('Ordinary-window resize replaced the native playback session.')
+        frame_count = playback.get('videoFrameCount')
+        if (not isinstance(frame_count, int) or isinstance(frame_count, bool)
+                or frame_count <= previous_frame_count):
+            raise SystemExit('Ordinary-window resize lacks a new video frame after a cycle.')
+        previous_frame_count = frame_count
+    if len(displays) != 1 or None in displays:
+        raise SystemExit('Ordinary-window resize did not stay on one display.')
+    soak = report.get('soak', [])
+    if not soak or any(sample.get('displayID') not in displays for sample in soak):
+        raise SystemExit('Ordinary-window continuous playback changed displays.')
+    shutdown = report.get('shutdown') or {}
+    if any(shutdown.get(key) is not False
+           for key in ('coreAlive', 'renderContextAlive', 'graphicsContextAlive')):
+        raise SystemExit('Ordinary-window native resources were not confirmed released.')
+
+
 def main():
     root = Path(sys.argv[1])
     report = json.loads((root / 'window-lifecycle.json').read_text())
@@ -118,13 +157,18 @@ def main():
     if scenario in {'single-window', 'media-suite', 'b11-suite'}:
         actions = 'Each cycle: acknowledged pause/resume through PlayerModel and a new video frame after resume. '
         actions += 'Window geometry is unchanged by the driver; no automatic fullscreen or display migration.'
+    elif scenario == 'ordinary-resize':
+        validate_ordinary_resize(report)
+        actions = ('Each cycle: resize the same ordinary window between 960×600 and 920×640 content points, '
+                   'acknowledge pause/resume through PlayerModel, then verify a new video frame. '
+                   'No automatic fullscreen or display migration.')
     elif scenario == 'display-transitions':
         actions = 'Each cycle: resize + display migration + acknowledged pause/resume through PlayerModel '
         actions += '+ native fullscreen entry/exit + new video frame after exit.'
     else:
         raise SystemExit(f'Unknown window scenario: {scenario}')
     requested_display = report.get('requestedInitialDisplayID')
-    if scenario in {'single-window', 'media-suite', 'b11-suite'} and requested_display is not None:
+    if scenario in {'single-window', 'ordinary-resize', 'media-suite', 'b11-suite'} and requested_display is not None:
         checkpoints = [row['checkpoint'] for row in report['rounds']] + report['soak']
         observed_displays = {item['displayID'] for item in checkpoints + report.get('mediaSamples', [])}
         if observed_displays != {requested_display}:

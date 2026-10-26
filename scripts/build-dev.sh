@@ -22,6 +22,11 @@ case "${1:-}" in
     shift
     ;;
 esac
+IDENTITY_RECEIPT=""
+if [[ "$BUILD_ACTION" == "build" && "$BUILD_SCHEME" == "Bomu" ]]; then
+  IDENTITY_RECEIPT="$DERIVED_DATA/Build/Products/Debug/Bomu.build-identity.json"
+  rm -f "$IDENTITY_RECEIPT"
+fi
 mkdir -p "$MODULE_CACHE" "$PACKAGE_CACHE"
 export CLANG_MODULE_CACHE_PATH="$MODULE_CACHE"
 export SWIFTPM_MODULECACHE_OVERRIDE="$MODULE_CACHE"
@@ -33,7 +38,15 @@ if [[ "$BUILD_ACTION" == "build-for-testing" ]]; then
   python3 "$PROJECT_ROOT/scripts/prepare-test-media.py"
 fi
 
-exec xcodebuild \
+IDENTITY_SNAPSHOT=""
+if [[ -n "$IDENTITY_RECEIPT" ]]; then
+  mkdir -p "$PROJECT_ROOT/.build/BuildIdentity"
+  IDENTITY_SNAPSHOT="$(mktemp "$PROJECT_ROOT/.build/BuildIdentity/source.XXXXXX")"
+  trap 'rm -f "$IDENTITY_SNAPSHOT"' EXIT
+  python3 "$PROJECT_ROOT/scripts/build_identity.py" capture --output "$IDENTITY_SNAPSHOT"
+fi
+
+xcodebuild \
   -project "$PROJECT_ROOT/Bomu.xcodeproj" \
   -scheme "$BUILD_SCHEME" \
   -configuration Debug \
@@ -43,3 +56,10 @@ exec xcodebuild \
   -packageCachePath "$PACKAGE_CACHE" \
   CODE_SIGNING_ALLOWED=NO \
   "$BUILD_ACTION" "$@"
+
+if [[ -n "$IDENTITY_SNAPSHOT" ]]; then
+  python3 "$PROJECT_ROOT/scripts/build_identity.py" finalize \
+    --snapshot "$IDENTITY_SNAPSHOT" \
+    --app "$DERIVED_DATA/Build/Products/Debug/Bomu.app" \
+    --output "$IDENTITY_RECEIPT"
+fi

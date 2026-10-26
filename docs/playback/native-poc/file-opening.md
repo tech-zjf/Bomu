@@ -6,11 +6,17 @@
 
 本机原有 `.mkv` 解析为 `dyn.ah62d4rv4ge804450`，不符合 `NSOpenPanel` 的视频/音频筛选条件。内核直接打开 MKV 的用例通过，不能证明用户能在普通文件列表中选中它。
 
-`Config/Info.plist` 现在通过 `UTImportedTypeDeclarations` 声明 `org.matroska.mkv`，归属 `public.movie`，对应扩展名 `mkv` 和 MIME `video/x-matroska`。它是外部文件格式，使用 imported 声明；不引入 Bomu 私有格式，也不放宽选择器为所有文件。类型关系由系统管理，无须在 Swift、测试或播放层维护另一份扩展名表。
+`Config/Info.plist` 现在通过 `UTImportedTypeDeclarations` 声明 `org.matroska.mkv`，归属 `public.movie`，对应扩展名 `mkv` 和 MIME `video/x-matroska`。它是外部文件格式，使用 imported 声明；不引入 Bomu 私有格式，也不放宽选择器为所有文件。MKV 的类型继承关系由系统管理；Swift 的 `MediaFileType` 维护产品接受的媒体扩展名集合，供打开面板和文件夹扫描共用。
 
 类型声明遵循 [Apple 的类型声明规则](https://developer.apple.com/documentation/uniformtypeidentifiers/defining-file-and-data-types-for-your-app)；标识与现有社区实现一致，例如 [QuickLookVideo 的类型配置](https://github.com/Marginal/QuickLookVideo/blob/master/mdimporter/Info.plist)。应用继续以 `Alternate` 提供打开方式，不设置用户默认播放器。
 
-实测同时复现了重复触发“打开”产生多个非模态面板的问题。`OpenMediaPanel` 改用 `beginSheetModal(for:)`，所有入口共用主窗口的 `attachedSheet` 状态。没有主窗口或已有 sheet 时不再创建面板；取消和结束由 AppKit 管理，不额外复制一个“是否打开”的全局状态。
+2026-10-23 补核：当前 `MediaFileType` 的扩展名集合用于打开面板筛选和文件夹扫描；`Info.plist` 的 imported 声明负责 MKV 与系统 `public.movie` 的类型关系。正常系统上下文中只读查询了 MKV、MP4、MOV、TS、WebM、AVI、MPG、FLAC、WAV、MP3 和 M4A：每项系统实际类型都继承预期的 movie/audio，且与选择器按扩展名取得的类型一致。此项只验证类型标识，实际面板选择和播放结果仍以单窗口验收为准。
+
+随后逐项审计 54 个声明的扩展名，发现 `alac`、`mp2v`、`mps`、`tod`、`weba` 的系统实际类型与原先强制声明为 movie/audio 的动态类型不同，打开面板可能将文件置灰。选择器现在直接使用 macOS 对各扩展名的实际类型；同一系统注册表下复核为 54/54 可匹配。新增 hostless 行为测试覆盖这些差异项和常见格式；Xcode 27.1 Debug 构建、静态分析、148 项 Python 检查和 183 项 XCTest 均通过（2 项显式 APFS 用例按入口跳过）。这修正的是文件选择入口，尚未在规范 Debug 窗口逐项点击五种文件，也不声称它们已解码播放。
+
+入口边界不同：文件夹递归扫描按上述扩展名集合筛选；用户直接提供的本地普通文件（拖放或系统打开方式）经过非目录、非符号链接检查后会交给 libmpv 尝试加载，失败由播放器明确显示。该直接路径不构成对清单外格式的支持承诺。`.m3u8` 未列入本地格式清单，也没有流媒体 URL 输入入口；若用户直接提供一个本地播放列表，能否打开及其外部引用行为尚未验收，不能据此宣称 HLS 已实现。
+
+实测同时复现了重复触发“打开”产生多个非模态面板的问题。`OpenMediaPanel` 改用 `beginSheetModal(for:)`，所有入口共用所选窗口的 `attachedSheet` 状态。当前优先使用 AppKit 主窗口；辅助功能操作发生在应用非活动状态、`mainWindow` 为空时，回退到一个可见、可成为主窗口的普通 Bomu 窗口。找不到合格窗口或已有 sheet 时不创建新面板；取消和结束由 AppKit 管理，不额外复制一个“是否打开”的全局状态。这个回退已构建并通过静态分析，实际 Open Video 与外置字幕面板仍待同一规范 Debug 窗口可见复验。
 
 ## 验证
 
@@ -39,7 +45,7 @@
 
 ### 文件选择与取消
 
-类型声明负责系统识别，主窗口负责面板归属，只有确认选择才向模型提交新文件。
+类型声明负责系统识别，选中的普通应用窗口负责面板归属，只有确认选择才向模型提交新文件。
 
 ```mermaid
 sequenceDiagram
@@ -50,8 +56,8 @@ sequenceDiagram
     participant Model as PlayerModel
     User->>UI: 打开按钮 / ⌘O
     UI->>Panel: present(for: player)
-    Panel->>System: 读取 NSApp.mainWindow 和 attachedSheet
-    alt 没有主窗口或已有 sheet
+    Panel->>System: 首选主窗口，否则查找可见普通窗口；读取 attachedSheet
+    alt 没有合格窗口或已有 sheet
         Panel-->>User: 保持现有窗口状态
     else 可以打开
         Panel->>System: beginSheetModal；按媒体类型筛选

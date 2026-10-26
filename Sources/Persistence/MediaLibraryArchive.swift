@@ -133,9 +133,9 @@ enum MediaLibraryArchiveError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .tooLarge: "The media library archive exceeds the supported size limit."
-        case .unsupportedSchema(let version): "This media library archive version is not supported: \(version)."
-        case .invalidContent(let reason): "The media library archive is invalid: \(reason)"
+        case .tooLarge: String(localized: "error.archiveTooLarge")
+        case .unsupportedSchema(let version): String(format: NSLocalizedString("error.archiveUnsupportedSchema", comment: ""), version)
+        case .invalidContent(let reason): String(format: NSLocalizedString("error.archiveInvalidContent", comment: ""), reason)
         }
     }
 }

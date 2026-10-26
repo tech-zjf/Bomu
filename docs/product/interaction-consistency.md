@@ -6,7 +6,7 @@ The audit covers the application shell, all five library destinations, folders, 
 
 On 2026-10-19, the Settings section chooser changed from horizontal tabs to a compact vertical list inside the white Settings pane, following the user's direction. The main application sidebar remains unchanged; the Settings list is separated from its form by a subtle vertical rule rather than a second gray sidebar. The rebuilt page was visually inspected in one ordinary window, including the Appearance and Storage content switches. Exact-size comparison and keyboard/VoiceOver review remain part of the pending application acceptance.
 
-`AppTheme` owns the shared values. Sidebar actions share one local button style; folder breadcrumbs share another. Native buttons and menus retain keyboard/accessibility semantics. Model state remains authoritative for selection, playback availability, and saved preferences; views do not introduce duplicate selection or playback state.
+`AppTheme` owns the shared values. Sidebar actions share one local button style; folder breadcrumbs share another. System menus retain native keyboard/accessibility semantics. The visible media More actions control uses a SwiftUI popover and needs separate keyboard/VoiceOver acceptance. Model state remains authoritative for selection, playback availability, and saved preferences; views do not introduce duplicate selection or playback state.
 
 | Role | Contract |
 | --- | --- |
@@ -33,7 +33,7 @@ The two-column Continue Watching section intentionally has larger artwork than t
 
 ### Subsequent navigation and menu corrections
 
-Home's Continue Watching `View All` previously opened the entire Library with its retained filters. It now opens the full continue collection, with a Home return action and a dedicated empty state; its sidebar selection is derived from the page route. Grid, list and context actions now share `MediaLibraryItemActions`, including favorite, watched, resume, start-over and current-category feedback. These subsequent changes pass compilation and existing regression checks; their native validation remains pending because Screen 1 is locked.
+Home's Continue Watching `View All` previously opened the entire Library with its retained filters. It now opens the full continue collection, with a Home return action and a dedicated empty state; its sidebar selection is derived from the page route. Grid, list and context actions now share `MediaLibraryItemActions`, including favorite, watched, resume, start-over and current-category feedback. At the time of this source pass, Screen 1 was locked and the changes had only compilation and regression evidence. Later pointer checks are recorded below; full keyboard and VoiceOver acceptance remain open.
 
 Home now shows `View All` only when Continue Watching has more entries than the two already displayed. Empty and fully visible sections do not offer a redundant route.
 
@@ -43,7 +43,7 @@ The canonical English-only Debug app, version 0.0.1 (2), was rebuilt and relaunc
 
 | Surface | Observed result | Remaining boundary |
 | --- | --- | --- |
-| Sidebar | Before-fix right-blank Library click did nothing; after-fix Library, Folders, Favorites, Search, source and Add Folder blank clicks worked; folder panel cancelled | Settings sidebar action itself still needs an isolated pointer check; Settings was opened by its shortcut |
+| Sidebar | Before-fix right-blank Library click did nothing; after-fix Library, Folders, Favorites, Search, source and Add Folder blank clicks worked; folder panel cancelled | The Settings pointer action was separately verified on 2026-10-23 in the canonical Debug app; exact hit-region edges and keyboard traversal remain open. |
 | Home / Library | Current fixture cards align; short/unknown metadata does not shift cover tops; metadata blank space selects; menu and play act independently | Real artwork and three measured point-size layouts |
 | Folder list | Final compact rows show equal heights for normal and unknown metadata; thumbnail, right blank space and vertical padding select without playback; double-click plays; favorite/Undo round-trip and grid/list switching work | Native offline-volume and deeply nested long-name walkthrough |
 | Favorites / Search | Destinations and empty/search-field states reached | Full keyboard/VoiceOver traversal; broader filters covered by prior C07 checks |
@@ -53,6 +53,8 @@ The canonical English-only Debug app, version 0.0.1 (2), was rebuilt and relaunc
 | Settings | Four tab entries were inspected in the earlier pass; latest subtitle slider spans the form row; clear-library confirmation shown then cancelled; unavailable update action disabled | Import/export panel completion and VoiceOver; no destructive user-data action performed |
 
 The full hostless run at 12:10 passed 143 Python checks and 144 XCTest cases, including active-checkpoint export and failure recovery. Debug build and static analysis passed. Styling was checked in the real app rather than with tests that match source strings. The final compact-list layout was rebuilt and verified in the canonical app. Test favorite state was undone, the grid restored, playback stopped, and the owned app quit. The generated subtitle fixture was removed after use.
+
+On 2026-10-23, the canonical Debug app was reopened in one ordinary window for the previously missing isolated Settings sidebar pointer check. Clicking the visible Settings button removed Home's selected state, selected Settings, and displayed the Appearance page with its five vertical section buttons. This was a single check at the restored nonstandard window size; it does not establish exact target edges, three-size fidelity, or keyboard/VoiceOver access. Quit Bomu completed and the running-app inventory no longer listed it. No system accessibility setting was changed.
 
 ## Functional follow-through
 
@@ -79,7 +81,7 @@ The system adapter now publishes macOS playback state as well as metadata, stops
 The follow-up inspected the shell, sidebar, Home, Library, Folders, Favorites, Search, media grid/list actions, playback controls and terminal states, and four Settings tabs in the layout at that time. Shared typography and corners remain in `AppTheme`; native forms, menus and dialogs keep their platform roles rather than being restyled as media cards.
 
 - The inactive library/player layer now disables its controls in addition to hiding pointer and accessibility interaction. Both views and the playback session retain their identities. This closes the missing keyboard-interaction boundary; live focus traversal is still pending.
-- Grid and list rows share the visible `MediaLibraryActionsMenu`, including its 28 pt target and accessible name. List users can reach watched/category/resume/start-over actions without discovering a context menu; the favorite shortcut and context menu remain available.
+- Grid and list rows share the visible `MediaLibraryActionsMenu`, including its 28 pt target and accessible name. Its focusable trigger opens a SwiftUI popover; list users can click watched/category/resume/start-over actions without discovering a context menu. The favorite shortcut and native context menu remain available. Keyboard traversal inside the popover is still incomplete.
 - Search's initial and no-result states now reuse the library empty-state layout, with the appropriate search symbol. Their title/body typography, icon shape and spacing no longer depend on a separate system empty-state presentation.
 - Folder breadcrumbs use the existing navigation stack as their only destination source. At insufficient width, the ancestor buttons collapse into a menu instead of squeezing long names into multiple lines. Both presentations use the same navigation action. The unused path-derived ancestor implementation and its isolated test were removed; the retained navigation test covers root/intermediate destinations, stale destinations, a different source with the same name, and an absent intermediate route.
 - Folder headings truncate in the middle on one line, retain the full name in help, and leave the grid/list switch at its intended size. The main Add Folder capsule now explicitly includes its padded shape in hit testing.
@@ -103,7 +105,7 @@ flowchart LR
     Route --> Hidden[Hidden layer disabled; session retained]
 ```
 
-The final build, hostless regression and static analysis results are recorded in the roadmap. Screen 1 was locked during this follow-up, so these changes have **not** received a new live visual or keyboard pass. Prior screenshots do not establish acceptance of this build. Pending checks include blank-area clicks, list menu keyboard operation, deep long-name paths at all three required sizes, and Tab traversal after switching between Library and Player.
+The build, hostless regression and static analysis results for this dated source pass are recorded in the roadmap. Screen 1 was locked during that pass, so its then-current build had no live visual or keyboard evidence; later native observations must be read with their own build and scope. Remaining checks include list-menu keyboard operation, deep long-name paths at all three required sizes, and Tab traversal after switching between Library and Player.
 
 ### Cancelling a queued folder selection
 
@@ -146,6 +148,18 @@ flowchart LR
 ```
 
 The regression uses two real temporary file queues and a recording playback engine. It verifies that old menu callbacks cannot change the replacement queue or its speed, current callbacks work, and callbacks after Stop cannot reopen playback. This is model-level evidence, not proof that a native menu stays open across file replacement. Final build/test/analyzer results are recorded in the roadmap; native visual, focus and overlay clicks remain pending.
+
+### Media actions at narrow window edges — 2026-10-23
+
+The visible More actions popover now opens toward the available content width: grid cards in the last column and folder list rows open left; earlier grid columns open right. This fixes the 960×640 pt Folders list clipping without pushing a first-column Search result popover over the sidebar. In the rebuilt canonical Debug app, the complete action labels were visible in Home's two Continue Watching columns, Search's single result, the Library middle and last columns, and the Folders list at 960×640 pt. A reversible favorite add/remove through Search and Favorites also confirmed that the pointer action reaches the model and refreshes both pages. The window was closed after the check. Full Keyboard Access was not enabled; internal popover keyboard traversal and VoiceOver remain open.
+
+The later Folders row pass aligned root and child row geometry with the approved HTML and changed their icons from `folder.fill` to the outline `folder` symbol. Root rows were visibly checked at all three standard sizes. A temporary nested directory inside the already indexed generated-media source then supplied a real child row: its List presentation was checked at 960×640, 1280×800 and 1440×900 pt, and entering it exposed a real media item. The temporary directory was removed and a fresh app launch showed the row gone. Media-list rows were separately checked at all three sizes. The scope and remaining exact-color/long-name limits are in [native-ui-spec.md](native-ui-spec.md).
+
+In the same canonical Debug app at 960×640 pt, the first Library card's More actions popover was exercised with pointer input. Mark as Watched changed the card's accessible status from Unwatched to Watched; setting Movie added that category to its accessible summary; Clear Category removed it; Mark as Unwatched restored the original status. The saved playback position remained at 0:05. The test app was quit afterward. This covers the pointer and model-update path for those actions, not keyboard traversal inside the popover.
+
+In a later canonical 0.0.1 (2) Debug build, the first Home card's popover focused Add to Favorites on entry, but Tab closed the popover and returned focus to the card's Play button. Only that first action had been explicitly marked focusable. After the remaining buttons and category menu were marked focusable, the rebuilt app kept the popover open and moved focus from Add to Favorites to Mark as Watched on the first Tab. `./scripts/build-dev.sh` and `./scripts/build-dev.sh --analyze` passed. Further Tab traversal stopped when the desktop was operated by the user; this single transition does not establish the complete sequence, reverse order, category submenu, Folders list behavior, or VoiceOver speech. Full Keyboard Access stayed off.
+
+At 1440×900 pt, adding that card to Favorites displayed the bottom `Added to Favorites` notice and an AX-exposed Undo button. Clicking Undo within the five-second window dismissed the notice; opening Favorites confirmed the original empty state. The same notice was first observed without activating Undo before expiry, and the card was restored manually; the second immediate round trip is the one that proves Undo. A separate Mark as Watched round trip exposed `Marked as Watched` and Undo, then restored the card's AX state from Watched to Unwatched while retaining its 0:05 checkpoint. This covers the two notice texts and AX activation, not VoiceOver speech.
 
 
 ### Privacy removal is not an undo of deletion

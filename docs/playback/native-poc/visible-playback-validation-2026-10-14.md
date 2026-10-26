@@ -61,7 +61,7 @@
 
 ## 2026-10-19 当前 Debug 窗口复核
 
-- 使用 canonical `.build/DerivedData/Build/Products/Debug/Bomu.app`，仅一个普通窗口、同一显示器。由于旧媒体库源仍指向已不存在的 `Desktop/temp/Bomu/.build/fixtures`，本轮从当前仓库 `.build/media-suite` 选择现有授权样本；没有修改或复制源媒体。
+- 使用 canonical `.build/DerivedData/Build/Products/Debug/Bomu.app`，仅一个普通窗口、同一显示器。由于旧媒体库源仍指向已不存在的 `<former checkout>/.build/fixtures`，本轮从当前仓库 `.build/media-suite` 选择现有授权样本；没有修改或复制源媒体。
 - `19-h264-pcm.mov`（manifest 中 960×540 H.264/PCM、6 秒）在当前 Debug 应用实际显示活动画面，随后到达正常结束页。活动帧的 3024×1768 像素截图中，播放器舞台边界约为 2944×1656 px（16:9）；舞台占满内容区，底部无媒体信息栏，页面没有可见滚动条。播放器内信息按钮打开后，文件名、目录、大小和格式可见。
 - `06-portrait.mp4`（manifest 中 720×1280 H.264/AAC、6 秒）实际显示彩条测试画面。舞台维持 16:9，竖屏内容在舞台内按高度铺满，宽度随源比例缩小，两侧留黑；没有把播放器舞台改成竖屏比例。两次结束页返回媒体库均成功，搜索条件和媒体条目仍可见；此前记录的“返回后进程不可用”未在本次复现，原因未确定。
 - 这是固定舞台和横/竖屏素材外观证据；本轮没有对声音或色彩做主观/校准判断，也没有验证其他窗口尺寸、续播或睡眠恢复。

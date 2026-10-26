@@ -117,6 +117,10 @@ enum AppTheme {
     static let textSecondary = Color(red: 100 / 255, green: 112 / 255, blue: 132 / 255)
     static let surface = Color.white
     static let mutedSurface = Color(red: 240 / 255, green: 244 / 255, blue: 248 / 255)
+    static let folderRowIconSurface = Color(red: 237 / 255, green: 244 / 255, blue: 247 / 255)
+    static let folderRowIconForeground = Color(red: 114 / 255, green: 150 / 255, blue: 171 / 255)
+    static let emptyStateIconForeground = Color(red: 131 / 255, green: 152 / 255, blue: 170 / 255)
+    static let welcomeVisualSurface = Color(red: 239 / 255, green: 243 / 255, blue: 247 / 255)
     static let searchFieldSurface = Color(red: 244 / 255, green: 247 / 255, blue: 250 / 255)
     static let separator = Color(red: 229 / 255, green: 234 / 255, blue: 240 / 255)
     static let thumbnailPlaceholder = Color(red: 218 / 255, green: 229 / 255, blue: 231 / 255)
@@ -135,6 +139,10 @@ enum AppTheme {
     enum Typography {
         // The serif face is reserved for the brand; all working interface text stays sans-serif.
         static let pageTitle = Font.system(size: 27, weight: .bold)
+        static let welcomeTitle = Font.system(size: 38, weight: .bold)
+        static let welcomeTitleLineSpacing: CGFloat = 4
+        static let welcomeKicker = Font.system(size: 11, weight: .regular)
+        static let welcomeMessageLineSpacing: CGFloat = 9
         static let pageTitleTracking: CGFloat = -0.8
         static let sectionTitle = Font.system(size: 18, weight: .semibold)
         static let sectionTitleTracking: CGFloat = -0.4
@@ -180,6 +188,7 @@ enum AppTheme {
             static let mediaActions = Font.system(size: 14, weight: .semibold)
             static let thumbnailPlaceholder = Font.system(size: 24, weight: .light)
             static let emptyState = Font.system(size: 27, weight: .light)
+            static let welcomeVisual = Font.system(size: 84, weight: .ultraLight)
             static let startupFailure = Font.system(size: 28, weight: .light)
             static let playbackFailure = Font.system(size: 30, weight: .light)
             static let emptyPlayer = Font.system(size: 58)
@@ -196,9 +205,12 @@ enum AppTheme {
         static let toolbarControlSize: CGFloat = 35
         static let sidebarIconWidth: CGFloat = 16
         static let sidebarIconGap: CGFloat = 10
-        static let folderListIconSize: CGFloat = 44
-        static let folderRowVerticalInset: CGFloat = 12
+        static let folderListIconWidth: CGFloat = 48
+        static let folderListIconHeight: CGFloat = 45
+        static let folderRowContentGap: CGFloat = 14
+        static let folderRowVerticalInset: CGFloat = 19
         static let mediaSummaryLineHeight: CGFloat = 14
+        static let mediaListRowVerticalInset: CGFloat = 13
         static let sidebarWidth: CGFloat = 176
         static let settingsNavigationWidth: CGFloat = 164
         static let sidebarHorizontalInset: CGFloat = 13
@@ -219,11 +231,15 @@ enum AppTheme {
         static let mediaGridRowGap: CGFloat = 23
         static let mediaSummaryHeight: CGFloat = 28
         static let sectionGap: CGFloat = 28
+        static let libraryToolsTopGap: CGFloat = 24
+        static let libraryResultsTopGap: CGFloat = 20
+        static let libraryCategoryGap: CGFloat = 5
         static let searchFieldTopGap: CGFloat = 22
         static let searchFieldHorizontalInset: CGFloat = 12
         static let searchFieldVerticalInset: CGFloat = 9
         static let playerStageInset: CGFloat = 12
         static let playerHorizontalInset: CGFloat = 22
+        static let welcomeMessageMaxWidth: CGFloat = 340
         static let minimumWindowWidth: CGFloat = 900
         static let minimumWindowHeight: CGFloat = 600
     }
@@ -232,13 +248,16 @@ enum AppTheme {
         static let dropTargetOverlay: CGFloat = 8
         static let surface: CGFloat = 12
         static let artwork: CGFloat = 14
+        static let listArtwork: CGFloat = 10
         static let player: CGFloat = 14
         static let selection: CGFloat = 11
         static let control: CGFloat = 12
         static let folderIcon: CGFloat = 12
+        static let folderRowIcon: CGFloat = 13
         static let field: CGFloat = 12
         static let badge: CGFloat = 6
         static let emptyStateIcon: CGFloat = 20
+        static let welcomeVisual: CGFloat = 30
     }
 
     enum PlayerControls {

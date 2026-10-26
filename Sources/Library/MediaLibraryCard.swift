@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 import SwiftUI
 
 struct MediaLibraryCard: View {
@@ -12,15 +13,28 @@ struct MediaLibraryCard: View {
     let isVisible: Bool
     let isPlayable: Bool
     let presentation: Presentation
+    let menuArrowEdge: Edge
     let onPlay: (MediaLibraryItem) -> Void
     let onContinue: (MediaLibraryItem) -> Void
     let onPlayFromBeginning: (MediaLibraryItem) -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
-    @State private var thumbnailURL: URL?
-    @State private var metadataState: MediaTechnicalMetadataLoadState = .loading
+    @State private var thumbnailResult: (key: MediaLibraryAssetKey, image: CGImage?)?
+    @State private var metadataResult: (key: MediaLibraryAssetKey, state: MediaTechnicalMetadataLoadState)?
 
+    private var assetKey: MediaLibraryAssetKey { MediaLibraryAssetKey(item: item) }
+    private var loadKey: MediaLibraryAssetLoadKey {
+        MediaLibraryAssetLoadKey(asset: assetKey, isVisible: isVisible, isPlayable: isPlayable)
+    }
+    private var thumbnailImage: CGImage? {
+        guard let thumbnailResult, thumbnailResult.key == assetKey else { return nil }
+        return thumbnailResult.image
+    }
+    private var metadataState: MediaTechnicalMetadataLoadState {
+        guard let metadataResult, metadataResult.key == assetKey else { return .loading }
+        return metadataResult.state
+    }
     private var technicalMetadata: MediaTechnicalMetadata? { metadataState.metadata }
 
     var body: some View {
@@ -40,30 +54,38 @@ struct MediaLibraryCard: View {
                 .accessibilityHidden(true)
 
                 MediaLibraryActionsMenu(item: item, isPlayable: isPlayable, model: model,
-                                        onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning)
+                                        onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning,
+                                        popoverArrowEdge: menuArrowEdge)
             }
         }
         .contentShape(Rectangle())
+        .focusSection()
         .onTapGesture { model.select(item) }
-        .task(id: "thumbnail-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
+        .task(id: loadKey) {
+            let key = assetKey
             guard isVisible else {
-                thumbnailURL = nil
+                thumbnailResult = nil
                 return
             }
-            let loadedThumbnail = await model.thumbnailURL(for: item)
-            guard !Task.isCancelled else { return }
-            thumbnailURL = loadedThumbnail
+            if thumbnailResult?.key != key {
+                thumbnailResult = (key, nil)
+            }
+            let image = await model.thumbnailImage(for: item)
+            guard !Task.isCancelled, thumbnailResult?.key == key else { return }
+            thumbnailResult = (key, image)
         }
-        .task(id: "metadata-\(item.id)-\(item.relativePath)-\(item.contentRevision)-\(isVisible)-\(isPlayable)") {
+        .task(id: loadKey) {
+            let key = assetKey
             guard isVisible else {
-                metadataState = .loading
+                metadataResult = nil
                 return
             }
-            metadataState = .loading
+            metadataResult = (key, .loading)
             let loadedMetadata = await model.metadata(for: item)
-            guard !Task.isCancelled else { return }
-            metadataState = .resolved(loadedMetadata)
+            guard !Task.isCancelled, metadataResult?.key == key else { return }
+            metadataResult = (key, .resolved(loadedMetadata))
         }
+        .onDisappear { thumbnailResult = nil }
         .contextMenu { mediaActions }
     }
 
@@ -150,7 +172,7 @@ struct MediaLibraryCard: View {
     }
 
     private var artworkImage: some View {
-        MediaLibraryThumbnail(url: thumbnailURL, isAudio: isAudio)
+        MediaLibraryThumbnail(image: thumbnailImage, isAudio: isAudio)
             .frame(maxWidth: .infinity)
     }
 

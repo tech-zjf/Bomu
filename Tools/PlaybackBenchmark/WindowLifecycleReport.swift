@@ -3,6 +3,7 @@ import QuartzCore
 
 enum WindowScenario: String, Encodable {
     case singleWindow = "single-window"
+    case ordinaryResize = "ordinary-resize"
     case mediaSuite = "media-suite"
     case b11Suite = "b11-suite"
     case replacementBurst = "replacement-burst"
@@ -12,6 +13,8 @@ enum WindowScenario: String, Encodable {
         switch self {
         case .singleWindow:
             "Production PlayerScreen/PlayerModel; one stationary ordinary window held at floating level for visibility; acknowledged pause/resume, optional minimize/restore probe, then uninterrupted muted playback; no automatic resize, fullscreen or display migration"
+        case .ordinaryResize:
+            "Production PlayerScreen/PlayerModel; one ordinary window alternates between 960×600 and 920×640 content points during playback, with acknowledged pause/resume and a new video frame in each cycle; no automatic fullscreen or display migration"
         case .mediaSuite:
             "30 licensed media cases through the production PlayerScreen/PlayerModel in one stationary ordinary window held at floating level and one native session; then pause/resume, minimize/restore and uninterrupted muted playback"
         case .b11Suite:

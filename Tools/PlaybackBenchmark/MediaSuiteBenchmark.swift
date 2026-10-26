@@ -72,6 +72,7 @@ struct MediaSampleMeasurement: Encodable {
     let startedAtSeconds: Double
     let windowNumber: Int
     let displayID: UInt32
+    var endingDisplayID: UInt32?
     var elapsedSeconds: Double = 0
     var requestID: UInt64?
     var passed = false
@@ -166,12 +167,8 @@ enum MediaSuiteBenchmark {
             result.videoSurfaceAttachedToWindow = videoSurfaceAttached
             let requiresVideoSurface = sample.expected.outcome == .play
             let windowIsVisible = window.occlusionState.contains(.visible)
-            let windowIsOnExpectedDisplay: Bool
-            if let currentScreen = window.screen {
-                windowIsOnExpectedDisplay = try DisplayMeasurement.id(of: currentScreen) == result.displayID
-            } else {
-                windowIsOnExpectedDisplay = false
-            }
+            result.endingDisplayID = try window.screen.map(DisplayMeasurement.id(of:))
+            let windowIsOnExpectedDisplay = result.endingDisplayID == result.displayID
             guard after.coreAlive, after.renderContextAlive, after.graphicsContextAlive == true,
                   after.coreCreationCount == 1,
                   after.renderContextCreationCount == 1, after.openCount == before.openCount + 1,
@@ -179,7 +176,7 @@ enum MediaSuiteBenchmark {
                   windowIsOnExpectedDisplay else {
                 throw BenchmarkError.failed("Media check lost its visible window or replaced its native session " +
                     "(surfaceAttached=\(videoSurfaceAttached), visible=\(windowIsVisible), " +
-                    "expectedDisplay=\(windowIsOnExpectedDisplay))")
+                    "startDisplay=\(result.displayID), endDisplay=\(result.endingDisplayID.map(String.init) ?? "none"))")
             }
             result.passed = true
         } catch {
@@ -190,6 +187,9 @@ enum MediaSuiteBenchmark {
                 result.seekWasPausedAtFailure = snapshot.isPaused
                 result.seekWasInProgressAtFailure = snapshot.isSeeking
             }
+        }
+        if result.endingDisplayID == nil {
+            result.endingDisplayID = try? window.screen.map(DisplayMeasurement.id(of:))
         }
         result.finalPlayback = await engine.diagnostics()
         result.elapsedSeconds = CACurrentMediaTime() - began

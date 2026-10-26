@@ -1,7 +1,22 @@
 import Foundation
+import UniformTypeIdentifiers
 import XCTest
 
 final class PlaybackQueueTests: XCTestCase {
+    func testOpenPanelAcceptsSystemTypesForSupportedFiles() throws {
+        let extensions = ["mp4", "mkv", "mov", "ts", "webm", "avi", "mpg", "flac", "wav", "mp3", "m4a",
+                          "alac", "mp2v", "mps", "tod", "weba"]
+        let allowed = MediaFileType.openPanelContentTypes
+
+        for fileExtension in extensions {
+            let file = URL(filePath: "/sample.\(fileExtension)")
+            XCTAssertTrue(MediaFileType.supports(file), fileExtension)
+            let actualType = try XCTUnwrap(UTType(filenameExtension: fileExtension), fileExtension)
+            XCTAssertTrue(allowed.contains { actualType == $0 || actualType.conforms(to: $0) },
+                          "NSOpenPanel would disable .\(fileExtension)")
+        }
+    }
+
     func testNaturalOrderDeduplicationAndSelection() throws {
         let urls = [
             URL(filePath: "/资料/第 10 集.mkv"),

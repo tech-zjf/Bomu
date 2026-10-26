@@ -21,7 +21,7 @@ final class StorageIntegrationTests: XCTestCase {
         let bytes = Data("Bomu disposable remount fixture".utf8)
         try bytes.write(to: media)
         let id = try await store.indexMediaFile(at: media)
-        try await store.save(for: media, position: 42, volume: 67)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 42, volume: 67)
         try await store.setFavorite(true, for: id)
         var before = stat()
         XCTAssertEqual(media.path.withCString { stat($0, &before) }, 0)
@@ -59,7 +59,7 @@ final class StorageIntegrationTests: XCTestCase {
         try Data("read-only checkpoint media".utf8).write(to: media)
         let databaseURL = volume.mountPoint.appending(path: "history.sqlite")
         let store = try PlaybackHistoryStore(path: databaseURL.path)
-        try await store.save(for: media, position: 12, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 12, volume: 70)
         // Checkpoint the WAL so the next save must allocate on the test volume.
         let database = try DatabaseQueue(path: databaseURL.path)
         try await database.writeWithoutTransaction { db in
@@ -85,7 +85,7 @@ final class StorageIntegrationTests: XCTestCase {
         // real checkpoint WAL within a bounded budget until SQLite itself reports failure.
         for position in 13...268 {
             do {
-                try await store.save(for: media, position: Double(position), volume: 30)
+                try await store.save(for: try await store.openHistory(for: media).binding, position: Double(position), volume: 30)
                 lastCommittedPosition = Double(position)
             } catch let error as DatabaseError {
                 storageFailure = error.resultCode
@@ -100,7 +100,7 @@ final class StorageIntegrationTests: XCTestCase {
             XCTAssertEqual(try Double.fetchOne(db, sql: "SELECT position FROM playback_history"), expectedPosition)
         }
         try FileManager.default.removeItem(at: filler)
-        try await store.save(for: media, position: 88, volume: 30)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 88, volume: 30)
         let recovered = try await store.history(for: media)
         XCTAssertEqual(recovered?.position, 88)
         XCTAssertEqual(recovered?.volume, 30)

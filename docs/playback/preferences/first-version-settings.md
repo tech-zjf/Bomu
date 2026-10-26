@@ -24,3 +24,7 @@ History clearing, data reset, and archive restore are coordinated by `MediaLibra
 - The canonical Debug build uses the pinned Xcode 27.1 toolchain. Recent visible checks covered all five sections at 960×640, 1280×800, and 1440×900 pt and confirmed Storage content can be reached by scrolling. This establishes reachability only; exact visual comparison against the approved UI reference remains open.
 - Keyboard navigation has been spot-checked for Settings controls. Full cross-page focus order and VoiceOver browsing remain open.
 - The vertical navigation is a user-directed change from the horizontal tabs in [`UI设计稿.html`](../../../player_plan/开发定稿/UI设计稿.html); its 164 pt width is recorded in [`设计规范.json`](../../../player_plan/开发定稿/设计规范.json). The app implementation and reference are not pixel-identical for this change.
+
+## Application settings route (2026-10-24)
+
+`AppLifecycle` now owns `MainWindowNavigation`, including the library page and selected settings section. The application Settings… command (⌘,), sidebar and Welcome Settings entry share the same main-window route; Welcome Restore from Backup selects Storage and uses the existing import preview/confirmation flow. Settings is reachable with no sources and during initial library loading. This is a model/build change; the new controls still need visible acceptance. See [implementation](../../engineering/quality-hardening/implementation.md#r3同一窗口的应用级设置路由).

@@ -2,14 +2,7 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum LibraryDestination: String, CaseIterable, Identifiable, Hashable {
-    case home
-    case library
-    case folders
-    case favorites
-    case search
-
-    var id: String { rawValue }
+extension LibraryDestination {
     var title: LocalizedStringKey {
         switch self {
         case .home: "library.nav.home"
@@ -30,21 +23,7 @@ enum LibraryDestination: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-private enum LibraryPage: Equatable {
-    case destination(LibraryDestination)
-    case continueWatching
-    case settings
-
-    var sidebarSelection: LibraryDestination? {
-        switch self {
-        case .destination(let destination): destination
-        case .continueWatching: .home
-        case .settings: nil
-        }
-    }
-}
-
-private enum FolderBrowserDensity: String, CaseIterable {
+private enum MediaBrowserDensity: String, CaseIterable {
     case grid
     case list
 }
@@ -69,6 +48,16 @@ private extension MediaWatchedFilter {
     }
 }
 
+private extension MediaLibrarySortOrder {
+    var title: LocalizedStringKey {
+        switch self {
+        case .recentlyAdded: "library.sort.recentlyAdded"
+        case .name: "library.sort.name"
+        case .duration: "library.sort.duration"
+        }
+    }
+}
+
 
 struct MediaLibraryView: View {
     let model: MediaLibraryModel
@@ -81,10 +70,12 @@ struct MediaLibraryView: View {
     let onPlayFromBeginning: (MediaLibraryItem) -> Void
     let onShowPlayer: () -> Void
 
-    @State private var page: LibraryPage = .destination(.home)
+    let navigation: MainWindowNavigation
     @State private var isChoosingFolder = false
     @State private var folderPath: [MediaLibraryDirectory] = []
-    @State private var folderDensity = FolderBrowserDensity.grid
+    @State private var folderDensity = MediaBrowserDensity.grid
+    @State private var libraryDensity = MediaBrowserDensity.grid
+    @State private var librarySortOrder = MediaLibrarySortOrder.recentlyAdded
     @State private var visibleScrollTarget: String?
     @State private var folderListScrollTarget: String?
     @State private var savedScrollTargets: [String: String] = [:]
@@ -92,17 +83,55 @@ struct MediaLibraryView: View {
     @State private var watchedFilter: MediaWatchedFilter = .all
 
     var body: some View {
+        Group {
+            if navigation.libraryPage != .settings && model.isStorageAvailable && !model.hasLoadedSnapshot && model.errorMessage == nil {
+                ProgressView("library.loading")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if showsWelcome {
+                VStack(spacing: 0) {
+                    ScrollView { welcomeView }
+                        .bomuOverlayScrollerStyle()
+                    if let current = player.state.request, player.state.phase == .ready {
+                        currentPlaybackBar(title: current.url.deletingPathExtension().lastPathComponent)
+                    }
+                }
+            } else {
+                libraryShell
+            }
+        }
+        .background(AppTheme.surface)
+        .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
+               minHeight: AppTheme.Layout.minimumWindowHeight)
+        .task { await model.refresh() }
+        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder],
+                      allowsMultipleSelection: false) { result in
+            switch result {
+            case .success(let urls):
+                if let folder = urls.first { model.addFolder(folder) }
+            case .failure(let error):
+                guard (error as? CocoaError)?.code != .userCancelled else { return }
+                model.report(error)
+            }
+        }
+    }
+
+    private var showsWelcome: Bool {
+        navigation.libraryPage == .destination(.home) && model.isStorageAvailable &&
+            !model.isScanning && model.errorMessage == nil && model.roots.isEmpty
+    }
+
+    private var libraryShell: some View {
         HStack(spacing: 0) {
             MediaLibrarySidebar(
-                selection: page.sidebarSelection,
+                selection: navigation.libraryPage.sidebarSelection,
                 onlineRoots: model.onlineRoots,
                 offlineRoots: model.offlineRoots,
                 isStorageAvailable: model.isStorageAvailable,
-                onSelect: { page = .destination($0) },
+                onSelect: { navigation.libraryPage = .destination($0) },
                 onOpen: open,
                 onChooseFolder: chooseFolder,
-                onShowSettings: { page = .settings },
-                isSettingsSelected: page == .settings
+                onShowSettings: { navigation.showSettings() },
+                isSettingsSelected: navigation.libraryPage == .settings
             )
             .focusSection()
             .disabled(model.isReplacingRecords)
@@ -128,7 +157,7 @@ struct MediaLibraryView: View {
                         Button("open.video") { OpenMediaPanel.present(for: player) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if model.isLoading && model.roots.isEmpty {
+                } else if navigation.libraryPage != .settings && model.isLoading && model.roots.isEmpty {
                     ProgressView("library.loading")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -145,31 +174,17 @@ struct MediaLibraryView: View {
             .focusSection()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(AppTheme.surface)
-        .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
-               minHeight: AppTheme.Layout.minimumWindowHeight)
-        .task { await model.refresh() }
-        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder],
-                      allowsMultipleSelection: false) { result in
-            switch result {
-            case .success(let urls):
-                if let folder = urls.first { model.addFolder(folder) }
-            case .failure(let error):
-                guard (error as? CocoaError)?.code != .userCancelled else { return }
-                model.report(error)
-            }
-        }
     }
 
     @ViewBuilder
     private var pageContent: some View {
-        switch page {
+        switch navigation.libraryPage {
         case .destination(let destination):
             destinationContent(destination)
         case .continueWatching:
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
-                    Button { page = .destination(.home) } label: {
+                    Button { navigation.libraryPage = .destination(.home) } label: {
                         Label("library.backToHome", systemImage: "chevron.left")
                             .font(AppTheme.Typography.controlBody)
                             .frame(minHeight: AppTheme.Layout.compactControlSize)
@@ -189,13 +204,13 @@ struct MediaLibraryView: View {
                 .bomuOverlayScrollerStyle()
             }
         case .settings:
-            SettingsView(player: player, preferences: preferences, records: records)
+            SettingsView(player: player, preferences: preferences, records: records, navigation: navigation)
         }
     }
 
     private var continueWatchingViewAllAction: (() -> Void)? {
         guard model.continueWatching.count > 2 else { return nil }
-        return { page = .continueWatching }
+        return { navigation.libraryPage = .continueWatching }
     }
 
     @ViewBuilder
@@ -220,14 +235,27 @@ struct MediaLibraryView: View {
             }
         case .library:
             ScrollView {
-                VStack(alignment: .leading, spacing: AppTheme.Layout.sectionGap) {
+                VStack(alignment: .leading, spacing: 0) {
                     pageHeader(title: "library.nav.library", subtitle: "library.librarySubtitle")
                     filterControls
+                        .padding(.top, AppTheme.Layout.libraryToolsTopGap)
+                    if librarySortOrder == .duration {
+                        durationSortStatus(for: model.browsableItems)
+                            .padding(.top, 8)
+                    }
                     filteredMediaGrid(model.browsableItems)
+                        .padding(.top, AppTheme.Layout.libraryResultsTopGap)
                 }
                 .padding(.horizontal, AppTheme.Layout.contentHorizontalInset)
                 .padding(.vertical, AppTheme.Layout.contentVerticalInset)
                 .bomuOverlayScrollerStyle()
+            }
+            .accessibilityIdentifier("bomu.library.results")
+            .task(id: "\(librarySortOrder.id):\(categoryFilter.id):\(watchedFilter.id):\(model.catalogGeneration)") {
+                guard librarySortOrder == .duration else { return }
+                let matches = MediaLibraryModel.filtering(model.browsableItems,
+                    category: categoryFilter, watched: watchedFilter)
+                await model.loadDurationsForSort(in: matches)
             }
         case .folders:
             foldersContent
@@ -398,39 +426,66 @@ struct MediaLibraryView: View {
     }
 
     private var filterControls: some View {
-        HStack(spacing: 16) {
-            Menu {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: AppTheme.Layout.libraryCategoryGap) {
                 ForEach(MediaCategoryFilter.allCases) { filter in
-                    filterOption(title: filter.title, isSelected: categoryFilter == filter) {
-                        categoryFilter = filter
+                    Button { categoryFilter = filter } label: {
+                        Text(filter.title)
+                            .font(AppTheme.Typography.filterLabel)
+                            .foregroundStyle(categoryFilter == filter ? AppTheme.surface : AppTheme.textPrimary)
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: AppTheme.Layout.compactControlSize)
+                            .background(categoryFilter == filter ? AppTheme.textPrimary : AppTheme.searchFieldSurface,
+                                        in: Capsule())
+                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(categoryFilter == filter ? .isSelected : [])
                 }
-            } label: {
-                filterControlLabel(title: "library.categoryFilter", selection: categoryFilter.title)
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .buttonStyle(.plain)
 
-            Rectangle()
-                .fill(AppTheme.separator)
-                .frame(width: 1, height: 16)
-                .accessibilityHidden(true)
-
-            Menu {
-                ForEach(MediaWatchedFilter.allCases) { filter in
-                    filterOption(title: filter.title, isSelected: watchedFilter == filter) {
-                        watchedFilter = filter
+            HStack(spacing: 16) {
+                Menu {
+                    ForEach(MediaWatchedFilter.allCases) { filter in
+                        filterOption(title: filter.title, isSelected: watchedFilter == filter) {
+                            watchedFilter = filter
+                        }
                     }
+                } label: {
+                    filterControlLabel(title: "library.watchedFilter", selection: watchedFilter.title)
                 }
-            } label: {
-                filterControlLabel(title: "library.watchedFilter", selection: watchedFilter.title)
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .buttonStyle(.plain)
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .buttonStyle(.plain)
 
-            Spacer()
+                Spacer()
+
+                Menu {
+                    ForEach(MediaLibrarySortOrder.allCases) { order in
+                        filterOption(title: order.title, isSelected: librarySortOrder == order) {
+                            librarySortOrder = order
+                        }
+                    }
+                } label: {
+                    filterControlLabel(title: "library.sort", selection: librarySortOrder.title)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .buttonStyle(.plain)
+
+                Picker("library.libraryDensity", selection: $libraryDensity) {
+                    Image(systemName: "square.grid.2x2")
+                        .accessibilityLabel(Text("library.folderDensity.grid"))
+                        .tag(MediaBrowserDensity.grid)
+                    Image(systemName: "list.bullet")
+                        .accessibilityLabel(Text("library.folderDensity.list"))
+                        .tag(MediaBrowserDensity.list)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 92)
+                .fixedSize()
+            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -458,6 +513,24 @@ struct MediaLibraryView: View {
     }
 
     @ViewBuilder
+    private func durationSortStatus(for items: [MediaLibraryItem]) -> some View {
+        if let progress = model.durationSortProgress {
+            Text(String.localizedStringWithFormat(
+                NSLocalizedString("library.sort.durationLoading", comment: ""),
+                progress.completed, progress.total))
+                .font(AppTheme.Typography.metadata)
+                .foregroundStyle(AppTheme.textSecondary)
+        } else {
+            let matches = MediaLibraryModel.filtering(items, category: categoryFilter, watched: watchedFilter)
+            if model.unknownDurationCount(in: matches) > 0 {
+                Text("library.sort.durationUnknownLast")
+                    .font(AppTheme.Typography.metadata)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+        }
+    }
+
+    @ViewBuilder
     private func filteredMediaGrid(_ items: [MediaLibraryItem]) -> some View {
         let matches = MediaLibraryModel.filtering(items, category: categoryFilter, watched: watchedFilter)
         if items.isEmpty {
@@ -472,7 +545,23 @@ struct MediaLibraryView: View {
                 .buttonStyle(.bordered)
             }
         } else {
-            mediaGrid(matches)
+            let sorted = MediaLibraryModel.sorting(matches, by: librarySortOrder,
+                durationFacts: model.durationFacts)
+            if libraryDensity == .grid {
+                mediaGrid(sorted)
+            } else {
+                LazyVStack(spacing: 0) {
+                    ForEach(sorted) { item in
+                        MediaLibraryListRow(item: item, isPlayable: model.fileURL(for: item) != nil,
+                            isVisible: isVisible, model: model, onPlay: onPlay, onContinue: onContinue,
+                            onPlayFromBeginning: onPlayFromBeginning) {
+                                Task { await model.toggleFavorite(item) }
+                            }
+                        .id("media-\(item.id)")
+                    }
+                }
+                .scrollTargetLayout()
+            }
         }
     }
 
@@ -484,14 +573,16 @@ struct MediaLibraryView: View {
                     if model.onlineRoots.isEmpty && model.offlineRoots.isEmpty {
                         emptyState(title: "library.noFoldersTitle", message: "library.noFoldersMessage")
                     }
-                    ForEach(model.roots) { root in
-                        let location = MediaLibraryDirectory(sourceRootID: root.id,
-                            relativePath: root.relativePath, displayName: root.displayName)
-                        NavigationLink(value: location) {
-                            MediaLibrarySourceFolderRow(root: root)
+                    LazyVStack(spacing: 0) {
+                        ForEach(model.roots) { root in
+                            let location = MediaLibraryDirectory(sourceRootID: root.id,
+                                relativePath: root.relativePath, displayName: root.displayName)
+                            NavigationLink(value: location) {
+                                MediaLibrarySourceFolderRow(root: root)
+                            }
+                            .buttonStyle(.plain)
+                            .id("root-\(root.id)")
                         }
-                        .buttonStyle(.plain)
-                        .id("root-\(root.id)")
                     }
                     if !model.offlineRoots.isEmpty {
                         Text("library.offlineMessage")
@@ -538,10 +629,10 @@ struct MediaLibraryView: View {
                     Picker("library.folderDensity", selection: $folderDensity) {
                         Image(systemName: "square.grid.2x2")
                             .accessibilityLabel(Text("library.folderDensity.grid"))
-                            .tag(FolderBrowserDensity.grid)
+                            .tag(MediaBrowserDensity.grid)
                         Image(systemName: "list.bullet")
                             .accessibilityLabel(Text("library.folderDensity.list"))
-                            .tag(FolderBrowserDensity.list)
+                            .tag(MediaBrowserDensity.list)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
@@ -659,6 +750,81 @@ struct MediaLibraryView: View {
         }
     }
 
+    private var welcomeView: some View {
+        HStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("library.welcomeKicker")
+                    .font(AppTheme.Typography.welcomeKicker)
+                    .tracking(1)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.bottom, 6)
+                Text("library.welcomeTitle")
+                    .font(AppTheme.Typography.welcomeTitle)
+                    .lineSpacing(AppTheme.Typography.welcomeTitleLineSpacing)
+                    .tracking(-1.6)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 15)
+                Text("library.welcomeMessage")
+                    .font(AppTheme.Typography.subtitle)
+                    .lineSpacing(AppTheme.Typography.welcomeMessageLineSpacing)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(maxWidth: AppTheme.Layout.welcomeMessageMaxWidth, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 24)
+                HStack(spacing: 6) {
+                    Button {
+                        OpenMediaPanel.present(for: player)
+                    } label: {
+                        Label("open.video", systemImage: "play.fill")
+                            .font(AppTheme.Typography.controlLabel)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 36)
+                            .foregroundStyle(.white)
+                            .background(AppTheme.textPrimary, in: Capsule())
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    Button(action: chooseFolder) {
+                        Label("library.addFolder", systemImage: "folder.badge.plus")
+                            .font(AppTheme.Typography.controlLabel)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 36)
+                            .background(AppTheme.surface, in: Capsule())
+                            .overlay(Capsule().strokeBorder(AppTheme.separator))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 16) {
+                    Button("library.nav.settings") { navigation.showSettings() }
+                    Button("library.restoreBackup") { navigation.showSettings(section: .storage) }
+                }
+                .font(AppTheme.Typography.controlBody)
+                .buttonStyle(.link)
+                .padding(.top, 16)
+                Label("library.welcomePrivacy", systemImage: "checkmark.shield")
+                    .font(AppTheme.Typography.compactCaption)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.top, 20)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeVisual)
+                .fill(AppTheme.welcomeVisualSurface)
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    Image(systemName: "play.rectangle")
+                        .font(AppTheme.Typography.Symbol.welcomeVisual)
+                        .foregroundStyle(AppTheme.folderRowIconForeground)
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityHidden(true)
+        }
+        .padding(48)
+        .frame(maxWidth: .infinity, minHeight: 550)
+    }
+
     private func mediaSection(title: LocalizedStringKey, items: [MediaLibraryItem], emptyKey: LocalizedStringKey,
                               columnCount: Int, onViewAll: (() -> Void)? = nil,
                               trailingNote: LocalizedStringKey? = nil,
@@ -700,10 +866,13 @@ struct MediaLibraryView: View {
         if !items.isEmpty {
             let spacing = mediaGridSpacing(for: presentation)
             LazyVGrid(columns: gridColumns(columnCount, spacing: spacing.columns), spacing: spacing.rows) {
-                ForEach(items) { item in
+                ForEach(Array(items.enumerated()), id: \.element.id) { entry in
+                    let item = entry.element
+                    let menuArrowEdge: Edge = entry.offset % columnCount == columnCount - 1
+                        ? .leading : .trailing
                     MediaLibraryCard(item: item, model: model, isVisible: isVisible,
                                      isPlayable: model.fileURL(for: item) != nil,
-                                     presentation: presentation,
+                                     presentation: presentation, menuArrowEdge: menuArrowEdge,
                                      onPlay: onPlay, onContinue: onContinue,
                                      onPlayFromBeginning: onPlayFromBeginning)
                     .id("media-\(item.id)")
@@ -731,7 +900,7 @@ struct MediaLibraryView: View {
         VStack(spacing: 14) {
             Image(systemName: systemImage)
                 .font(AppTheme.Typography.Symbol.emptyState)
-                .foregroundStyle(AppTheme.textSecondary)
+                .foregroundStyle(AppTheme.emptyStateIconForeground)
                 .frame(width: 62, height: 62)
                 .background(
                     AppTheme.mutedSurface,
@@ -770,6 +939,7 @@ struct MediaLibraryView: View {
             .buttonStyle(.plain)
             .disabled(!player.canControlPlayback)
             .accessibilityLabel(Text(player.isPaused ? "player.play" : "player.pause"))
+            .accessibilityIdentifier("bomu.playback.togglePause")
             Button("library.showPlayer", action: onShowPlayer)
                 .buttonStyle(.bordered)
                 .disabled(player.state.request == nil)
@@ -790,6 +960,6 @@ struct MediaLibraryView: View {
             relativePath: root.relativePath,
             displayName: root.displayName
         )]
-        page = .destination(.folders)
+        navigation.libraryPage = .destination(.folders)
     }
 }

@@ -58,8 +58,10 @@ final class MediaLibraryScannerTests: XCTestCase {
         let model = MediaLibraryModel(store: nil, thumbnailCache: nil)
 
         XCTAssertFalse(model.isStorageAvailable)
+        XCTAssertFalse(model.hasLoadedSnapshot)
         let unavailableRefreshSucceeded = await model.refresh()
         XCTAssertFalse(unavailableRefreshSucceeded)
+        XCTAssertFalse(model.hasLoadedSnapshot)
 
         XCTAssertEqual(model.errorMessage, String(localized: "library.unavailable"))
         XCTAssertTrue(model.roots.isEmpty)
@@ -78,8 +80,10 @@ final class MediaLibraryScannerTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let model = MediaLibraryModel(store: store, thumbnailCache: nil)
 
+        XCTAssertFalse(model.hasLoadedSnapshot)
         let refreshSucceeded = await model.refresh()
         XCTAssertTrue(refreshSucceeded)
+        XCTAssertTrue(model.hasLoadedSnapshot)
         XCTAssertNil(model.errorMessage)
     }
 
@@ -149,7 +153,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: databasePath)
         for try await _ in MediaLibraryScanner(historyStore: store).scan(folder: root).events { }
         let mediaFileID = try await store.indexMediaFile(at: media)
-        try await store.save(for: media, position: 12, volume: 80)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 12, volume: 80)
         try await store.setFavorite(true, for: mediaFileID)
 
         let database = try DatabaseQueue(path: databasePath)
@@ -628,12 +632,39 @@ final class MediaLibraryScannerTests: XCTestCase {
             XCTAssertEqual(results.map(\.displayName), ["media item 9998.mp4"])
             return elapsed
         }
+        let durationFacts = Dictionary(uniqueKeysWithValues: model.items.enumerated().map { index, item in
+            (item.id, MediaDurationFact(contentRevision: item.contentRevision,
+                                        seconds: Double((index * 7_919) % 10_000)))
+        })
+        let nameSortSamples = (0..<3).map { _ -> Double in
+            let startedAt = clock.now
+            let results = MediaLibraryModel.sorting(model.items, by: .name)
+            let elapsed = Self.milliseconds(startedAt.duration(to: clock.now))
+            XCTAssertEqual(results.count, 10_000)
+            return elapsed
+        }
+        let durationSortSamples = (0..<3).map { _ -> Double in
+            let startedAt = clock.now
+            let results = MediaLibraryModel.sorting(model.items, by: .duration,
+                                                    durationFacts: durationFacts)
+            let elapsed = Self.milliseconds(startedAt.duration(to: clock.now))
+            XCTAssertEqual(results.count, 10_000)
+            XCTAssertEqual(durationFacts[results.first?.id ?? -1]?.seconds, 0)
+            XCTAssertEqual(durationFacts[results.last?.id ?? -1]?.seconds, 9_999)
+            return elapsed
+        }
         let refreshAverage = refreshSamples.reduce(0, +) / Double(refreshSamples.count)
         let searchAverage = searchSamples.reduce(0, +) / Double(searchSamples.count)
+        let nameSortAverage = nameSortSamples.reduce(0, +) / Double(nameSortSamples.count)
+        let durationSortAverage = durationSortSamples.reduce(0, +) / Double(durationSortSamples.count)
         let measurements = "SQLite-backed refresh: mean \(refreshAverage) ms over 5 runs; "
-            + "in-memory search over the loaded SQLite rows: mean \(searchAverage) ms over 10 runs."
+            + "in-memory search over the loaded SQLite rows: mean \(searchAverage) ms over 10 runs; "
+            + "name sort: mean \(nameSortAverage) ms over 3 runs; "
+            + "duration sort: mean \(durationSortAverage) ms over 3 runs."
         print(measurements)
-        print("Library refresh samples (ms): \(refreshSamples); search samples (ms): \(searchSamples)")
+        print("Library refresh samples (ms): \(refreshSamples); search samples (ms): \(searchSamples); "
+            + "name sort samples (ms): \(nameSortSamples); "
+            + "duration sort samples (ms): \(durationSortSamples)")
         XCTContext.runActivity(named: measurements) { activity in
             let attachment = XCTAttachment(string: measurements)
             attachment.lifetime = .keepAlways
@@ -803,6 +834,151 @@ final class MediaLibraryScannerTests: XCTestCase {
 
         XCTAssertEqual(series.map(\.displayName), ["episode.mkv"])
         XCTAssertEqual(unclassified.map(\.displayName), ["recording.mov"])
+    }
+
+    func testLibrarySortUsesRealAddedDateAndNaturalNameWithStableTies() {
+        let older = Date(timeIntervalSince1970: 10)
+        let newer = Date(timeIntervalSince1970: 20)
+        let items = [
+            makeLibraryItem(id: 4, name: "clip 10.mp4", category: nil, watched: false, addedAt: newer),
+            makeLibraryItem(id: 3, name: "clip 2.mp4", category: nil, watched: false, addedAt: older),
+            makeLibraryItem(id: 2, name: "clip 2.mp4", category: nil, watched: false, addedAt: older)
+        ]
+
+        XCTAssertEqual(MediaLibraryModel.sorting(items, by: .recentlyAdded).map(\.id), [4, 2, 3])
+        XCTAssertEqual(MediaLibraryModel.sorting(items, by: .name).map(\.id), [2, 3, 4])
+    }
+
+    func testDurationSortUsesMeasuredValuesAndLeavesUnknownOrStaleValuesLast() {
+        let items = [
+            makeLibraryItem(id: 4, name: "unknown.mp4", category: nil, watched: false),
+            makeLibraryItem(id: 3, name: "long.mp4", category: nil, watched: false),
+            makeLibraryItem(id: 2, name: "short-b.mp4", category: nil, watched: false),
+            makeLibraryItem(id: 1, name: "short-a.mp4", category: nil, watched: false),
+            makeLibraryItem(id: 5, name: "changed.mp4", category: nil, watched: false)
+        ]
+        let durations = [
+            Int64(1): MediaDurationFact(contentRevision: "revision", seconds: 5),
+            Int64(2): MediaDurationFact(contentRevision: "revision", seconds: 5),
+            Int64(3): MediaDurationFact(contentRevision: "revision", seconds: 12),
+            Int64(5): MediaDurationFact(contentRevision: "previous revision", seconds: 1)
+        ]
+
+        XCTAssertEqual(MediaLibraryModel.sorting(items, by: .duration, durationFacts: durations).map(\.id),
+                       [1, 2, 3, 4, 5])
+    }
+
+    @MainActor
+    func testDurationSortProbesFilteredFilesWithinTheSharedBudget() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString,
+            directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        for name in ["long.mp4", "short.mp4", "unknown.mp4"] {
+            try Data("fixture".utf8).write(to: root.appending(path: name))
+        }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        for try await _ in MediaLibraryScanner(historyStore: store).scan(folder: root).events { }
+        let loader = DurationSortTestLoader()
+        let probe = MediaMetadataProbe(sharedPermits: AsyncPermitPool(limit: 2), loader: loader)
+        let model = MediaLibraryModel(store: store, thumbnailCache: nil, metadataProbe: probe)
+        let refreshed = await model.refresh()
+        XCTAssertTrue(refreshed)
+
+        await model.loadDurationsForSort(in: model.browsableItems)
+
+        XCTAssertNil(model.durationSortProgress)
+        XCTAssertEqual(model.unknownDurationCount(in: model.browsableItems), 1)
+        XCTAssertEqual(MediaLibraryModel.sorting(model.browsableItems, by: .duration,
+            durationFacts: model.durationFacts).map(\.displayName),
+            ["short.mp4", "long.mp4", "unknown.mp4"])
+        let maximumActive = await loader.maximumActive
+        XCTAssertLessThanOrEqual(maximumActive, 2)
+        await model.shutdown()
+    }
+
+    @MainActor
+    func testLeavingDurationSortCancelsPendingProbesAndClearsProgress() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString,
+            directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data("fixture".utf8).write(to: root.appending(path: "long.mp4"))
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        for try await _ in MediaLibraryScanner(historyStore: store).scan(folder: root).events { }
+        let loader = DurationSortTestLoader(delay: .seconds(30))
+        let probe = MediaMetadataProbe(sharedPermits: AsyncPermitPool(limit: 1), loader: loader)
+        let model = MediaLibraryModel(store: store, thumbnailCache: nil, metadataProbe: probe)
+        let refreshed = await model.refresh()
+        XCTAssertTrue(refreshed)
+
+        let sort = Task { await model.loadDurationsForSort(in: model.browsableItems) }
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(2))
+        while await loader.calls == 0 {
+            guard clock.now < deadline else { XCTFail("Duration probe did not start"); break }
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        sort.cancel()
+        await sort.value
+
+        XCTAssertNil(model.durationSortProgress)
+        XCTAssertTrue(model.durationFacts.isEmpty)
+        let cancellations = await loader.cancellations
+        XCTAssertEqual(cancellations, 1)
+        await model.shutdown()
+    }
+
+    @MainActor
+    func testOverlappingSourcesKeepRenamedMediaPlayableThroughOnlineParent() async throws {
+        for childFirst in [true, false] {
+            let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            let parent = directory.appending(path: "parent")
+            let child = parent.appending(path: "old-child")
+            let renamed = parent.appending(path: "new-child")
+            try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let media = child.appending(path: "film.mp4")
+            try Data(repeating: 0x41, count: 1024).write(to: media)
+            let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+            let scanner = MediaLibraryScanner(historyStore: store)
+            for folder in childFirst ? [child, parent] : [parent, child] {
+                let scan = scanner.scan(folder: folder)
+                for try await _ in scan.events { }
+                await scan.cancelAndWait()
+            }
+            let id = try await store.indexMediaFile(at: media)
+            try await store.setFavorite(true, for: id)
+            try await store.save(for: try await store.openHistory(for: media).binding, position: 20, volume: 70)
+            var volumes = MountedMediaVolumes.current()
+            let mounted = volumes
+            let model = MediaLibraryModel(store: store, thumbnailCache: nil, mountedVolumeSnapshot: { volumes })
+            await model.refresh()
+            let originalAddedAt = try XCTUnwrap(model.items.first?.addedAt)
+            try FileManager.default.moveItem(at: child, to: renamed)
+            let scan = scanner.scan(folder: parent)
+            for try await _ in scan.events { }
+            await scan.cancelAndWait()
+            await model.refresh()
+            let item = try XCTUnwrap(model.items.first)
+            XCTAssertEqual(model.items.count, 1)
+            XCTAssertEqual(item.addedAt, originalAddedAt)
+            XCTAssertEqual(model.offlineRoots.count, 1)
+            let actual = renamed.appending(path: "film.mp4").standardizedFileURL
+            XCTAssertEqual(model.fileURL(for: item)?.standardizedFileURL, actual)
+            XCTAssertEqual(model.favorites.map(\.id), [id])
+            XCTAssertEqual(model.continueWatching.map(\.id), [id])
+            model.searchText = "film"
+            XCTAssertEqual(model.searchResults.map(\.id), [id])
+            volumes = [:]
+            await model.refresh()
+            XCTAssertNil(model.fileURL(for: item))
+            XCTAssertEqual(model.favorites.count, 1, "Offline media facts must be retained")
+            volumes = mounted
+            await model.refresh()
+            XCTAssertEqual(model.fileURL(for: item)?.standardizedFileURL, actual)
+            await model.shutdown()
+        }
     }
 
     func testDeduplicatingLibraryItemsPreservesOrderAndKeepsEarliestSource() {
@@ -977,7 +1153,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         for try await _ in scanner.scan(folder: root).events { }
         try FileManager.default.removeItem(at: removed)
         for try await _ in scanner.scan(folder: root).events { }
-        try await store.save(for: media, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 42, volume: 70)
         let generator = OfflineCatalogThumbnailGenerator()
         let cache = MediaThumbnailCache(directory: root.appending(path: "artwork"), generator: generator)
         let connectedVolumes = MountedMediaVolumes.current()
@@ -1064,7 +1240,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let scanner = MediaLibraryScanner(historyStore: store)
         for try await _ in scanner.scan(folder: sourceURL).events { }
-        try await store.save(for: mediaURL, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: mediaURL).binding, position: 42, volume: 70)
 
         var mounted: [String: URL] = [volumeID: mountedVolumeURL]
         let model = MediaLibraryModel(store: store, thumbnailCache: nil, scanner: scanner,
@@ -1200,7 +1376,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         let media = directory.appending(path: "kept.mp4")
         try Data("kept".utf8).write(to: media)
         let store = try PlaybackHistoryStore(path: ":memory:")
-        try await store.save(for: media, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 42, volume: 70)
         let scanner = MediaLibraryScanner(historyStore: store)
         let missingRoot = directory.appending(path: "offline", directoryHint: .isDirectory)
 
@@ -1330,7 +1506,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let scanner = MediaLibraryScanner(historyStore: store)
         for try await _ in scanner.scan(folder: root).events { }
-        try await store.save(for: original, position: 42, volume: 80)
+        try await store.save(for: try await store.openHistory(for: original).binding, position: 42, volume: 80)
 
         try FileManager.default.createDirectory(at: moved.deletingLastPathComponent(),
                                                 withIntermediateDirectories: true)
@@ -1631,7 +1807,7 @@ final class MediaLibraryScannerTests: XCTestCase {
         let existing = directory.appending(path: "existing.mp4")
         try Data("existing".utf8).write(to: existing)
         let store = try PlaybackHistoryStore(path: ":memory:")
-        try await store.save(for: existing, position: 64, volume: 80)
+        try await store.save(for: try await store.openHistory(for: existing).binding, position: 64, volume: 80)
         for index in 0..<500 {
             try Data("candidate \(index)".utf8).write(to: directory.appending(path: "new-\(index).mp4"))
         }
@@ -1670,5 +1846,37 @@ private actor OfflineCatalogThumbnailGenerator: ThumbnailFrameGenerating {
     func jpegData(for mediaURL: URL, maximumPixelSize: Int) async throws -> Data {
         calls += 1
         return Data("cached test artwork".utf8)
+    }
+}
+
+private actor DurationSortTestLoader: MediaMetadataLoading {
+    private(set) var maximumActive = 0
+    private(set) var calls = 0
+    private(set) var cancellations = 0
+    private var active = 0
+    private let delay: Duration
+
+    init(delay: Duration = .milliseconds(20)) {
+        self.delay = delay
+    }
+
+    func loadMetadata(from url: URL) async throws -> MediaTechnicalMetadata {
+        calls += 1
+        active += 1
+        maximumActive = max(maximumActive, active)
+        defer { active -= 1 }
+        do {
+            try await Task.sleep(for: delay)
+        } catch {
+            cancellations += 1
+            throw error
+        }
+        let duration: TimeInterval? = switch url.lastPathComponent {
+        case "short.mp4": 5
+        case "long.mp4": 20
+        default: nil
+        }
+        return MediaTechnicalMetadata(duration: duration, width: nil, height: nil,
+            videoCodec: nil, audioTracks: nil)
     }
 }

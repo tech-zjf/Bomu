@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreGraphics
 import CryptoKit
 import Foundation
 import ImageIO
@@ -44,6 +45,7 @@ actor MediaThumbnailCache {
         directory: URL,
         maximumBytes: Int = 512 * 1_024 * 1_024,
         maximumConcurrentGenerations: Int = 2,
+        sharedPermits: AsyncPermitPool? = nil,
         maximumPixelSize: Int = 640,
         timeout: Duration = .seconds(10),
         generator: any ThumbnailFrameGenerating = AVFoundationThumbnailGenerator()
@@ -52,18 +54,18 @@ actor MediaThumbnailCache {
         self.maximumBytes = max(1, maximumBytes)
         self.maximumPixelSize = max(32, maximumPixelSize)
         self.timeout = timeout
-        permits = AsyncPermitPool(limit: max(1, min(2, maximumConcurrentGenerations)))
+        permits = sharedPermits ?? AsyncPermitPool(limit: max(1, min(2, maximumConcurrentGenerations)))
         self.generator = generator
     }
 
-    static func applicationCache() throws -> MediaThumbnailCache {
+    static func applicationCache(sharedPermits: AsyncPermitPool) throws -> MediaThumbnailCache {
         let cacheDirectory = try FileManager.default.url(
             for: .cachesDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
             create: true
         ).appending(path: "Bomu/Thumbnails", directoryHint: .isDirectory)
-        return MediaThumbnailCache(directory: cacheDirectory)
+        return MediaThumbnailCache(directory: cacheDirectory, sharedPermits: sharedPermits)
     }
 
     func cachedThumbnail(mediaFileID: Int64, contentRevision: String) -> URL? {
@@ -116,6 +118,15 @@ actor MediaThumbnailCache {
         }
         try Task.checkCancellation()
         return url
+    }
+
+    /// Display decoding shares the playback-aware budget with frame generation and metadata.
+    func decodedImage(at url: URL?) async -> CGImage? {
+        guard let url, !Task.isCancelled else { return nil }
+        guard (try? await permits.acquire()) != nil else { return nil }
+        let image = await MediaThumbnailImageDecoder.image(at: url)
+        await permits.release()
+        return Task.isCancelled ? nil : image
     }
 
     private func cancelWaiter(_ id: UUID, for key: URL) {
@@ -220,70 +231,26 @@ actor MediaThumbnailCache {
     }
 }
 
-actor AsyncPermitPool {
-    private struct Waiter {
-        let id: UUID
-        let continuation: CheckedContinuation<Void, Error>
-    }
-
-    private let limit: Int
-    private var activeCount = 0
-    private var waiters: [Waiter] = []
-
-    init(limit: Int) {
-        self.limit = limit
-    }
-
-    func acquire() async throws {
-        try Task.checkCancellation()
-        if activeCount < limit {
-            activeCount += 1
-            return
-        }
-        let id = UUID()
-        try await withTaskCancellationHandler(operation: {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                if Task.isCancelled {
-                    continuation.resume(throwing: CancellationError())
-                } else {
-                    waiters.append(Waiter(id: id, continuation: continuation))
-                }
-            }
-        }, onCancel: {
-            Task { await self.cancelWaiter(id) }
-        })
-    }
-
-    func release() {
-        if !waiters.isEmpty {
-            let waiter = waiters.removeFirst()
-            waiter.continuation.resume()
-        } else {
-            activeCount -= 1
-        }
-    }
-
-    private func cancelWaiter(_ id: UUID) {
-        guard let index = waiters.firstIndex(where: { $0.id == id }) else { return }
-        let waiter = waiters.remove(at: index)
-        waiter.continuation.resume(throwing: CancellationError())
-    }
-}
-
 private struct AVFoundationThumbnailGenerator: ThumbnailFrameGenerating {
     func jpegData(for mediaURL: URL, maximumPixelSize: Int) async throws -> Data {
         let asset = AVURLAsset(url: mediaURL)
-        let duration = try await asset.load(.duration)
-        let seconds = CMTimeGetSeconds(duration)
-        guard seconds.isFinite, seconds > 0 else { throw MediaThumbnailError.noVideoFrame }
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: maximumPixelSize, height: maximumPixelSize)
-        generator.requestedTimeToleranceBefore = .zero
-        generator.requestedTimeToleranceAfter = .zero
-        let captureTime = min(1.0, seconds / 10)
-        let request = AVImageGenerationRequest(generator: generator)
-        return try await request.generate(at: CMTime(seconds: captureTime, preferredTimescale: 600))
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            let duration = try await asset.load(.duration)
+            let seconds = CMTimeGetSeconds(duration)
+            guard seconds.isFinite, seconds > 0 else { throw MediaThumbnailError.noVideoFrame }
+            try Task.checkCancellation()
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: maximumPixelSize, height: maximumPixelSize)
+            generator.requestedTimeToleranceBefore = .zero
+            generator.requestedTimeToleranceAfter = .zero
+            let captureTime = min(1.0, seconds / 10)
+            let request = AVImageGenerationRequest(generator: generator)
+            return try await request.generate(at: CMTime(seconds: captureTime, preferredTimescale: 600))
+        } onCancel: {
+            asset.cancelLoading()
+        }
     }
 }
 

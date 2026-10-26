@@ -12,7 +12,7 @@ struct MainWindowView: View {
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
-    @State private var navigation = MainWindowNavigation()
+    let navigation: MainWindowNavigation
     @State private var isDropTargeted = false
     @State private var dropResolutionTask: Task<Void, Never>?
     @State private var activeLibraryItem: MediaLibraryItem?
@@ -30,6 +30,7 @@ struct MainWindowView: View {
                 onContinue: continuePlayback,
                 onPlayFromBeginning: playFromBeginning,
                 onShowPlayer: { navigation.showPlayer() },
+                navigation: navigation
             )
             .opacity(navigation.isPlayerVisible ? 0 : 1)
             .allowsHitTesting(!navigation.isPlayerVisible && player.startupError == nil)

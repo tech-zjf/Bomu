@@ -10,6 +10,7 @@ MEDIA="$PROJECT_ROOT/.build/benchmark-media"
 SYNC_MEDIA="$PROJECT_ROOT/.build/sync-fixture"
 case "${1:-}" in
   --single-window) MODE=single-window ;;
+  --ordinary-resize) MODE=ordinary-resize ;;
   --media-suite) MODE=media-suite ;;
   --b11-suite) MODE=b11-suite ;;
   --replacement-burst) MODE=replacement-burst ;;
@@ -18,6 +19,7 @@ case "${1:-}" in
   --help|-h|"")
     echo "Choose a visible test explicitly:"
     echo "  --single-window        One stationary ordinary window; no automatic fullscreen or display migration."
+    echo "  --ordinary-resize      Resize one ordinary window during 100 playback cycles; no fullscreen or display migration."
     echo "  --media-suite          30 local media cases, then lifecycle checks in that same window."
     echo "  --b11-suite            60 audiovisual cases, 100 file switches and 30-minute sync playback in one window."
     echo "  --replacement-burst    Rapid cancel/replacement and MPEG-TS seek recovery in one ordinary window."
@@ -141,6 +143,8 @@ configuration = dict(mode=mode, media=str(media), output=str(output),
     minimizeRestoreProbe=os.environ.get('BOMU_BENCHMARK_MINIMIZE_RESTORE_PROBE', '1') != '0')
 if os.environ.get('BOMU_BENCHMARK_DISPLAY_ID'):
     configuration['displayID'] = os.environ['BOMU_BENCHMARK_DISPLAY_ID']
+if mode == 'ordinary-resize':
+    configuration['minimizeRestoreProbe'] = False
 timeout = 300
 if mode != 'playback':
     timeout = 1800

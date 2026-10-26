@@ -1,6 +1,5 @@
 import json
 import plistlib
-import plistlib
 from pathlib import Path
 import re
 import subprocess
@@ -10,7 +9,11 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 LOCALIZATION_APIS = (
     re.compile(r'(?:String\s*\(\s*localized|NSLocalizedString|LocalizedStringKey)\s*\(\s*"([^"]+)"'),
-    re.compile(r'(?:Text|Label|Button|Section|Toggle|Picker|TextField|ContentUnavailableView)\s*\(\s*"([^"]+)"'),
+    re.compile(
+        r'(?:Text|Label|Button|Menu|Section|Toggle|Picker|TextField|ProgressView|'
+        r'LabeledContent|NavigationLink|DisclosureGroup|GroupBox|ContentUnavailableView)'
+        r'\s*\(\s*"([^"]+)"'
+    ),
     re.compile(r'\.(?:alert|confirmationDialog)\s*\(\s*"([^"]+)"'),
 )
 

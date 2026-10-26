@@ -8,14 +8,20 @@ final class PlayerModel {
         fileprivate let revision: UInt64
     }
 
-    private(set) var state = PlaybackState()
+    private(set) var state = PlaybackState() {
+        didSet { publishPlaybackActivity() }
+    }
     private(set) var queue = PlaybackQueue()
-    private(set) var startupState: StartupState = .notStarted
+    private(set) var startupState: StartupState = .notStarted {
+        didSet { publishPlaybackActivity() }
+    }
     private(set) var persistenceError: String?
     private(set) var inputError: String?
     private(set) var historyClearError: String?
     private(set) var dataManagementError: String?
     private var pendingPause: PlaybackPauseRequest?
+    @ObservationIgnored private let onPlaybackActivityChanged: (@MainActor (Bool) -> Void)?
+    @ObservationIgnored private var lastPublishedPlaybackActivity = false
     @ObservationIgnored private let engine: any PlaybackEngine
     @ObservationIgnored private let historyStore: (any PlaybackHistoryPersisting)?
     @ObservationIgnored private let preferences: PlaybackPreferences
@@ -29,6 +35,7 @@ final class PlayerModel {
     @ObservationIgnored private var mediaImportTask: Task<Void, Never>?
     @ObservationIgnored private var mediaDiscoveryTask: Task<[URL], any Error>?
     @ObservationIgnored private var mediaImportID: UInt64 = 0
+    @ObservationIgnored private var historyBinding: PlaybackHistoryBinding?
     @ObservationIgnored private var resumeHistory: PlaybackHistory?
     @ObservationIgnored private var resumeMode: ResumeMode = .preference
     @ObservationIgnored private var lastRequestedVolume: Double?
@@ -82,7 +89,9 @@ final class PlayerModel {
     }
 
     init(engine: any PlaybackEngine, historyStore: (any PlaybackHistoryPersisting)? = nil,
-         preferences: PlaybackPreferences = PlaybackPreferences(), startupError: String? = nil) {
+         preferences: PlaybackPreferences = PlaybackPreferences(), startupError: String? = nil,
+         onPlaybackActivityChanged: (@MainActor (Bool) -> Void)? = nil) {
+        self.onPlaybackActivityChanged = onPlaybackActivityChanged
         self.engine = engine
         self.historyStore = historyStore
         self.preferences = preferences
@@ -219,6 +228,7 @@ final class PlayerModel {
         self.resumeMode = resumeMode
         historySuppressedRequestID = nil
         resumeHistory = nil
+        historyBinding = nil
         pendingPause = nil
         pendingSubtitleDelay = nil
         state.open(request)
@@ -484,6 +494,22 @@ final class PlayerModel {
         startupState = .shutDown
     }
 
+    /// Publish only resource-use transitions, never every playback-position snapshot.
+    private func publishPlaybackActivity() {
+        let active: Bool
+        if case .failed = startupState {
+            active = false
+        } else {
+            switch state.phase {
+            case .opening, .ready: active = true
+            case .idle, .ended, .failed: active = false
+            }
+        }
+        guard active != lastPublishedPlaybackActivity else { return }
+        lastPublishedPlaybackActivity = active
+        onPlaybackActivityChanged?(active)
+    }
+
     private func cancelPendingMediaImport() {
         mediaImportTask?.cancel()
         mediaImportTask = nil
@@ -565,9 +591,11 @@ final class PlayerModel {
             do {
                 _ = await pendingWrite?.value
                 try Task.checkCancellation()
-                let saved = try await historyStore.history(for: request.url)
+                let session = try await historyStore.openHistory(for: request.url)
                 guard !Task.isCancelled, let self,
                       self.state.request?.id == request.id, self.isPrepared else { return }
+                self.historyBinding = session.binding
+                let saved = try session.history.get()
                 let shouldResumePosition: Bool
                 switch self.resumeMode {
                 case .preference: shouldResumePosition = self.preferences.resumeFromLastPosition
@@ -617,6 +645,7 @@ final class PlayerModel {
     @discardableResult
     private func persistCurrentHistory() -> Task<Result<Void, Error>, Never>? {
         guard let historyStore, let request = state.request, let snapshot = state.snapshot,
+              let binding = historyBinding,
               historySuppressedRequestID != request.id,
               snapshot.position.isFinite, snapshot.position >= 0 else { return nil }
         let position = snapshot.position
@@ -627,14 +656,21 @@ final class PlayerModel {
         persistenceTask = Task { [weak self, historyStore] in
             _ = await pendingWrite?.value
             do {
-                try await historyStore.save(for: request.url, position: position,
+                try await historyStore.save(for: binding, position: position,
                                             audioTrackID: audioTrackID,
                                             subtitleTrackID: subtitleTrackID,
                                             volume: volume, updatedAt: .now)
-                self?.persistenceError = nil
+                if self?.state.request?.id == request.id { self?.persistenceError = nil }
                 return .success(())
             } catch {
-                self?.persistenceError = String(localized: "persistence.saveFailed")
+                if self?.state.request?.id == request.id {
+                    if case PlaybackHistoryError.mediaFileChanged = error {
+                        self?.historySuppressedRequestID = request.id
+                        self?.persistenceError = String(localized: "persistence.mediaFileChanged")
+                    } else {
+                        self?.persistenceError = String(localized: "persistence.saveFailed")
+                    }
+                }
                 return .failure(error)
             }
         }
@@ -642,19 +678,10 @@ final class PlayerModel {
     }
 
     private func persistCurrentHistoryAndWait() async {
-        _ = await persistenceTask?.value
-        guard let historyStore, let request = state.request, let snapshot = state.snapshot,
-              historySuppressedRequestID != request.id,
-              snapshot.position.isFinite, snapshot.position >= 0 else { return }
-        do {
-            try await historyStore.save(for: request.url, position: snapshot.position,
-                                        audioTrackID: snapshot.audioTrackID,
-                                        subtitleTrackID: snapshot.subtitleTrackID,
-                                        volume: lastRequestedVolume ?? min(100, max(0, snapshot.volume)),
-                                        updatedAt: .now)
-            persistenceError = nil
-        } catch {
-            persistenceError = String(localized: "persistence.saveFailed")
+        if let checkpoint = persistCurrentHistory() {
+            _ = await checkpoint.value
+        } else {
+            _ = await persistenceTask?.value
         }
     }
 }

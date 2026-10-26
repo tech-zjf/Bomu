@@ -6,6 +6,7 @@ import GRDB
 /// Owns durable media identity, resume history, and their schema migrations.
 actor PlaybackHistoryStore: MediaLibraryPersisting {
     private let database: DatabaseQueue
+    private let migrationBackup: DatabaseMigrationBackup?
     private var closingScanIDs: Set<String> = []
     private var failedScanFinalizations: [String: ScanFinalization] = [:]
 
@@ -26,7 +27,18 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             try db.execute(sql: "PRAGMA journal_mode = WAL")
         }
         database = try DatabaseQueue(path: path, configuration: configuration)
-        try Self.makeMigrator().migrate(database)
+        migrationBackup = DatabaseMigrationBackup(databasePath: path)
+        if let migrationBackup {
+            try migrationBackup.migrate(database, using: Self.makeMigrator())
+        } else {
+            try Self.makeMigrator().migrate(database)
+        }
+        // A privacy migration can purge historical rows. Retaining its pre-upgrade
+        // snapshot would make those rows recoverable despite the existing exclusion.
+        let hasPrivacyRules = try database.read { db in
+            try Bool.fetchOne(db, sql: "SELECT EXISTS(SELECT 1 FROM private_media_roots)") == true
+        }
+        if hasPrivacyRules { try migrationBackup?.discard() }
         try database.write { db in
             try db.execute(
                 sql: """
@@ -39,49 +51,107 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         }
     }
 
-    static func applicationStore() throws -> PlaybackHistoryStore {
+    static func applicationStore(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) throws -> PlaybackHistoryStore {
+        let databaseDirectory: URL
+        #if DEBUG
+        if let acceptanceDirectory = try debugAcceptanceDirectory(environment: environment) {
+            databaseDirectory = acceptanceDirectory
+        } else {
+            databaseDirectory = try defaultDatabaseDirectory()
+        }
+        #else
+        databaseDirectory = try defaultDatabaseDirectory()
+        #endif
+        return try PlaybackHistoryStore(path: databaseDirectory.appending(path: "playback.sqlite").path)
+    }
+
+    private static func defaultDatabaseDirectory() throws -> URL {
         let supportDirectory = try FileManager.default.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
             create: true
         )
-        let databaseDirectory = supportDirectory.appending(path: "Bomu", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: databaseDirectory, withIntermediateDirectories: true)
-        return try PlaybackHistoryStore(path: databaseDirectory.appending(path: "playback.sqlite").path)
+        let directory = supportDirectory.appending(path: "Bomu", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    #if DEBUG
+    /// A visible empty-library run uses a disposable directory without moving the user's database.
+    /// Invalid opt-in is an error; silently falling back would expose real library data to the test.
+    static func debugAcceptanceDirectory(environment: [String: String]) throws -> URL? {
+        guard let path = environment["BOMU_ACCEPTANCE_LIBRARY_DIRECTORY"] else { return nil }
+        let temporaryRoot = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().standardizedFileURL
+        let directory = URL(fileURLWithPath: path, isDirectory: true)
+            .resolvingSymlinksInPath().standardizedFileURL
+        guard (path as NSString).isAbsolutePath,
+              directory.path.hasPrefix(temporaryRoot.path + "/"),
+              let directoryValues = try? directory.resourceValues(forKeys: [.isDirectoryKey]),
+              directoryValues.isDirectory == true else {
+            throw AcceptanceStorageError.invalidDirectory
+        }
+        let marker = directory.appending(path: ".bomu-acceptance-library")
+        guard let markerValues = try? marker.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
+              markerValues.isRegularFile == true, markerValues.isSymbolicLink != true,
+              (try? String(contentsOf: marker, encoding: .utf8)) == "Bomu isolated acceptance library\n" else {
+            throw AcceptanceStorageError.invalidDirectory
+        }
+        return directory
+    }
+
+    private enum AcceptanceStorageError: LocalizedError {
+        case invalidDirectory
+
+        var errorDescription: String? { String(localized: "library.unavailable") }
+    }
+    #endif
+
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
+        let identity = try Self.identity(for: url)
+        let history: Result<PlaybackHistory?, any Error>
+        do {
+            let saved: PlaybackHistory? = try await database.write { db in
+                let mediaFileID = try Self.resolve(identity, in: db)
+                try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
+                if try Self.isHistoryExcluded(volumeID: identity.volumeID,
+                                              relativePath: identity.relativePath, in: db) {
+                    try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
+                    return nil
+                }
+                guard let row = try Row.fetchOne(
+                    db,
+                    sql: """
+                    SELECT media_file_id, relative_path, position, audio_track_id,
+                           subtitle_track_id, volume, updated_at
+                    FROM playback_history
+                    JOIN media_files ON media_files.id = playback_history.media_file_id
+                    WHERE media_file_id = ?
+                    """,
+                    arguments: [mediaFileID]
+                ) else { return nil }
+                return PlaybackHistory(
+                    mediaFileID: row["media_file_id"],
+                    relativePath: row["relative_path"],
+                    position: row["position"],
+                    audioTrackID: row["audio_track_id"],
+                    subtitleTrackID: row["subtitle_track_id"],
+                    volume: row["volume"],
+                    updatedAt: Date(timeIntervalSince1970: row["updated_at"])
+                )
+            }
+            history = .success(saved)
+        } catch {
+            history = .failure(error)
+        }
+        return PlaybackHistorySession(binding: PlaybackHistoryBinding(url: url, identity: identity),
+                                      history: history)
     }
 
     func history(for url: URL) async throws -> PlaybackHistory? {
-        let identity = try Self.identity(for: url)
-        return try await database.write { db in
-            let mediaFileID = try Self.resolve(identity, in: db)
-            try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
-            if try Self.isHistoryExcluded(volumeID: identity.volumeID,
-                                          relativePath: identity.relativePath, in: db) {
-                try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?", arguments: [mediaFileID])
-                return nil
-            }
-            guard let row = try Row.fetchOne(
-                db,
-                sql: """
-                SELECT media_file_id, relative_path, position, audio_track_id,
-                       subtitle_track_id, volume, updated_at
-                FROM playback_history
-                JOIN media_files ON media_files.id = playback_history.media_file_id
-                WHERE media_file_id = ?
-                """,
-                arguments: [mediaFileID]
-            ) else { return nil }
-            return PlaybackHistory(
-                mediaFileID: row["media_file_id"],
-                relativePath: row["relative_path"],
-                position: row["position"],
-                audioTrackID: row["audio_track_id"],
-                subtitleTrackID: row["subtitle_track_id"],
-                volume: row["volume"],
-                updatedAt: Date(timeIntervalSince1970: row["updated_at"])
-            )
-        }
+        try await openHistory(for: url).history.get()
     }
 
     /// Makes a discovered file queryable before metadata extraction or thumbnail work begins.
@@ -536,7 +606,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     func save(
-        for url: URL,
+        for binding: PlaybackHistoryBinding,
         position: Double,
         audioTrackID: Int? = nil,
         subtitleTrackID: Int? = nil,
@@ -549,8 +619,29 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         guard volume.isFinite, (0...100).contains(volume) else {
             throw PlaybackHistoryError.invalidVolume
         }
+        let url = binding.url
         let identity = try Self.identity(for: url)
+        let expected = binding.identity
+        guard identity.volumeID == expected.volumeID,
+              identity.fileNumber == expected.fileNumber,
+              identity.contentRevision == expected.contentRevision,
+              identity.contentFingerprint == expected.contentFingerprint else {
+            throw PlaybackHistoryError.mediaFileChanged
+        }
         try await database.write { db in
+            // A scan may already have recorded another version while this write
+            // waited for SQLite. Never let an older capture replace that record.
+            if let indexed = try Self.existingFile(volumeID: expected.volumeID,
+                                                   resourceID: expected.resourceID, in: db) {
+                let revision: String = indexed["content_revision"]
+                let fingerprint: String? = indexed["content_fingerprint"]
+                guard revision == expected.contentRevision else {
+                    throw PlaybackHistoryError.mediaFileChanged
+                }
+                if let fingerprint, fingerprint != expected.contentFingerprint {
+                    throw PlaybackHistoryError.mediaFileChanged
+                }
+            }
             let mediaFileID = try Self.resolve(identity, in: db)
             try Self.migrateLegacyHistory(for: url, mediaFileID: mediaFileID, in: db)
             if try Self.isHistoryExcluded(volumeID: identity.volumeID,
@@ -583,6 +674,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     func clearAll() async throws {
+        try migrationBackup?.discard()
         try await database.write { db in
             try db.execute(sql: "DELETE FROM playback_history")
             try db.execute(sql: "DELETE FROM playback_history_legacy")
@@ -591,6 +683,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     func clearLibraryRecords() async throws {
+        try migrationBackup?.discard()
         try await database.write { db in
             try db.execute(sql: "DELETE FROM media_sources")
             try db.execute(sql: "DELETE FROM playback_history_legacy")
@@ -711,6 +804,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
 
     func importArchive(_ data: Data) async throws -> MediaLibraryImportResult {
         let archive = try Self.decodeArchive(data)
+        if !archive.privateFolders.isEmpty { try migrationBackup?.discard() }
         return try await database.write { db in
             let matches = try Self.matchArchiveFiles(archive, in: db)
             let now = Date.now.timeIntervalSince1970
@@ -833,23 +927,23 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         guard validSpeeds.contains(archive.settings.defaultSpeed),
               archive.settings.defaultSubtitleDelay.isFinite,
               (-30...30).contains(archive.settings.defaultSubtitleDelay) else {
-            throw MediaLibraryArchiveError.invalidContent("The playback settings are outside supported limits.")
+            throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidSettings"))
         }
         for source in archive.sources {
             guard !source.volumeID.isEmpty else {
-                throw MediaLibraryArchiveError.invalidContent("A media source has no volume identity.")
+                throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveMissingVolume"))
             }
             var rootPaths = Set<String>()
             for root in source.roots {
                 guard Self.isValidRelativePath(root.relativePath, allowingEmpty: true),
                       rootPaths.insert(root.relativePath).inserted else {
-                    throw MediaLibraryArchiveError.invalidContent("A media source path is invalid or duplicated.")
+                    throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidSourcePath"))
                 }
             }
         }
         for folder in archive.privateFolders where
             folder.volumeID.isEmpty || !Self.isValidRelativePath(folder.relativePath, allowingEmpty: true) {
-            throw MediaLibraryArchiveError.invalidContent("A private folder path is invalid.")
+            throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidPrivatePath"))
         }
         var logicalIDs = Set<String>()
         for file in archive.files {
@@ -864,20 +958,20 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                   Self.isValidRelativePath(file.relativePath, allowingEmpty: false),
                   file.byteCount >= 0,
                   logicalIDs.insert(file.logicalID).inserted else {
-                throw MediaLibraryArchiveError.invalidContent("A file identity is invalid or duplicated.")
+                throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidIdentity"))
             }
             if archive.schemaVersion == 2,
                !(file.contentFingerprint.map(Self.isValidContentFingerprint) ?? false) {
-                throw MediaLibraryArchiveError.invalidContent("A version 2 file has no valid content fingerprint.")
+                throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveMissingFingerprint"))
             }
             for membership in file.memberships where
                 !Self.isValidRelativePath(membership.rootPath, allowingEmpty: true) {
-                throw MediaLibraryArchiveError.invalidContent("A media file membership path is invalid.")
+                throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidMembership"))
             }
             if let history = file.history {
                 guard history.position.isFinite, history.position >= 0,
                       history.volume.isFinite, (0...100).contains(history.volume) else {
-                    throw MediaLibraryArchiveError.invalidContent("A playback checkpoint is outside supported limits.")
+                    throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidCheckpoint"))
                 }
             }
         }
@@ -927,7 +1021,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             let mediaFileID: Int64 = candidate["id"]
             let relativePath: String = candidate["relative_path"]
             guard usedFileIDs.insert(mediaFileID).inserted else {
-                throw MediaLibraryArchiveError.invalidContent("Multiple archive entries resolve to the same media file.")
+                throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveConflictingFiles"))
             }
             matches.append(ArchiveMatch(file: file, mediaFileID: mediaFileID,
                                         relativePath: relativePath))
@@ -949,6 +1043,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             if hasScopedAccess { folder.stopAccessingSecurityScopedResource() }
         }
         let source = try Self.sourceIdentity(for: folder)
+        if excluded { try migrationBackup?.discard() }
         try await database.write { db in
             if excluded {
                 try db.execute(
@@ -1205,7 +1300,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
               let volumeURL = values.volume,
               let byteCount = values.fileSize,
               let modifiedAt = values.contentModificationDate else {
-            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: "Required volume or file metadata is unavailable.")
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: String(localized: "error.fileMetadataUnavailable"))
         }
 
         var metadata = stat()
@@ -1228,7 +1323,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         } else if filePath.hasPrefix(rootPath + "/") {
             relativePath = String(filePath.dropFirst(rootPath.count + 1))
         } else {
-            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: "The file is outside its reported volume root.")
+            throw PlaybackHistoryError.identityUnavailable(url.path, underlying: String(localized: "error.fileOutsideVolume"))
         }
 
         let modified = metadata.st_mtimespec
@@ -1337,7 +1432,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         }
         guard values.isDirectory == true, let volumeID = values.volumeUUIDString, !volumeID.isEmpty,
               let volumeURL = values.volume else {
-            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: "Required volume or folder metadata is unavailable.")
+            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: String(localized: "error.folderMetadataUnavailable"))
         }
         let rootPath = volumeURL.standardizedFileURL.path
         let folderPath = resolvedURL.path
@@ -1349,7 +1444,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         } else if folderPath.hasPrefix(rootPath + "/") {
             relativePath = String(folderPath.dropFirst(rootPath.count + 1))
         } else {
-            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: "The folder is outside its reported volume root.")
+            throw PlaybackHistoryError.identityUnavailable(folder.path, underlying: String(localized: "error.folderOutsideVolume"))
         }
         return (volumeID, values.volumeName ?? volumeURL.lastPathComponent, relativePath, resolvedURL.lastPathComponent)
     }

@@ -16,6 +16,10 @@
 "library.loading" = "Loading your library…";
 "library.homeTitle" = "Pick up where you left off.";
 "library.homeSubtitle" = "Your memories, all in one place.";
+"library.welcomeKicker" = "WELCOME TO BOMU";
+"library.welcomeTitle" = "Open a video.\nEnjoy the moment.";
+"library.welcomeMessage" = "Films, trips, and everyday moments.\nYour familiar folders, in a comfortable place to watch.";
+"library.welcomePrivacy" = "Local playback · No account needed";
 "library.librarySubtitle" = "Browse media added on this Mac.";
 "library.foldersSubtitle" = "Manage locations on this Mac and external disks.";
 "library.favoritesSubtitle" = "Your favorite local media.";
@@ -54,6 +58,7 @@
 "library.folderDensity" = "Folder Layout";
 "library.folderDensity.grid" = "Grid";
 "library.folderDensity.list" = "List";
+"library.libraryDensity" = "Library Layout";
 "library.folderEmptyTitle" = "No indexed media in this folder";
 "library.folderEmptyMessage" = "Subfolders and media will appear here after a scan.";
 "library.folderBreadcrumb" = "Folder Path";
@@ -70,6 +75,12 @@
 "library.metadata.loading" = "Reading media…";
 "library.categoryFilter" = "Category";
 "library.watchedFilter" = "Viewing status";
+"library.sort" = "Sort";
+"library.sort.recentlyAdded" = "Recently Added";
+"library.sort.name" = "Name";
+"library.sort.duration" = "Duration";
+"library.sort.durationLoading" = "Measuring durations: %ld of %ld";
+"library.sort.durationUnknownLast" = "Media with unknown duration appears last.";
 "library.filter.allCategories" = "All categories";
 "library.filter.unclassified" = "Unclassified";
 "library.filter.all" = "All";
@@ -181,6 +192,7 @@
 "settings.import.apply" = "Import Matched Records";
 "settings.import.confirmMessage" = "%d files match this Mac. %d files will be skipped. Existing data for %d matched files will be replaced. Playback settings, source folders, and private-folder rules will also be restored. Existing viewing history in private folders will be removed.";
 "settings.import.success" = "Imported %d files. Skipped %d files that could not be matched.";
+"settings.import.retryAfterScan" = "If you cleared this library, wait for the restored folders to finish scanning, then import the same archive again to restore file records.";
 "settings.data.export" = "Export Media Library Data";
 "settings.data.section" = "Local data";
 "settings.data.location" = "Storage";
@@ -227,3 +239,43 @@
 "player.buffering" = "Buffering…";
 
 "error.mediaIdentityConflict" = "Multiple library records identify this file. Existing records were preserved.";
+
+"persistence.mediaFileChanged" = "This file changed during playback. Reopen it to save progress for the current version.";
+
+"persistence.mediaFileChanged" = "This file changed during playback. Reopen it to save progress for the current version.";
+
+"menu.settings" = "Settings…";
+"library.restoreBackup" = "Restore from Backup…";
+
+"persistence.invalidMigrationBackup" = "The migration backup is damaged. The library was preserved without upgrading.";
+"persistence.newerDatabaseSchema" = "This library was created by a newer version of Bomu. Open it with that version.";
+
+/* Persistence and scan errors */
+"error.invalidPlaybackPosition" = "Playback position must be a finite nonnegative value.";
+"error.invalidPlaybackVolume" = "Playback volume must be between 0 and 100.";
+"error.missingSourceRoot" = "The selected media folder could not be recorded.";
+"error.invalidLibraryPreference" = "The requested media library preference is not supported.";
+"error.scanAlreadyRunning" = "This media folder is already being scanned.";
+"error.libraryUnavailable" = "The local media library is unavailable.";
+"error.mediaFileUnavailable" = "The media file is no longer available at %@.";
+"error.identityUnavailable" = "Unable to identify media file at %@: %@";
+"error.unknownScan" = "The library scan is no longer active: %@";
+"error.missingMediaFile" = "The media file is no longer indexed: %lld";
+"error.unavailableRoot" = "The selected folder is unavailable: %@";
+"error.cannotEnumerate" = "The selected folder could not be scanned: %@";
+"error.archiveTooLarge" = "The media library archive exceeds the supported size limit.";
+"error.archiveUnsupportedSchema" = "This media library archive version is not supported: %lld.";
+"error.archiveInvalidContent" = "The media library archive is invalid: %@";
+"error.archiveInvalidSettings" = "The playback settings are outside supported limits.";
+"error.archiveMissingVolume" = "A media source has no volume identity.";
+"error.archiveInvalidSourcePath" = "A media source path is invalid or duplicated.";
+"error.archiveInvalidPrivatePath" = "A private folder path is invalid.";
+"error.archiveInvalidIdentity" = "A file identity is invalid or duplicated.";
+"error.archiveMissingFingerprint" = "A version 2 file has no valid content fingerprint.";
+"error.archiveInvalidMembership" = "A media file membership path is invalid.";
+"error.archiveInvalidCheckpoint" = "A playback checkpoint is outside supported limits.";
+"error.archiveConflictingFiles" = "Multiple archive entries resolve to the same media file.";
+"error.fileMetadataUnavailable" = "Required volume or file metadata is unavailable.";
+"error.fileOutsideVolume" = "The file is outside its reported volume root.";
+"error.folderMetadataUnavailable" = "Required volume or folder metadata is unavailable.";
+"error.folderOutsideVolume" = "The folder is outside its reported volume root.";

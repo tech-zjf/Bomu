@@ -3,6 +3,114 @@ import XCTest
 
 @MainActor
 final class PlayerModelTests: XCTestCase {
+    func testPlaybackActivityPublishesOnlyResourceTransitions() async throws {
+        let engine = RecordingPlaybackEngine()
+        var changes: [Bool] = []
+        let player = PlayerModel(engine: engine, onPlaybackActivityChanged: { changes.append($0) })
+        player.open(URL(filePath: "/media/first.mp4"))
+        try await waitUntilPrepared(player)
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        for position in 0..<10 {
+            engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+                position: Double(position), duration: 120, isPaused: position > 5,
+                isSeeking: false, isBuffering: false, isSeekable: true, volume: 80)))
+        }
+        XCTAssertEqual(changes, [true], "Ready, position and pause updates retain one conservative playback budget")
+        player.stop()
+        player.open(URL(filePath: "/media/second.mp4"))
+        let secondID = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.failed(id, PlaybackFailure(kind: .engine)))
+        XCTAssertEqual(changes, [true, false, true], "A stale event must not release the current budget")
+        engine.onEvent?(.failed(secondID, PlaybackFailure(kind: .engine)))
+        XCTAssertEqual(changes, [true, false, true, false])
+        await player.shutdown()
+    }
+
+    func testPreparationFailureReleasesPlaybackBudget() async throws {
+        let engine = RecordingPlaybackEngine()
+        engine.shouldFailPreparation = true
+        var changes: [Bool] = []
+        let player = PlayerModel(engine: engine, onPlaybackActivityChanged: { changes.append($0) })
+        player.open(URL(filePath: "/media/first.mp4"))
+        try await waitUntil {
+            if case .failed = player.startupState { return true }
+            return false
+        }
+        XCTAssertEqual(changes, [true, false])
+        await player.shutdown()
+    }
+
+    func testReplacementFileCannotReceiveOldPlaybackCheckpoints() async throws {
+        for action in ["checkpoint", "switch", "shutdown"] {
+            let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+            let media = directory.appending(path: "active.mp4")
+            let next = directory.appending(path: "next.mp4")
+            try Data(repeating: 0x41, count: 1024).write(to: media)
+            try Data(repeating: 0x43, count: 1024).write(to: next)
+            let originalID = try await store.indexMediaFile(at: media)
+            let engine = RecordingPlaybackEngine()
+            let player = PlayerModel(engine: engine, historyStore: store)
+            player.open(media)
+            try await waitUntil { engine.requests.count == 1 }
+            let requestID = try XCTUnwrap(engine.requests.first?.id)
+            engine.onEvent?(.loaded(requestID))
+            engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: requestID, pauseCommandID: 0,
+                position: 42, duration: 120, isPaused: false, isSeeking: false,
+                isBuffering: false, isSeekable: true, volume: 80)))
+            // No previous checkpoint exists: identity must still be bound at open.
+            try Data(repeating: 0x42, count: 2048).write(to: media, options: .atomic)
+            let replacementID = try await store.indexMediaFile(at: media)
+            XCTAssertNotEqual(originalID, replacementID)
+            switch action {
+            case "checkpoint":
+                do {
+                    try await player.checkpointPlaybackHistory()
+                    XCTFail("A stale checkpoint must fail explicitly")
+                } catch PlaybackHistoryError.mediaFileChanged { }
+                XCTAssertNotNil(player.persistenceError)
+            case "switch":
+                player.open(next)
+                try await waitUntil { engine.requests.count == 2 }
+                XCTAssertNil(player.persistenceError, "The old write must not alter the new request's error")
+            default:
+                break
+            }
+            await player.shutdown()
+            let replacementHistory = try await store.history(for: media)
+            XCTAssertNil(replacementHistory, "Old progress leaked through \(action)")
+        }
+    }
+
+    func testSettingsRouteWorksWithoutLibraryAndCancelsPendingReturn() async throws {
+        let navigation = MainWindowNavigation()
+        XCTAssertEqual(navigation.libraryPage, .destination(.home))
+        navigation.showSettings(section: .storage)
+        XCTAssertEqual(navigation.libraryPage, .settings)
+        XCTAssertEqual(navigation.settingsSection, .storage)
+        XCTAssertFalse(navigation.isPlayerVisible)
+        navigation.showPlayer()
+        let gate = RecordScanGate()
+        var started = false
+        var finished = false
+        navigation.showLibrary {
+            started = true
+            await gate.wait()
+            finished = true
+        }
+        try await waitUntil { started }
+        navigation.showSettings()
+        XCTAssertFalse(navigation.isPlayerVisible, "Settings must not wait for library I/O")
+        navigation.showPlayer()
+        await gate.release()
+        try await waitUntil { finished }
+        XCTAssertTrue(navigation.isPlayerVisible, "A cancelled return cannot hide newer playback")
+        XCTAssertEqual(navigation.settingsSection, .storage)
+    }
+
     func testMenuCommandsCannotAffectReplacementQueueOrPlaybackSpeed() async throws {
         let engine = RecordingPlaybackEngine()
         let player = PlayerModel(engine: engine)
@@ -345,7 +453,7 @@ final class PlayerModelTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: databasePath)
         let url = directory.appending(path: "resume.mkv")
         try Data("checkpoint contention".utf8).write(to: url)
-        try await store.save(for: url, position: 10, audioTrackID: 2, subtitleTrackID: 3, volume: 40)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 10, audioTrackID: 2, subtitleTrackID: 3, volume: 40)
         let engine = RecordingPlaybackEngine()
         let player = PlayerModel(engine: engine, historyStore: store)
         player.open(url)
@@ -410,7 +518,7 @@ final class PlayerModelTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: databaseURL.path)
         let url = directory.appending(path: "resume.mkv")
         try Data("resume media".utf8).write(to: url)
-        try await store.save(for: url, position: 42, audioTrackID: 3,
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, audioTrackID: 3,
                              subtitleTrackID: 5, volume: 37)
         let engine = RecordingPlaybackEngine()
         let player = PlayerModel(engine: engine, historyStore: store)
@@ -552,7 +660,7 @@ final class PlayerModelTests: XCTestCase {
         let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).mp4")
         try Data("resume choice".utf8).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 42, audioTrackID: 2, volume: 70)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, audioTrackID: 2, volume: 70)
         let suiteName = "Bomu.ResumeChoice.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defaults.set(false, forKey: "playback.resumeFromLastPosition")
@@ -595,7 +703,7 @@ final class PlayerModelTests: XCTestCase {
         try Data("replay from beginning".utf8).write(to: url)
         try Data("next queued episode".utf8).write(to: nextURL)
         defer { try? FileManager.default.removeItem(at: directory) }
-        try await store.save(for: url, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, volume: 70)
         let suite = "Bomu.ReplayFromBeginning.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defaults.set(false, forKey: "playback.automaticallyPlayNext")
@@ -640,7 +748,7 @@ final class PlayerModelTests: XCTestCase {
         let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).mp4")
         try Data("retry resume choice".utf8).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, volume: 70)
         let suite = "Bomu.RetryResumeChoice.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defaults.set(false, forKey: "playback.resumeFromLastPosition")
@@ -862,7 +970,7 @@ final class PlayerModelTests: XCTestCase {
         let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).mp4")
         try Data("clear history".utf8).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 42, volume: 80)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, volume: 80)
         let player = PlayerModel(engine: engine, historyStore: store)
         player.open(url)
         try await waitUntilPrepared(player)
@@ -1253,7 +1361,7 @@ final class PlayerModelTests: XCTestCase {
             try? FileManager.default.removeItem(at: fixture.root)
         }
         let item = try XCTUnwrap(fixture.library.items.first)
-        try await fixture.store.save(for: fixture.media, position: 42, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 42, volume: 70)
         await fixture.library.toggleFavorite(item)
         XCTAssertEqual(fixture.library.continueWatching.count, 1)
 
@@ -1278,7 +1386,7 @@ final class PlayerModelTests: XCTestCase {
             fixture.defaults.removePersistentDomain(forName: fixture.suite)
             try? FileManager.default.removeItem(at: fixture.root)
         }
-        try await fixture.store.save(for: fixture.media, position: 42, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 42, volume: 70)
         await fixture.library.refresh()
         let connection = try DatabaseQueue(path: fixture.databasePath)
         try await connection.write { db in
@@ -1532,7 +1640,7 @@ final class PlayerModelTests: XCTestCase {
             try? FileManager.default.removeItem(at: fixture.root)
         }
         let item = try XCTUnwrap(fixture.library.items.first)
-        try await fixture.store.save(for: fixture.media, position: 42, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 42, volume: 70)
         await fixture.library.toggleFavorite(item)
         XCTAssertEqual(fixture.library.continueWatching.count, 1)
 
@@ -1553,14 +1661,14 @@ final class PlayerModelTests: XCTestCase {
         XCTAssertEqual(fixture.library.items.count, 1)
         XCTAssertEqual(fixture.library.favorites.count, 1)
         XCTAssertEqual(fixture.library.roots.count, 1)
-        try await fixture.store.save(for: fixture.media, position: 55, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 55, volume: 70)
         let excludedHistory = try await fixture.store.history(for: fixture.media)
         XCTAssertNil(excludedHistory)
         let rules = try await fixture.player.historyExcludedFolders()
         let rule = try XCTUnwrap(rules.first)
         try await fixture.operations.removeHistoryExclusion(rule)
         XCTAssertTrue(fixture.library.continueWatching.isEmpty, "Removing a rule must not resurrect history")
-        try await fixture.store.save(for: fixture.media, position: 67, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 67, volume: 70)
         await fixture.library.refresh()
         XCTAssertEqual(fixture.library.continueWatching.first?.playbackPosition, 67)
         XCTAssertEqual(try Data(contentsOf: fixture.media), Data("original media".utf8))
@@ -1584,7 +1692,7 @@ final class PlayerModelTests: XCTestCase {
             fixture.defaults.removePersistentDomain(forName: fixture.suite)
             try? FileManager.default.removeItem(at: fixture.root)
         }
-        try await fixture.store.save(for: fixture.media, position: 42, volume: 70)
+        try await fixture.store.save(for: try await fixture.store.openHistory(for: fixture.media).binding, position: 42, volume: 70)
         await fixture.library.refresh()
         let connection = try DatabaseQueue(path: fixture.databasePath)
         try await connection.write { db in
@@ -1840,9 +1948,11 @@ private actor FailingLibraryStore: MediaLibraryPersisting {
         self.failingClearAllCalls = failingClearAllCalls
     }
 
-    func history(for url: URL) async throws -> PlaybackHistory? { nil }
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
+        stubHistorySession(for: url)
+    }
 
-    func save(for url: URL, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
               volume: Double, updatedAt: Date) async throws {
         saveCount += 1
     }
@@ -1876,9 +1986,11 @@ private actor BlockingHistoryStore: PlaybackHistoryPersisting {
     private var saveStartWaiters: [CheckedContinuation<Void, Never>] = []
     private var pendingSave: CheckedContinuation<Void, Never>?
 
-    func history(for url: URL) async throws -> PlaybackHistory? { nil }
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
+        stubHistorySession(for: url)
+    }
 
-    func save(for url: URL, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
               volume: Double, updatedAt: Date) async throws {
         saveStarted = true
         let waiters = saveStartWaiters
@@ -1908,9 +2020,11 @@ private actor FailingHistoryStore: PlaybackHistoryPersisting {
 
     private(set) var saveCount = 0
 
-    func history(for url: URL) async throws -> PlaybackHistory? { nil }
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
+        stubHistorySession(for: url)
+    }
 
-    func save(for url: URL, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
               volume: Double, updatedAt: Date) async throws {
         saveCount += 1
         throw Failure.checkpoint
@@ -1922,11 +2036,11 @@ private actor FailingHistoryStore: PlaybackHistoryPersisting {
 private actor ConflictingHistoryStore: PlaybackHistoryPersisting {
     private(set) var saveCount = 0
 
-    func history(for url: URL) async throws -> PlaybackHistory? {
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
         throw PlaybackHistoryError.ambiguousMediaIdentity
     }
 
-    func save(for url: URL, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
               volume: Double, updatedAt: Date) async throws {
         saveCount += 1
         throw PlaybackHistoryError.ambiguousMediaIdentity
@@ -1966,3 +2080,10 @@ private struct GatedRecordScanner: MediaLibraryScanning {
     }
 }
 
+
+private func stubHistorySession(for url: URL) -> PlaybackHistorySession {
+    PlaybackHistorySession(binding: PlaybackHistoryBinding(url: url, identity: MediaFileIdentity(
+        volumeID: "test", fileNumber: "1", contentRevision: "1", contentFingerprint: "test",
+        legacyContentFingerprint: nil, relativePath: url.lastPathComponent, volumeName: "Test",
+        byteCount: 0, modifiedAt: .distantPast)), history: .success(nil))
+}

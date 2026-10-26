@@ -143,6 +143,60 @@ class WindowSummaryTests(unittest.TestCase):
         self.assertIn('Completed single-window cycles', summary)
         self.assertIn('OpenGL GPU query mode: elapsed', summary)
 
+    def add_ordinary_resize_rounds(self):
+        self.report.update(schemaVersion=9, scenario='ordinary-resize', requestedCycles=100,
+                           requestedInitialDisplayID=1,
+                           minimizeRestoreProbeSkippedReason='Single-display resize check')
+        self.add_soak_samples()
+        self.report['shutdown']['graphicsContextAlive'] = False
+        self.report['rounds'] = [
+            {'cycle': cycle, 'checkpoint': {
+                'elapsedSeconds': float(cycle), 'displayID': 1, 'backingScale': 2,
+                'contentWidth': 960 if cycle % 2 == 0 else 920,
+                'contentHeight': 600 if cycle % 2 == 0 else 640,
+                'process': {'physicalFootprintBytes': 2**20},
+                'playback': {'videoFrameCount': cycle * 30, 'coreCreationCount': 1,
+                             'renderContextCreationCount': 1}}}
+            for cycle in range(1, 101)
+        ]
+
+    def test_ordinary_resize_accepts_only_one_hundred_verified_sizes(self):
+        self.add_ordinary_resize_rounds()
+        summary = self.summarize()
+        self.assertIn('Completed ordinary-resize cycles: 100/100', summary)
+        self.assertIn('960×600 and 920×640 content points', summary)
+        self.report['rounds'][49]['checkpoint']['contentWidth'] = 900
+        with self.assertRaisesRegex(SystemExit, 'cycle 50 lacks its requested content size'):
+            self.summarize()
+
+    def test_ordinary_resize_rejects_partial_or_recreated_session(self):
+        self.add_ordinary_resize_rounds()
+        self.report['rounds'].pop()
+        with self.assertRaisesRegex(SystemExit, '100 completed cycles'):
+            self.summarize()
+        self.add_ordinary_resize_rounds()
+        self.report['rounds'][9]['checkpoint']['playback']['coreCreationCount'] = 2
+        with self.assertRaisesRegex(SystemExit, 'replaced the native playback session'):
+            self.summarize()
+        self.add_ordinary_resize_rounds()
+        self.report['rounds'][9]['checkpoint']['playback']['videoFrameCount'] = 270
+        with self.assertRaisesRegex(SystemExit, 'lacks a new video frame'):
+            self.summarize()
+
+    def test_ordinary_resize_requires_same_display_and_released_resources(self):
+        self.add_ordinary_resize_rounds()
+        self.report['soak'][1]['displayID'] = 2
+        with self.assertRaisesRegex(SystemExit, 'continuous playback changed displays'):
+            self.summarize()
+        self.report['soak'][1]['displayID'] = 1
+        self.report['shutdown']['graphicsContextAlive'] = True
+        with self.assertRaisesRegex(SystemExit, 'native resources were not confirmed released'):
+            self.summarize()
+        self.report['shutdown']['graphicsContextAlive'] = False
+        self.report['minimizeRestoreProbeSkippedReason'] = None
+        with self.assertRaisesRegex(SystemExit, 'must skip the minimize/restore probe'):
+            self.summarize()
+
     def test_partial_media_suite_cannot_pass(self):
         self.add_native_probe()
         self.report['scenario'] = 'media-suite'

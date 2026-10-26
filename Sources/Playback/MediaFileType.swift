@@ -12,8 +12,11 @@ enum MediaFileType {
     ]
 
     static let openPanelContentTypes: [UTType] = {
-        let videoTypes = videoExtensions.compactMap { UTType(filenameExtension: $0, conformingTo: .movie) }
-        let audioTypes = audioExtensions.compactMap { UTType(filenameExtension: $0, conformingTo: .audio) }
+        // Match the type macOS assigns to each file. Forcing an unregistered
+        // extension to conform to movie/audio creates a different dynamic type,
+        // which leaves the actual file disabled in NSOpenPanel.
+        let videoTypes = videoExtensions.compactMap { UTType(filenameExtension: $0) }
+        let audioTypes = audioExtensions.compactMap { UTType(filenameExtension: $0) }
         return [.movie, .audio, .audiovisualContent] + videoTypes + audioTypes
     }()
 

@@ -4,6 +4,206 @@ import GRDB
 import XCTest
 
 final class PlaybackHistoryStoreTests: XCTestCase {
+    func testDebugAcceptanceLibraryUsesOnlyMarkedTemporaryDirectory() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "bomu-acceptance-\(UUID().uuidString)")
+        let directory = root.appending(path: "library")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let key = "BOMU_ACCEPTANCE_LIBRARY_DIRECTORY"
+        let environment = [key: directory.path]
+        XCTAssertThrowsError(try PlaybackHistoryStore.debugAcceptanceDirectory(environment: environment),
+                             "An unmarked directory must never fall back to the real library")
+
+        let marker = directory.appending(path: ".bomu-acceptance-library")
+        try "Bomu isolated acceptance library\n".write(to: marker, atomically: true, encoding: .utf8)
+        let selected = try XCTUnwrap(PlaybackHistoryStore.debugAcceptanceDirectory(environment: environment))
+        XCTAssertEqual(selected, directory.resolvingSymlinksInPath().standardizedFileURL)
+        let store = try PlaybackHistoryStore.applicationStore(environment: environment)
+        let archive = try await store.exportArchive(settings: Self.testSettings)
+        XCTAssertTrue(try XCTUnwrap(JSONSerialization.jsonObject(with: archive) as? [String: Any])
+            .keys.contains("files"))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appending(path: "playback.sqlite").path))
+
+        XCTAssertThrowsError(try PlaybackHistoryStore.debugAcceptanceDirectory(environment: [key: ""]))
+        let link = root.appending(path: "outside")
+        try FileManager.default.createSymbolicLink(at: link,
+            withDestinationURL: FileManager.default.homeDirectoryForCurrentUser)
+        XCTAssertThrowsError(try PlaybackHistoryStore.debugAcceptanceDirectory(environment: [key: link.path]),
+                             "A link outside the temporary root must be rejected")
+    }
+
+    func testMigrationBackupIncludesWALAndRestoresPreUpgradeData() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appending(path: "history.sqlite").path
+        var configuration = Configuration()
+        configuration.prepareDatabase { db in
+            try db.execute(sql: "PRAGMA journal_mode = WAL")
+            try db.execute(sql: "PRAGMA wal_autocheckpoint = 0")
+        }
+        let database = try DatabaseQueue(path: path, configuration: configuration)
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("base") { db in
+            try db.execute(sql: "CREATE TABLE facts(value TEXT NOT NULL)")
+        }
+        let backup = try XCTUnwrap(DatabaseMigrationBackup(databasePath: path))
+        try backup.migrate(database, using: migrator)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: backup.directory.path),
+                       "A new empty database needs no recovery snapshot")
+        try database.write { db in try db.execute(sql: "INSERT INTO facts VALUES ('committed in WAL')") }
+        XCTAssertGreaterThan(try Data(contentsOf: URL(filePath: path + "-wal")).count, 0)
+        migrator.registerMigration("upgrade") { db in
+            try db.execute(sql: "UPDATE facts SET value = 'upgraded'")
+        }
+        try backup.migrate(database, using: migrator)
+        let snapshots = try FileManager.default.contentsOfDirectory(at: backup.directory,
+            includingPropertiesForKeys: nil)
+        let snapshot = try XCTUnwrap(snapshots.first)
+        XCTAssertEqual(snapshots.count, 1, "The recovery image must be self-contained without WAL sidecars")
+        XCTAssertEqual(try FileManager.default.attributesOfItem(atPath: snapshot.path)[.posixPermissions] as? Int, 0o600)
+        let restoredURL = directory.appending(path: "restored.sqlite")
+        try FileManager.default.copyItem(at: snapshot, to: restoredURL)
+        let restored = try DatabaseQueue(path: restoredURL.path)
+        XCTAssertEqual(try restored.read { try String.fetchOne($0, sql: "SELECT value FROM facts") }, "committed in WAL")
+        XCTAssertEqual(try restored.read { try migrator.appliedMigrations($0) }, ["base"])
+        XCTAssertEqual(try database.read { try String.fetchOne($0, sql: "SELECT value FROM facts") }, "upgraded")
+        let originalBytes = try Data(contentsOf: snapshot)
+        try backup.migrate(database, using: migrator)
+        XCTAssertEqual(try Data(contentsOf: snapshot), originalBytes)
+    }
+
+    func testMigrationRetryPreservesOriginalSnapshotAfterPartialUpgrade() throws {
+        enum Injected: Error { case failure }
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appending(path: "history.sqlite").path
+        let database = try DatabaseQueue(path: path)
+        var base = DatabaseMigrator()
+        base.registerMigration("base") { db in try db.execute(sql: "CREATE TABLE facts(value INTEGER)") }
+        try base.migrate(database)
+        try database.write { db in try db.execute(sql: "INSERT INTO facts VALUES (1)") }
+        var failing = base
+        failing.registerMigration("partial") { db in try db.execute(sql: "UPDATE facts SET value = 2") }
+        failing.registerMigration("final") { _ in throw Injected.failure }
+        let backup = try XCTUnwrap(DatabaseMigrationBackup(databasePath: path))
+        XCTAssertThrowsError(try backup.migrate(database, using: failing))
+        let snapshot = try XCTUnwrap(FileManager.default.contentsOfDirectory(at: backup.directory,
+            includingPropertiesForKeys: nil).first)
+        let originalBytes = try Data(contentsOf: snapshot)
+        var retry = base
+        retry.registerMigration("partial") { db in try db.execute(sql: "UPDATE facts SET value = 2") }
+        retry.registerMigration("final") { db in try db.execute(sql: "UPDATE facts SET value = 3") }
+        try backup.migrate(database, using: retry)
+        XCTAssertEqual(try Data(contentsOf: snapshot), originalBytes)
+        let recovery = try DatabaseQueue(path: snapshot.path)
+        XCTAssertEqual(try recovery.read { try Int.fetchOne($0, sql: "SELECT value FROM facts") }, 1)
+        XCTAssertEqual(try database.read { try Int.fetchOne($0, sql: "SELECT value FROM facts") }, 3)
+    }
+
+    func testUnavailableBackupDestinationPreventsMigration() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appending(path: "history.sqlite").path
+        let database = try DatabaseQueue(path: path)
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("base") { db in try db.execute(sql: "CREATE TABLE facts(value INTEGER)") }
+        try migrator.migrate(database)
+        let backup = try XCTUnwrap(DatabaseMigrationBackup(databasePath: path))
+        try Data("blocked destination".utf8).write(to: backup.directory)
+        migrator.registerMigration("pending") { db in try db.execute(sql: "DROP TABLE facts") }
+        XCTAssertThrowsError(try backup.migrate(database, using: migrator))
+        XCTAssertTrue(try database.read { try $0.tableExists("facts") })
+        XCTAssertEqual(try database.read { try migrator.appliedMigrations($0) }, ["base"])
+    }
+
+    func testMigrationBackupRetentionKeepsOnlyTwoSuccessfulUpgradePoints() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appending(path: "history.sqlite").path
+        let database = try DatabaseQueue(path: path)
+        let backup = try XCTUnwrap(DatabaseMigrationBackup(databasePath: path))
+        var migrator = DatabaseMigrator()
+        for version in 1...4 {
+            migrator.registerMigration("v\(version)") { db in
+                try db.execute(sql: "CREATE TABLE version_\(version)(value INTEGER)")
+            }
+            try backup.migrate(database, using: migrator)
+            if version == 2 {
+                let manualCopy = backup.directory.appending(path: "manual-recovery.sqlite")
+                let copy = try DatabaseQueue(path: manualCopy.path)
+                try database.backup(to: copy)
+                try copy.close()
+                try FileManager.default.setAttributes([.modificationDate: Date.distantPast],
+                                                      ofItemAtPath: manualCopy.path)
+            }
+        }
+        let manualCopy = backup.directory.appending(path: "manual-recovery.sqlite")
+        let recovery = try DatabaseQueue(path: manualCopy.path)
+        XCTAssertEqual(try recovery.read { try migrator.appliedMigrations($0) }, ["v1", "v2"])
+        let snapshots = try FileManager.default.contentsOfDirectory(at: backup.directory,
+            includingPropertiesForKeys: nil).filter { $0.lastPathComponent != manualCopy.lastPathComponent }
+        XCTAssertEqual(snapshots.count, 2)
+        let versions = try snapshots.map { url in
+            let snapshot = try DatabaseQueue(path: url.path)
+            return try snapshot.read { try migrator.appliedMigrations($0).count }
+        }
+        XCTAssertEqual(versions.sorted(), [2, 3])
+    }
+
+    func testPrivacyOperationsRemoveAutomaticMigrationCopies() async throws {
+        for action in ["clearHistory", "clearLibrary", "exclude"] {
+            let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let path = directory.appending(path: "history.sqlite").path
+            let store = try PlaybackHistoryStore(path: path)
+            let media = directory.appending(path: "film.mp4")
+            try Data([1, 2, 3]).write(to: media)
+            try await store.save(for: try await store.openHistory(for: media).binding, position: 9, volume: 60)
+            let backup = try XCTUnwrap(DatabaseMigrationBackup(databasePath: path))
+            try FileManager.default.createDirectory(at: backup.directory, withIntermediateDirectories: true)
+            let source = try DatabaseQueue(path: path)
+            let copy = try DatabaseQueue(path: backup.directory.appending(path: "prior.sqlite").path)
+            try source.backup(to: copy)
+            try source.close()
+            try copy.close()
+            switch action {
+            case "clearHistory": try await store.clearAll()
+            case "clearLibrary": try await store.clearLibraryRecords()
+            default: try await store.setHistoryExcludedFolder(directory, excluded: true)
+            }
+            XCTAssertFalse(FileManager.default.fileExists(atPath: backup.directory.path))
+            let history = try await store.history(for: media)
+            XCTAssertNil(history)
+        }
+    }
+
+    func testBoundCheckpointRejectsInPlaceChangesAndAllowsFreshSession() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = try PlaybackHistoryStore(path: directory.appending(path: "history.sqlite").path)
+        let media = directory.appending(path: "film.mp4")
+        try Data(repeating: 0x41, count: 1024).write(to: media)
+        let session = try await store.openHistory(for: media)
+        try await store.save(for: session.binding, position: 10, volume: 70)
+        try Data(repeating: 0x42, count: 2048).write(to: media)
+        let replacement = try await store.openHistory(for: media)
+        XCTAssertEqual(session.binding.identity.fileNumber, replacement.binding.identity.fileNumber)
+        XCTAssertNil(try replacement.history.get())
+        do {
+            try await store.save(for: session.binding, position: 42, volume: 70)
+            XCTFail("The old content version must not write to its replacement")
+        } catch PlaybackHistoryError.mediaFileChanged { }
+        try await store.save(for: replacement.binding, position: 3, volume: 70)
+        let recovered = try await store.history(for: media)
+        XCTAssertEqual(recovered?.position, 3)
+    }
+
     func testCorruptDatabaseStartupPreservesOriginalBytes() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -67,7 +267,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         XCTAssertEqual(checkpoint?.audioTrackID, 2)
         XCTAssertEqual(checkpoint?.subtitleTrackID, 4)
         XCTAssertEqual(checkpoint?.volume, 55)
-        try await recovered.save(for: mediaURL, position: 40, volume: 70)
+        try await recovered.save(for: try await recovered.openHistory(for: mediaURL).binding, position: 40, volume: 70)
         let updated = try await recovered.history(for: mediaURL)
         XCTAssertEqual(updated?.position, 40)
         XCTAssertEqual(updated?.volume, 70)
@@ -85,7 +285,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         case "seed":
             let store = try PlaybackHistoryStore(path: databaseURL.path)
             let mediaURL = directory.appending(path: "media.mp4")
-            try await store.save(for: mediaURL, position: 32.5, audioTrackID: 2,
+            try await store.save(for: try await store.openHistory(for: mediaURL).binding, position: 32.5, audioTrackID: 2,
                                  subtitleTrackID: 4, volume: 55)
             let checkpoint = try await store.history(for: mediaURL)
             let saved = try XCTUnwrap(checkpoint)
@@ -152,9 +352,9 @@ final class PlaybackHistoryStoreTests: XCTestCase {
 
         do {
             let store = try PlaybackHistoryStore(path: databasePath)
-            try await store.save(for: firstURL, position: 81.25, audioTrackID: 2,
+            try await store.save(for: try await store.openHistory(for: firstURL).binding, position: 81.25, audioTrackID: 2,
                                  subtitleTrackID: 4, volume: 63, updatedAt: timestamp)
-            try await store.save(for: secondURL, position: 12, volume: 100, updatedAt: timestamp)
+            try await store.save(for: try await store.openHistory(for: secondURL).binding, position: 12, volume: 100, updatedAt: timestamp)
 
             let first = try await store.history(for: firstURL)
             XCTAssertEqual(first?.position, 81.25)
@@ -175,10 +375,10 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let url = try makeMediaFile()
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 30, volume: 70)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 30, volume: 70)
 
         do {
-            try await store.save(for: url, position: .nan, volume: 20)
+            try await store.save(for: try await store.openHistory(for: url).binding, position: .nan, volume: 20)
             XCTFail("Non-finite playback positions must be rejected")
         } catch PlaybackHistoryError.invalidPosition {
             // Expected validation before opening the write transaction.
@@ -195,12 +395,12 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: url) }
 
         do {
-            try await store.save(for: url, position: -1, volume: 50)
+            try await store.save(for: try await store.openHistory(for: url).binding, position: -1, volume: 50)
             XCTFail("Negative positions must be rejected")
         } catch PlaybackHistoryError.invalidPosition { }
 
         do {
-            try await store.save(for: url, position: 1, volume: 101)
+            try await store.save(for: try await store.openHistory(for: url).binding, position: 1, volume: 101)
             XCTFail("Volume outside the native 0–100 range must be rejected")
         } catch PlaybackHistoryError.invalidVolume { }
 
@@ -218,7 +418,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let original = directory.appending(path: "before.mkv")
         let renamed = directory.appending(path: "after.mkv")
         try Data("same media contents".utf8).write(to: original)
-        try await store.save(for: original, position: 91, volume: 50)
+        try await store.save(for: try await store.openHistory(for: original).binding, position: 91, volume: 50)
 
         try FileManager.default.moveItem(at: original, to: renamed)
 
@@ -250,7 +450,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let url = directory.appending(path: "movie.mkv")
         let replacement = directory.appending(path: "replacement.tmp")
         try Data(repeating: 0x41, count: 1024).write(to: url)
-        try await store.save(for: url, position: 120, volume: 50)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 120, volume: 50)
 
         try Data(repeating: 0x42, count: 1024).write(to: replacement)
         _ = try FileManager.default.replaceItemAt(url, withItemAt: replacement)
@@ -263,7 +463,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let url = try makeMediaFile(contents: Data(repeating: 0x31, count: 64))
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 18, volume: 50)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 18, volume: 50)
 
         try Data(repeating: 0x32, count: 128).write(to: url)
 
@@ -275,7 +475,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let url = try makeMediaFile(contents: Data(repeating: 0x31, count: 256 * 1_024))
         defer { try? FileManager.default.removeItem(at: url) }
-        try await store.save(for: url, position: 18, volume: 50)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 18, volume: 50)
 
         // Read the identity values from the same store's database through an archive, then mutate
         // a region that is included in the deterministic sparse sample set.
@@ -319,7 +519,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let databaseURL = root.appending(path: "history.sqlite")
         let store = try PlaybackHistoryStore(path: databaseURL.path)
         let id = try await store.indexMediaFile(at: media)
-        try await store.save(for: media, position: 25, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 25, volume: 70)
         try await store.setFavorite(true, for: id)
         var metadata = stat()
         XCTAssertEqual(media.path.withCString { stat($0, &metadata) }, 0)
@@ -359,7 +559,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let databaseURL = root.appending(path: "history.sqlite")
         let store = try PlaybackHistoryStore(path: databaseURL.path)
         let id = try await store.indexMediaFile(at: media)
-        try await store.save(for: media, position: 25, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 25, volume: 70)
         try await store.setFavorite(true, for: id)
         let archive = try await store.exportArchive(settings: Self.testSettings)
         let database = try DatabaseQueue(path: databaseURL.path)
@@ -407,7 +607,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let databaseURL = root.appending(path: "history.sqlite")
         let store = try PlaybackHistoryStore(path: databaseURL.path)
         let id = try await store.indexMediaFile(at: media)
-        try await store.save(for: media, position: 25, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 25, volume: 70)
         let database = try DatabaseQueue(path: databaseURL.path)
         try await database.write { db in
             try db.execute(sql: "INSERT INTO media_sources (volume_id, display_name, updated_at) VALUES ('other-volume', 'Other', 1)")
@@ -534,7 +734,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
             let url = try makeMediaFile(contents: Data(repeating: 0x31, count: size))
             defer { try? FileManager.default.removeItem(at: url) }
             let originalID = try await store.indexMediaFile(at: url)
-            try await store.save(for: url, position: 18, volume: 50)
+            try await store.save(for: try await store.openHistory(for: url).binding, position: 18, volume: 50)
             try await store.setFavorite(true, for: originalID)
             let archive = try await store.exportArchive(settings: Self.testSettings)
             var metadata = stat()
@@ -570,7 +770,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try await store.setFavorite(true, for: originalID)
         try await store.setWatched(true, for: originalID)
         try await store.setManualCategory(.movie, for: originalID)
-        try await store.save(for: url, position: 88, volume: 50)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 88, volume: 50)
         let originalItems = try await store.libraryItems(in: scan.sourceRootID)
         let originalItem = try XCTUnwrap(originalItems.first)
 
@@ -620,7 +820,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let item = try XCTUnwrap(indexed.first)
         try await store.setFavorite(true, for: item.id)
         try await store.setManualCategory(.movie, for: item.id)
-        try await store.save(for: current, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: current).binding, position: 42, volume: 70)
         let connection = try DatabaseQueue(path: databasePath)
         try await connection.write { db in
             try db.execute(sql: "INSERT INTO playback_history_legacy VALUES (?, ?, ?, ?, ?, ?)",
@@ -651,7 +851,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try Data("kept media".utf8).write(to: media)
         let databasePath = directory.appending(path: "history.sqlite").path
         let store = try PlaybackHistoryStore(path: databasePath)
-        try await store.save(for: media, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 42, volume: 70)
         let connection = try DatabaseQueue(path: databasePath)
         try await connection.write { db in
             try db.execute(sql: "INSERT INTO playback_history_legacy VALUES (?, ?, NULL, NULL, ?, ?)",
@@ -791,7 +991,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let mediaFileID = try await store.indexMediaFile(at: mediaURL, in: scan)
         try await store.finishScan(scan, reconcileDeletions: true, discoveredCount: 1,
                                    indexedCount: 1, skippedCount: 0)
-        try await store.save(for: mediaURL, position: 42.5, volume: 70)
+        try await store.save(for: try await store.openHistory(for: mediaURL).binding, position: 42.5, volume: 70)
 
         try await store.setFavorite(true, for: mediaFileID)
         try await store.setWatched(true, for: mediaFileID)
@@ -850,11 +1050,11 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try Data("private media".utf8).write(to: privateMedia)
         try Data("sibling media".utf8).write(to: siblingMedia)
         let store = try PlaybackHistoryStore(path: ":memory:")
-        try await store.save(for: privateMedia, position: 20, volume: 50)
-        try await store.save(for: siblingMedia, position: 30, volume: 50)
+        try await store.save(for: try await store.openHistory(for: privateMedia).binding, position: 20, volume: 50)
+        try await store.save(for: try await store.openHistory(for: siblingMedia).binding, position: 30, volume: 50)
 
         try await store.setHistoryExcludedFolder(privateFolder, excluded: true)
-        try await store.save(for: privateMedia, position: 40, volume: 60)
+        try await store.save(for: try await store.openHistory(for: privateMedia).binding, position: 40, volume: 60)
 
         let privateHistory = try await store.history(for: privateMedia)
         let siblingHistory = try await store.history(for: siblingMedia)
@@ -865,7 +1065,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
 
         let exclusion = try XCTUnwrap(exclusions.first)
         try await store.removeHistoryExcludedFolder(exclusion)
-        try await store.save(for: privateMedia, position: 5, volume: 60)
+        try await store.save(for: try await store.openHistory(for: privateMedia).binding, position: 5, volume: 60)
         let resumedHistory = try await store.history(for: privateMedia)
         XCTAssertEqual(resumedHistory?.position, 5)
     }
@@ -885,7 +1085,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
                                    indexedCount: 1, skippedCount: 0)
         try await store.setFavorite(true, for: fileID)
         try await store.setManualCategory(.movie, for: fileID)
-        try await store.save(for: media, position: 73, audioTrackID: 2, volume: 81)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 73, audioTrackID: 2, volume: 81)
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: false,
             resumeFromLastPosition: true, defaultSpeed: 1.25, defaultSubtitleDelay: -0.5)
 
@@ -982,7 +1182,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try await store.setFavorite(true, for: fileID)
         try await store.setWatched(true, for: fileID)
         try await store.setManualCategory(.series, for: fileID)
-        try await store.save(for: media, position: 42, audioTrackID: 2,
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 42, audioTrackID: 2,
                              subtitleTrackID: 3, volume: 64)
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: false,
             resumeFromLastPosition: true, defaultSpeed: 1.5, defaultSubtitleDelay: 1.5)
@@ -991,7 +1191,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try await store.setFavorite(false, for: fileID)
         try await store.setWatched(false, for: fileID)
         try await store.setManualCategory(.movie, for: fileID)
-        try await store.save(for: media, position: 8, volume: 20)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 8, volume: 20)
 
         let preview = try await store.previewArchiveImport(archive)
         XCTAssertEqual(preview.fileCount, 1)
@@ -1031,7 +1231,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try await source.setFavorite(true, for: sourceFileID)
         try await source.setWatched(true, for: sourceFileID)
         try await source.setManualCategory(.personal, for: sourceFileID)
-        try await source.save(for: media, position: 63.5, audioTrackID: 4,
+        try await source.save(for: try await source.openHistory(for: media).binding, position: 63.5, audioTrackID: 4,
                               subtitleTrackID: 7, volume: 38)
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: false,
             resumeFromLastPosition: true, defaultSpeed: 1.25, defaultSubtitleDelay: -0.25)
@@ -1063,7 +1263,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: media), sourceBytes, "Restore must not modify or replace media")
     }
 
-    func testArchiveImportSkipsFilesThatCannotBeMatched() async throws {
+    func testArchiveImportRestoresSkippedRecordsAfterSourcesAreScanned() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString,
                                                                      directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -1071,7 +1271,11 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let media = root.appending(path: "source.mp4")
         try Data("source media".utf8).write(to: media)
         let source = try PlaybackHistoryStore(path: ":memory:")
-        _ = try await source.indexMediaFile(at: media)
+        let sourceScan = try await source.beginScan(folder: root, includingSubfolders: true)
+        let sourceFileID = try await source.indexMediaFile(at: media, in: sourceScan)
+        try await source.finishScan(sourceScan, reconcileDeletions: true, discoveredCount: 1,
+                                    indexedCount: 1, skippedCount: 0)
+        try await source.setFavorite(true, for: sourceFileID)
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: true,
             resumeFromLastPosition: true, defaultSpeed: 1, defaultSubtitleDelay: 0)
         let archive = try await source.exportArchive(settings: settings)
@@ -1087,6 +1291,19 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         XCTAssertEqual(result.unmatchedFileCount, 1)
         let unmatchedDestinationItems = try await destination.libraryItems(in: 1)
         XCTAssertTrue(unmatchedDestinationItems.isEmpty)
+
+        let restoredScan = try await destination.beginScan(folder: root, includingSubfolders: true)
+        _ = try await destination.indexMediaFile(at: media, in: restoredScan)
+        try await destination.finishScan(restoredScan, reconcileDeletions: true, discoveredCount: 1,
+                                         indexedCount: 1, skippedCount: 0)
+        let rescannedPreview = try await destination.previewArchiveImport(archive)
+        XCTAssertEqual(rescannedPreview.matchedFileCount, 1)
+        XCTAssertEqual(rescannedPreview.unmatchedFileCount, 0)
+        let restored = try await destination.importArchive(archive)
+        XCTAssertEqual(restored.importedFileCount, 1)
+        XCTAssertEqual(restored.unmatchedFileCount, 0)
+        let restoredItem = try await destination.libraryItems(in: restoredScan.sourceRootID).first
+        XCTAssertEqual(restoredItem?.isFavorite, true)
     }
 
     func testArchiveImportRejectsTraversalInEveryPersistedRelativePath() async throws {
@@ -1164,7 +1381,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: true,
             resumeFromLastPosition: true, defaultSpeed: 1, defaultSubtitleDelay: 0)
         let source = try PlaybackHistoryStore(path: ":memory:")
-        try await source.save(for: media, position: 91, volume: 50)
+        try await source.save(for: try await source.openHistory(for: media).binding, position: 91, volume: 50)
         let archive = try await source.exportArchive(settings: settings)
 
         let destination = try PlaybackHistoryStore(path: ":memory:")
@@ -1234,7 +1451,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
                                       indexedCount: 1, skippedCount: 0)
         let scannedHistory = try await reopened.history(for: files[3])
         XCTAssertNil(scannedHistory)
-        try await reopened.save(for: files[4], position: 9, volume: 50)
+        try await reopened.save(for: try await reopened.openHistory(for: files[4]).binding, position: 9, volume: 50)
         let newHistory = try await reopened.history(for: files[4])
         XCTAssertEqual(newHistory?.position, 9, "New history remains allowed after privacy is disabled")
         XCTAssertNil(newHistory?.audioTrackID)
@@ -1265,7 +1482,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let path = directory.appending(path: "history.sqlite").path
         do {
             let store = try PlaybackHistoryStore(path: path)
-            try await store.save(for: current, position: 42, volume: 50)
+            try await store.save(for: try await store.openHistory(for: current).binding, position: 42, volume: 50)
         }
         let database = try DatabaseQueue(path: path)
         try await database.write { db in
@@ -1306,7 +1523,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         try await migrated.removeHistoryExcludedFolder(rule)
         let oldHistory = try await migrated.history(for: legacy)
         XCTAssertNil(oldHistory, "Removing a backfilled active rule cannot restore legacy history")
-        try await migrated.save(for: legacy, position: 9, volume: 50)
+        try await migrated.save(for: try await migrated.openHistory(for: legacy).binding, position: 9, volume: 50)
         let newHistory = try await migrated.history(for: legacy)
         XCTAssertEqual(newHistory?.position, 9)
         try await database.write { db in
@@ -1342,8 +1559,8 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let archive = try await source.exportArchive(settings: Self.testSettings)
         let path = directory.appending(path: "destination.sqlite").path
         let destination = try PlaybackHistoryStore(path: path)
-        try await destination.save(for: privateFile, position: 42, volume: 60)
-        try await destination.save(for: publicFile, position: 77, volume: 70)
+        try await destination.save(for: try await destination.openHistory(for: privateFile).binding, position: 42, volume: 60)
+        try await destination.save(for: try await destination.openHistory(for: publicFile).binding, position: 77, volume: 70)
         let privateID = try await destination.indexMediaFile(at: privateFile)
         try await destination.setFavorite(true, for: privateID)
         let preview = try await destination.previewArchiveImport(archive)
@@ -1406,7 +1623,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let store = try PlaybackHistoryStore(path: databasePath)
         let fileID = try await store.indexMediaFile(at: media)
         try await store.setFavorite(true, for: fileID)
-        try await store.save(for: media, position: 17, volume: 55)
+        try await store.save(for: try await store.openHistory(for: media).binding, position: 17, volume: 55)
         let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: true,
             resumeFromLastPosition: true, defaultSpeed: 1, defaultSubtitleDelay: 0)
         let original = try await store.exportArchive(settings: settings)
@@ -1478,7 +1695,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         do {
             let store = try PlaybackHistoryStore(path: databaseURL.path)
             id = try await store.indexMediaFile(at: media)
-            try await store.save(for: media, position: 18, volume: 50)
+            try await store.save(for: try await store.openHistory(for: media).binding, position: 18, volume: 50)
             try await store.setFavorite(true, for: id)
             try await store.setWatched(true, for: id)
             try await store.setManualCategory(.movie, for: id)
