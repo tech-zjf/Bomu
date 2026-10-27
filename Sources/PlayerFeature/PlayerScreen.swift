@@ -173,7 +173,7 @@ struct PlayerScreen: View {
     private func videoFrame<Overlay: View>(@ViewBuilder overlay: () -> Overlay) -> some View {
         ZStack {
             AppTheme.playerFallback
-            VideoHostView(surface: videoView)
+            VideoHostView(surface: videoView, isVisible: isVisible)
             overlay()
             if let failure = player.state.commandFailure {
                 VStack {

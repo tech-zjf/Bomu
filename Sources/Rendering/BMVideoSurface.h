@@ -49,6 +49,8 @@ typedef struct {
 - (void)attachCore:(struct mpv_handle *)core completion:(void (^)(NSError * _Nullable))completion;
 /// Main-thread boundary; the render queue owns the applied presentation state.
 - (void)setVideoOutputConfigured:(BOOL)configured;
+/// Keep consuming render updates while the player page is hidden, without drawing its layer.
+- (void)setPresentationVisible:(BOOL)visible;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion;
 @end

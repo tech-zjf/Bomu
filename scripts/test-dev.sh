@@ -10,6 +10,7 @@ python3 "$PROJECT_ROOT/scripts/toolchain.py"
 SCHEME=BomuLogicTests
 DIRECT_HOSTLESS=false
 DIRECT_STORAGE=false
+CODE_SIGNING_ARGS=(CODE_SIGNING_ALLOWED=NO)
 if [[ "${1:-}" == --direct-hostless ]]; then
   DIRECT_HOSTLESS=true
   shift
@@ -27,6 +28,8 @@ elif [[ "${1:-}" == --direct-storage ]]; then
   fi
 elif [[ "${1:-}" == --native ]]; then
   SCHEME=Bomu
+  # Xcode launches a real app host; it must have a sealed ad-hoc bundle signature.
+  CODE_SIGNING_ARGS=(CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-)
   shift
   python3 "$PROJECT_ROOT/scripts/dependencies.py" check
   echo "Native integration tests reuse one application host window; no additional render-test window."
@@ -42,7 +45,7 @@ XCODEBUILD_ARGS=(
   -clonedSourcePackagesDirPath "$PROJECT_ROOT/.build/SourcePackages"
   -packageCachePath "$PACKAGE_CACHE"
   -parallel-testing-enabled NO
-  CODE_SIGNING_ALLOWED=NO
+  "${CODE_SIGNING_ARGS[@]}"
 )
 if [[ "$DIRECT_HOSTLESS" == true ]]; then
   if [[ "$SCHEME" != BomuLogicTests ]]; then

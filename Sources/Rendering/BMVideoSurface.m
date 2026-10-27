@@ -52,6 +52,7 @@ static void APIENTRY BMInterceptEndQuery(GLenum target) {
     mpv_handle *clockCore;
     BOOL didDraw;
     BOOL videoOutputConfigured;
+    BOOL presentationVisible;
     BMRenderStatistics statistics;
 #if BM_ENABLE_GPU_RENDER_TIMING
     BMGPURenderQuery gpuRenderQueries[BM_GPU_RENDER_QUERY_COUNT];
@@ -63,6 +64,7 @@ static void APIENTRY BMInterceptEndQuery(GLenum target) {
 @property(nonatomic, readonly, nullable) NSError *creationError;
 - (void)attachCore:(mpv_handle *)core completion:(void (^)(NSError * _Nullable))completion;
 - (void)setVideoOutputConfigured:(BOOL)configured;
+- (void)setPresentationVisible:(BOOL)visible;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectStatistics:(void (^)(BMRenderStatistics))completion;
 #if BM_ENABLE_GPU_RENDER_TIMING
@@ -112,6 +114,7 @@ static void BMRenderWakeup(void *source) {
     self = [super init];
     if (self) {
         lock = [[NSRecursiveLock alloc] init];
+        presentationVisible = YES;
         _renderQueue = dispatch_queue_create("io.github.tech-zjf.Bomu.mpv-render", DISPATCH_QUEUE_SERIAL);
         CGLPixelFormatAttribute attributes[] = {
             kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core,
@@ -193,6 +196,17 @@ static void BMRenderWakeup(void *source) {
         // libmpv can retain its previous texture after its VO closes. Clearing the
         // layer is a presentation transition, not evidence of another media frame.
         if (changed) [self.layer display];
+    });
+}
+
+- (void)setPresentationVisible:(BOOL)visible {
+    dispatch_async(_renderQueue, ^{
+        [self->lock lock];
+        BOOL changed = self->presentationVisible != visible;
+        self->presentationVisible = visible;
+        [self->lock unlock];
+        // A paused video may not send another update after the page reappears.
+        if (changed && visible) [self.layer display];
     });
 }
 
@@ -476,16 +490,18 @@ static void BMRenderWakeup(void *source) {
     CGLSetCurrentContext(context);
     renderer->didDraw = NO;
     if (renderer->renderContext) mpv_render_context_update(renderer->renderContext);
-    if (NSThread.isMainThread) {
-        // AppKit may already be committing its transaction during a resize/backing change.
-        // Starting another one here re-enters that commit and invalidates its handlers.
-        [super display];
-    } else {
-        // The render queue has no AppKit run loop to commit an implicit transaction.
-        [CATransaction begin];
-        [CATransaction setDisableActions:YES];
-        [super display];
-        [CATransaction commit];
+    if (renderer->presentationVisible) {
+        if (NSThread.isMainThread) {
+            // AppKit may already be committing its transaction during a resize/backing change.
+            // Starting another one here re-enters that commit and invalidates its handlers.
+            [super display];
+        } else {
+            // The render queue has no AppKit run loop to commit an implicit transaction.
+            [CATransaction begin];
+            [CATransaction setDisableActions:YES];
+            [super display];
+            [CATransaction commit];
+        }
     }
     if (renderer->renderContext && !renderer->didDraw) {
         // A hidden/minimized layer still consumes pending frames, so advanced control cannot stall.
@@ -595,6 +611,10 @@ static void BMRenderWakeup(void *source) {
 
 - (void)setVideoOutputConfigured:(BOOL)configured {
     [_renderer setVideoOutputConfigured:configured];
+}
+
+- (void)setPresentationVisible:(BOOL)visible {
+    [_renderer setPresentationVisible:visible];
 }
 
 - (instancetype)initWithFrame:(NSRect)frame {

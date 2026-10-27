@@ -279,7 +279,8 @@ final class MPVIntegrationTests: XCTestCase {
             isFavorite: false,
             canToggleFavorite: false,
             onToggleFavorite: {},
-            onReturnToLibrary: {}
+            onReturnToLibrary: {},
+            returnLabel: "library.backToLibrary"
         ))
         defer {
             nowPlaying.deactivate()
@@ -324,6 +325,68 @@ final class MPVIntegrationTests: XCTestCase {
             XCTAssertFalse(closed.coreAlive)
             XCTAssertFalse(closed.renderContextAlive)
             XCTAssertEqual(closed.graphicsContextAlive, false)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+    func testHiddenPlayerPageSkipsVideoFramesAndRestoresRendering() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        let nowPlaying = NowPlayingController(player: player)
+        func screen(visible: Bool) -> PlayerScreen {
+            PlayerScreen(player: player, videoView: engine.videoView, nowPlaying: nowPlaying,
+                         isFavorite: false, canToggleFavorite: false,
+                         onToggleFavorite: {}, onReturnToLibrary: {},
+                         returnLabel: "library.backToLibrary", isVisible: visible)
+        }
+        let hosting = NSHostingView(rootView: screen(visible: true))
+        window.contentView = hosting
+        defer {
+            nowPlaying.deactivate()
+            window.contentView = originalContent
+        }
+
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(try fixture("h264-sdr"))
+            try await waitUntil {
+                let diagnostics = await engine.diagnostics()
+                return player.canControlPlayback && diagnostics.videoFrameCount > 3
+            }
+
+            hosting.rootView = screen(visible: false)
+            try await waitUntil {
+                let diagnostics = await engine.diagnostics()
+                return diagnostics.skippedFrameCount > 3
+            }
+            let hidden = await engine.diagnostics()
+            let position = try XCTUnwrap(player.state.snapshot?.position)
+            try await Task.sleep(for: .milliseconds(250))
+            let hiddenLater = await engine.diagnostics()
+            XCTAssertEqual(hiddenLater.videoFrameCount, hidden.videoFrameCount,
+                           "An invisible player page must not submit video frames")
+            XCTAssertGreaterThan(hiddenLater.skippedFrameCount, hidden.skippedFrameCount,
+                                 "The hidden render surface must keep consuming mpv updates")
+            try await waitUntil { (player.state.snapshot?.position ?? 0) > position + 0.1 }
+
+            hosting.rootView = screen(visible: true)
+            try await waitUntil {
+                (await engine.diagnostics()).videoFrameCount > hiddenLater.videoFrameCount
+            }
+            let restored = await engine.diagnostics()
+            XCTAssertEqual(restored.coreCreationCount, 1)
+            XCTAssertEqual(restored.renderContextCreationCount, 1)
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
         } catch {
             await player.shutdown()
             throw error

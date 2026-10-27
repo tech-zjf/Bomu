@@ -62,3 +62,17 @@ runner 编译墙钟上限 300 秒，测量命令上限 180 秒；XCTest 单用�
 有效复测使用同一 `903d797d…` 规范包、单个普通窗口、后台播放中的许可 240 秒 4K HEVC Main10 样片及 30 项媒体库；窗口截图为 3024×1768 backing px（约 1512×884 pt）。运行前后 CUA 均见 Library 与 Now Playing 的 Pause。观察者实时读到 PID 79505 的 warmup `1793073571.362–1793073591.362` 和 recording `1793073594.159–1793073614.159`（Unix 秒）；warmup 的向下滚动 `3577.945–3583.444` 将滚动条 0→0.218638，向上滚动从 `3586.114` 开始，结束比该段 deadline 晚约 0.22 秒。**recording 内两次操作均完整落在窗口内**：向下 `3601.887–3607.748`，0→0.218638；向上 `3610.525–3611.855`，返回 0。阶段文件在正常结束后清除。`library-hitches-20261027-115927.Q6I9wH/result.xcresult` 为 1/1 passed，唯一 recording 样本是 **91 hitches、40.0826 ms/s hitch time ratio、0.808331235 s total hitch duration**。
 
 这证明当前包在实际播放和滚动同时进行时存在可量化的卡顿风险；样本只有一个记录段，且包含录屏/观察器及滚动之外的空闲时间，不能据此给出稳定均值、p95/p99 或单独归因于缩略图。前一条 4 hitches 探索样本的窗口宽度、滚动时间对齐和活动负载不同，不可直接作为优化前后对照。下一步应在固定窗口与素材下取得可比较的播放静止段和滚动段，并采集主线程调用栈定位来源，再决定针对性改动；当前性能门槛保持开放。
+
+## 隐藏页面的渲染边界
+
+12:03 对同一个规范进程在 Library 滚动期间取了 15 秒只读调用栈样本，结果保存在忽略目录 `.build/benchmarks/bomu-library-scroll-20261027.sample.txt`。主线程样本同时出现 `BMVideoLayer display/drawInCGLContext` 和 `MediaLibraryCard.body` 等路径。调用栈仅说明两者占用主线程，不能独立证明哪一项造成上述 91 次 hitch。源码检查确认 `MainWindowView` 为了保留播放会话，在 Library 可见时仍保留 `PlayerScreen`，仅以 `opacity(0)` 隐藏；原渲染层在此状态下仍提交视频帧。
+
+当前修正沿用同一个 `MPVPlaybackEngine`、`BMVideoSurface` 和 mpv render context：`MainWindowView` 的页面可见性经 `PlayerScreen`、`VideoHostView` 传给 `BMVideoSurface`；渲染队列独占应用该状态。页面隐藏时，`BMVideoLayer` 继续调用 `mpv_render_context_update`，并用 `MPV_RENDER_PARAM_SKIP_RENDERING` 消费待处理帧，不调用 OpenGL layer 的 `super display`；音频和播放时钟继续运行。页面再显示时主动请求一次 layer display，以覆盖暂停状态下没有新 mpv 回调的情况。这个状态只控制画面呈现，不属于持久化播放事实，也不创建新会话。
+
+验收需要同时证明隐藏期间 `videoFrameCount` 不增加、`skippedFrameCount` 增加且播放位置前进；返回播放器后 `videoFrameCount` 恢复增加，核心和 render context 创建次数仍为 1。还需同尺寸、同素材、同滚动路径取得新的有效 `XCTHitchMetric` 记录段，才能讨论性能是否改善。上述调用栈来自修改前的包，不能作为修改后的性能结果。
+
+2026-10-27 修正后的规范 Debug 包身份为 `3634869efc15c71d5f7dea5e26f56c742150301022a47bbde2366611049bdf7c`。`./scripts/build-dev.sh`、`./scripts/build-dev.sh --analyze` 及 `./scripts/test-dev.sh --direct-hostless` 通过；后者为 235 项、0 失败、2 项按默认入口跳过。唯一普通窗口播放同一许可的 240 秒 4K HEVC Main10 **无音轨**样片，返回 Library 后 Now Playing 保持 Pause；8 秒只读 `sample` 在隐藏期间仅见少量 `BMVideoLayer display` 的跳帧路径，没有采到 `drawInCGLContext`。返回播放器时播放位置从约 0:05 前进到约 0:58，视频画面仍在变化。该可见检查不替代 `videoFrameCount`、创建次数或声音验证。
+
+本轮两次 `XCTHitchMetric` 均为 1/1 passed、warmup 与 recording 各 20 秒，CUA 在两段都将滚动条从 0 下滚再返回 0，录制段操作在阶段文件清除前完成。首轮窗口为 3840×2100 backing px，滚动条峰值约 0.214015；`library-hitches-20261027-122106.Iri9hC/result.xcresult` 的 recording 为 **1 hitch、1.666280 ms/s、0.033335166 s**。随后只通过普通窗口右下角缩放为与旧记录相同的 3024×1768 backing px，重新从头打开同一素材；滚动条 0→0.218638→0，与旧记录的路径一致。`library-hitches-20261027-122324.E6Dzul/result.xcresult` 的 recording 为 **1 hitch、1.666482 ms/s、0.033335166 s**；结束后仍见 Library 和 Pause。与修正前同尺寸记录的 91 hitches、40.0826 ms/s 相比，单次匹配样本明显较低，但播放器进度、缓存和系统负载仍可能不同，不能凭一对记录断言稳定改善或计算置信区间；需再取重复样本，并保留原生资源回归门槛。
+
+新增 `MPVIntegrationTests.testHiddenPlayerPageSkipsVideoFramesAndRestoresRendering` 检查帧、跳帧、播放时钟与同一内核/渲染上下文。`--native` 首次构建发现既有 100 次缩放用例缺失新增的 `returnLabel` 参数，已补齐；之后测试宿主长时间停在 dyld 启动阶段，**未执行该用例**。原测试入口使用未封装签名的 app（`codesign --verify --deep --strict` 失败）；已使 `--native` 采用本地 ad-hoc 签名，复核包签名通过，但第二次宿主仍在 dyld 停滞。两次均只停止本轮 Xcode 进程，宿主随之退出，没有改动系统安全设置。该环境问题尚未解决，不能将用例计为通过。
