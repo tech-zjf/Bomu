@@ -10,6 +10,7 @@ python3 "$PROJECT_ROOT/scripts/toolchain.py"
 SCHEME=BomuLogicTests
 DIRECT_HOSTLESS=false
 DIRECT_STORAGE=false
+TEST_DERIVED_DATA_PATH="$PROJECT_ROOT/.build/DerivedData-Tests"
 CODE_SIGNING_ARGS=(CODE_SIGNING_ALLOWED=NO)
 if [[ "${1:-}" == --direct-hostless ]]; then
   DIRECT_HOSTLESS=true
@@ -30,6 +31,9 @@ elif [[ "${1:-}" == --native ]]; then
   SCHEME=Bomu
   # Xcode launches a real app host; it must have a sealed ad-hoc bundle signature.
   CODE_SIGNING_ARGS=(CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-)
+  # A test app inside this Desktop checkout can block in dyld while macOS waits
+  # for Desktop-folder consent. Keep the launched host in the user's temp area.
+  TEST_DERIVED_DATA_PATH="${TMPDIR:-/private/tmp}/Bomu-NativeTests"
   shift
   python3 "$PROJECT_ROOT/scripts/dependencies.py" check
   echo "Native integration tests reuse one application host window; no additional render-test window."
@@ -41,7 +45,7 @@ XCODEBUILD_ARGS=(
   -scheme "$SCHEME"
   -configuration Debug
   -destination 'platform=macOS,arch=arm64'
-  -derivedDataPath "$PROJECT_ROOT/.build/DerivedData-Tests"
+  -derivedDataPath "$TEST_DERIVED_DATA_PATH"
   -clonedSourcePackagesDirPath "$PROJECT_ROOT/.build/SourcePackages"
   -packageCachePath "$PACKAGE_CACHE"
   -parallel-testing-enabled NO
