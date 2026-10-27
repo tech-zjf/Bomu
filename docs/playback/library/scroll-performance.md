@@ -19,11 +19,11 @@ flowchart LR
 
 锁屏期间可运行 `./scripts/measure-library-hitches.sh --build-only`。该入口只编译、检查配置，不验证正在运行的产品包、不启动测试，也不产生性能结论。脚本本身属于构建身份输入；修改它以后，真正测量前必须重新运行 `./scripts/build-dev.sh` 并取得有效收据。
 
-实际测量前，操作者需确认桌面解锁，唯一播放器来自 `.build/DerivedData/Build/Products/Debug/Bomu.app`，且运行中的进程确实是该次构建；仅检查磁盘包不能证明旧进程已重启。准备同一屏幕上的普通窗口、可滚动的真实 Library 和足够长的播放样片，确认 Now Playing 显示 Pause，再运行不带参数的测量脚本。该命令不会替操作者打开播放器或切换页面。
+实际测量前，操作者需确认桌面解锁，唯一播放器来自 `.build/DerivedData/Build/Products/Debug/Bomu.app`，且运行中的进程确实是该次构建；仅检查磁盘包不能证明旧进程已重启。准备同一屏幕上的普通窗口、可滚动的真实 Library 和足够长的播放样片，用 CUA 确认 Now Playing 显示 Pause，再运行不带参数的测量脚本；结束后再次核对 Pause。该命令不会替操作者打开播放器或切换页面。Runner 仍检查规范进程、单窗口和 Library；播放按钮的 XCTest 辅助功能查询曾卡住整个用例，因此播放状态由独立的可见检查负责，并须与阶段时间一起留证。
 
 ## 采样阶段和有效性
 
-测试在每段观测前向 XCTest Runner 的用户临时目录原子写入 `bomu-library-hitch-phase-<Bomu PID>.json`，包含 phase、invocation、pid、startedAt 和 deadline。Runner 无法可靠写入桌面仓库的 `.build` 目录。`XCTMeasureOptions.iterationCount = 1` 按当前 SDK 合同执行两次闭包：第一次 warmup 被丢弃，第二次 recording 形成一个样本；每次观察 20 秒。测试检查实际调用次数为 2，结束后再次确认播放器未退出、仍为单窗口 Library 且播放仍活跃。正常返回时删除阶段文件；异常中止可能遗留文件，读取方必须拒绝过期 deadline 或不匹配 PID，不能把遗留标记视为活跃任务。
+测试在每段观测前向 XCTest Runner 的容器临时目录原子写入 `bomu-library-hitch-phase-<Bomu PID>.json`，包含 phase、invocation、pid、startedAt 和 deadline。本机观察者读取 `~/Library/Containers/io.github.tech-zjf.BomuHitchUITests.xctrunner/Data/tmp/` 下的标记；Runner 的沙箱拒绝写入桌面仓库 `.build` 和 `/private/tmp`。`XCTMeasureOptions.iterationCount = 1` 按当前 SDK 合同执行两次闭包：第一次 warmup 被丢弃，第二次 recording 形成一个样本；每次观察 20 秒。测试检查实际调用次数为 2，结束后再次确认播放器未退出、仍为单窗口 Library；CUA 另行核对持续播放。正常返回时删除阶段文件；异常中止可能遗留文件，读取方必须拒绝过期 deadline 或不匹配 PID，不能把遗留标记视为活跃任务。
 
 CUA 必须在两段有效时间内提供实际滚动，并记录时间、方向、距离及滚动前后的视口证据。没有 recording 段滚动证据，即使 XCTest 显示通过，也只能说明观察器执行成功，不能签收滚动性能。锁屏、页面/窗口改变、播放停止、应用退出或阶段写入失败均使本轮样本无效。测试不会自动补发输入、抢焦点或循环重跑。
 
@@ -56,3 +56,9 @@ runner 编译墙钟上限 300 秒，测量命令上限 180 秒；XCTest 单用�
 第三次运行使用身份 `7e349b32fc1a57383f9402dbc5a3f3e25554940d57c82a2120231cad9017bae1` 的规范 Debug 包，在内建屏唯一普通窗口打开 Library，后台播放本地许可的 240 秒 4K HEVC Main10 样片。30 个真实媒体条目，窗口截图为 2572×1768 backing px（约 1286×884 pt）；CUA 在测试运行期间对 Library 结果区作正反向滚动，辅助功能滚动条值从 0 到约 0.259、0.518，再返回约 0.259。`library-hitches-20261027-113811.pZLqlz/result.xcresult` 中 1/1 测试通过，`XCTHitchMetric` 的唯一记录样本是 **4 hitches、3.3325 ms/s hitch time ratio、0.066670332 s total hitch duration**。`Tests/test_hitch_launcher.py` 4/4 通过。Runner 的临时阶段文件在退出时删除，外部监听未定位到记录段的即时路径，无法逐次证明上述每次 CUA 滚动落在哪个 20 秒阶段；因此这是一条有播放和滚动的探索性指标，不构成稳定滚动性能签收或 p95/p99 帧时长结论。没有为取得指标关闭 Gatekeeper、改变全局权限或启动第二个 Bomu 窗口。
 
 同日 11:46 再用身份 `903d797d0f027c80f90bcb04db2ed176d499e991b4e14cdd3cf2d91e991d3453` 的规范包尝试定位阶段文件。Runner 编译、签名和配置检查通过，但 `library-hitches-20261027-114643.XVqIZf/result.xcresult` 的活动记录显示 XCTest 在查找 `bomu.playback.togglePause` 按钮时停住，120 秒用例时限结束；没有进入测量闭包或生成阶段标记，**不是性能样本**。共享临时路径的试验改动已撤回，保留上一次通过的代码。下一步先隔离诊断 XCTest 的辅助功能查询，再解决阶段标记的外部可见性；不得把这次超时归因于播放器卡顿。
+
+12:00 的修正与复测：将曾卡住的 XCTest 播放按钮读取改为前后两次独立 CUA 可见核验，仍由 Runner 核验单个规范进程、单窗口及 Library。一次 `/private/tmp` 试验明确被 Runner 沙箱以 `Operation not permitted` 拒绝，失败结果在 `library-hitches-20261027-115734.xAxfAn/result.xcresult`，没有性能样本；随后改回 Runner 容器临时目录并由本机观察者直接读取。`Tests/test_hitch_launcher.py` 4/4、独立 Runner 构建和签名检查通过。
+
+有效复测使用同一 `903d797d…` 规范包、单个普通窗口、后台播放中的许可 240 秒 4K HEVC Main10 样片及 30 项媒体库；窗口截图为 3024×1768 backing px（约 1512×884 pt）。运行前后 CUA 均见 Library 与 Now Playing 的 Pause。观察者实时读到 PID 79505 的 warmup `1793073571.362–1793073591.362` 和 recording `1793073594.159–1793073614.159`（Unix 秒）；warmup 的向下滚动 `3577.945–3583.444` 将滚动条 0→0.218638，向上滚动从 `3586.114` 开始，结束比该段 deadline 晚约 0.22 秒。**recording 内两次操作均完整落在窗口内**：向下 `3601.887–3607.748`，0→0.218638；向上 `3610.525–3611.855`，返回 0。阶段文件在正常结束后清除。`library-hitches-20261027-115927.Q6I9wH/result.xcresult` 为 1/1 passed，唯一 recording 样本是 **91 hitches、40.0826 ms/s hitch time ratio、0.808331235 s total hitch duration**。
+
+这证明当前包在实际播放和滚动同时进行时存在可量化的卡顿风险；样本只有一个记录段，且包含录屏/观察器及滚动之外的空闲时间，不能据此给出稳定均值、p95/p99 或单独归因于缩略图。前一条 4 hitches 探索样本的窗口宽度、滚动时间对齐和活动负载不同，不可直接作为优化前后对照。下一步应在固定窗口与素材下取得可比较的播放静止段和滚动段，并采集主线程调用栈定位来源，再决定针对性改动；当前性能门槛保持开放。
