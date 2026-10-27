@@ -82,3 +82,5 @@ runner 编译墙钟上限 300 秒，测量命令上限 180 秒；XCTest 单用�
 `scripts/test-dev.sh --native` 现在仅把其 DerivedData 放到用户临时目录的 `Bomu-NativeTests`，无宿主入口仍沿用仓库忽略的 `.build/DerivedData-Tests`。`bash -n` 与 `git diff --check` 通过；临时父目录已确认位于仓库外且可写。原生用例尚未在新位置执行，修正仍属待验证状态；不通过授予 Desktop 访问权限或关闭系统安全机制来代替复跑。
 
 无窗口 `xcodebuild build-for-testing` 使用与 `--native` 相同的临时 DerivedData 路径、固定依赖缓存、ad-hoc 签名和单线程测试设置，于 2026-10-27 12:42 完成，退出码 0。回读得到临时目录中的 `Bomu.app` 与内嵌 `BomuTests.xctest`，`codesign --verify --deep --strict` 通过；构建日志在 `.build/acceptance/native-tmp-build-20261027.log`。首次受限命令因 Xcode 不能写用户级 SwiftPM/Clang 缓存而退出 74；随后保留仓库模块缓存设置，在允许 Xcode 正常访问缓存的构建环境中成功。此结果只证明测试宿主能编译、封装和签名，**不证明其已启动或任何 XCTest 已执行**。
+
+临时包的 52 个 Mach-O 镜像经只读检查均无指向 Desktop 的加载路径或 rpath。发行闭包检查器直接扫描完整测试包时，仅因 `BomuTests.xctest` 对 Xcode 提供的 `XCTest.framework` 与 `libXCTestSwiftSupport.dylib` 报两项包外依赖；这不是正式应用运行库缺失。按检查器原有合同排除测试插件、只检查 Bomu 应用本体后，44 个固定 dylib、49 个 Mach-O 镜像及 macOS 14 最低版本闭包全部通过。该检查进一步确认迁移后的应用加载路径，但仍不能代替测试宿主实际启动。
