@@ -462,3 +462,15 @@ Library 与已存在的 media-suite 文件夹内容页都完成三个尺寸的 G
 按嵌入式 HTML 的 `.m-welcome` 48 pt 外边距、24 pt 栏间距去掉原生视图额外的 1260 pt 总宽限制；该限制曾使 1512 pt 宽窗口每侧再增加约 126 pt 空白。插画按视觉区 30 pt 内边距和 4:3 比例放大；说明标签调整到 12 pt 常规字、18/14 pt 内边距、距右 6%/距底 16%；两个入口按 HTML 的 14 pt 常规字和各自按钮内边距修正。去限宽前的 `7e349b32…` 包在内建屏以 1512×884 pt 隔离窗口可见；去限宽后的 `903d797d0f027c80f90bcb04db2ed176d499e991b4e14cdd3cf2d91e991d3453` 规范 Debug 包构建、身份核验、静态分析通过，隔离空库唯一窗口截图为 2572×1768 backing px（约 1286×884 pt），左侧文案和右侧视觉区均从边缘约 48 pt 开始，四个入口、封面与标签可见且未裁切。测试窗口正常退出，带标记临时库由启动脚本删除。此检查不是 960×640、1280×800、1440×900 三标准尺寸的最新包逐页复验，也不证明字体光栅化或每个颜色像素完全相同。
 
 另以 `7e349b32…` 同一规范包、同屏唯一普通窗口打开 240 秒 4K HEVC Main10 许可样片，返回 Library 后 AX 显示 Now Playing / Pause；30 个媒体条目在 2572×1768 backing px 窗口中正反向滚动。独立 Runner 的本地 ad-hoc 签名和启动配置检查通过。前两次测试分别因 `.app` URL 末尾斜杠比较和 Runner 写桌面仓库阶段文件被拒而在采样前失败，均已修正；第三次 xcresult 为 1/1 通过，唯一 XCTHitchMetric 记录 4 hitches、3.3325 ms/s、总 hitch 时长 0.066670332 s。CUA 见到滚动条值 0→约 0.259→0.518→约 0.259，Runner 的临时阶段文件未能被外部监听定位，无法逐次证明这些操作均位于 recording 段，所以此值仅作探索诊断。原始结果和有效性边界见[滚动性能记录](../../playback/library/scroll-performance.md)。播放窗口随后通过自身 ⌘Q 正常退出，未启用完整键盘访问、未进入全屏或跨屏。
+
+## 2026-10-27：当前窗口策略与三尺寸复验
+
+先在 `8e30cc7de0926adc07b4ed70c5f2da812ce3e860901e7f0b962d0120c8abfc27` 规范 Debug 包上完成构建、静态分析、身份复核、186 项 Python 和 20/20 原生 XCTest。唯一正常库窗口在外接屏以 CoreGraphics 边界逐次回读为 1440×900、1280×800、960×640 pt。三个尺寸的 Home、Library 和 Settings 主界面均可见：Home 的继续观看与最近添加独立区域可读；Library Grid/List 的分类、观看状态、排序、密度、布局切换和媒体行操作在窄窗仍可达；Settings 的 Appearance、Playback、Subtitles、Storage、About 均可打开，960 点 Storage 向下滚动后导入、导出、清库操作及说明可见。只检查布局、滚动与辅助功能入口，没有执行破坏性存储操作或逐像素设计稿比对。测试媒体缩略图仅用于验收，不作为展示素材。
+
+同一 `8e30ccd…` 包播放本地许可的 240 秒 4K HEVC Main10 无音轨样片，返回同窗口 Library 后 `Now Playing` 保持 Pause。在匹配的 1512×884 pt 窗口上，独立观察器的两个 recording 样本分别为 1/3 hitches，指标与限制见[滚动性能记录](../../playback/library/scroll-performance.md#隐藏页面的渲染边界)。Stop 前进程 RSS 为 104592 KiB；Playback 系统菜单的 AX 条目连续失效，素材也已接近自然结束，随后 RSS 为 93632 KiB、mpv 内核处于 idle。该下降不能归因于 Stop，故 Stop 后回落仍未通过。最终通过本轮窗口的 ⌘Q 正常退出，PID 消失。
+
+随后用带标记的临时空库检查 Welcome，发现 `.windowResizability(.contentMinSize)` 在这个页面把窗口高度保持为 884 pt：宽度能降至 1280 pt，两次从右下角缩高仍无效。只去掉 Welcome 的视口最小高度后仍无法缩高，故该尝试已撤回。将窗口策略改为 `.automatic` 后，保留原 Welcome 布局和全局 `900×600 pt` 内容最小值。新版 `878583779ea365a1a5569e4be8aba8f83096f7a8b44549dc99e56fbcf5bbecf3` 包在同一外接屏的临时库唯一普通窗口分别精确达到 960×640、1280×800、1440×900 pt；所有文字、两个主操作、Settings/Restore、隐私说明、风景插画及标签均在视口内。窗口尝试缩至 800×500 时被限制在约 900×632 pt，未能小于布局最小宽度；这只说明本次 Welcome 状态的实测边界。三张截图留在忽略的 `.build/acceptance/welcome-window-policy/`，不提交 README 或源码树。临时库正常退出并清理；最新包重新正常启动后，Home→Library→Settings→Home 同窗口路由可见。
+
+`87858377…` 包再次通过 Debug 构建、Xcode 静态分析、身份核验、186 项 Python 和 20/20 原生 XCTest，0 失败。测试包在临时 DerivedData 中运行，不另开持久播放器窗口。窗口策略改动后的真实声画、休眠/唤醒、键盘焦点和每一状态的像素级设计差异仍各按原门槛独立验收；此前 `8e30ccd…` 的滚动测量属于前一包，不自动归为新版性能值。
+
+最新包的正常库又从 Home 打开有声 120 秒 HEVC Main10 许可样片，播放器 AX 从约 0:04 / −1:55 推进到 `Playback finished`；点击 `Back to Home` 后 Home selected，未留下 Now Playing 栏。本轮没有再次取得人的听感或变化画面确认，不将它写成新版声画签收。用户选择稍后进行睡眠/唤醒，本轮未触发系统睡眠，也没有 Sleep/Wake 恢复结果。

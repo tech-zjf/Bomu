@@ -12,7 +12,7 @@ struct BomuApp: App {
                            navigation: lifecycle.navigation)
         }
         .defaultSize(width: 1100, height: 720)
-        .windowResizability(.contentMinSize)
+        .windowResizability(.automatic)
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("menu.settings") { lifecycle.navigation.showSettings() }

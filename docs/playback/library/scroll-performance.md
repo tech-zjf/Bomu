@@ -84,3 +84,14 @@ runner 编译墙钟上限 300 秒，测量命令上限 180 秒；XCTest 单用�
 无窗口 `xcodebuild build-for-testing` 使用与 `--native` 相同的临时 DerivedData 路径、固定依赖缓存、ad-hoc 签名和单线程测试设置，于 2026-10-27 12:42 完成，退出码 0。回读得到临时目录中的 `Bomu.app` 与内嵌 `BomuTests.xctest`，`codesign --verify --deep --strict` 通过；构建日志在 `.build/acceptance/native-tmp-build-20261027.log`。首次受限命令因 Xcode 不能写用户级 SwiftPM/Clang 缓存而退出 74；随后保留仓库模块缓存设置，在允许 Xcode 正常访问缓存的构建环境中成功。此结果只证明测试宿主能编译、封装和签名，**不证明其已启动或任何 XCTest 已执行**。
 
 临时包的 52 个 Mach-O 镜像经只读检查均无指向 Desktop 的加载路径或 rpath。发行闭包检查器直接扫描完整测试包时，仅因 `BomuTests.xctest` 对 Xcode 提供的 `XCTest.framework` 与 `libXCTestSwiftSupport.dylib` 报两项包外依赖；这不是正式应用运行库缺失。按检查器原有合同排除测试插件、只检查 Bomu 应用本体后，44 个固定 dylib、49 个 Mach-O 镜像及 macOS 14 最低版本闭包全部通过。该检查进一步确认迁移后的应用加载路径，但仍不能代替测试宿主实际启动。
+
+2026-10-27 下午完成了此前待执行的宿主复核：`./scripts/test-dev.sh --native` 使用临时 DerivedData 路径启动成功，目标 `testHiddenPlayerPageSkipsVideoFramesAndRestoresRendering` 1/1 通过；完整原生套件 20/20 通过，另有 186 项 Python 回归通过。此结果验证隐藏画面期间帧跳过、时钟推进、再次显示、单内核/渲染上下文以及测试退出路径。它不单独证明滚动性能或物理声画。对应规范包身份为 `8e30cc7de0926adc07b4ed70c5f2da812ce3e860901e7f0b962d0120c8abfc27`。
+
+同一 `8e30ccd…` 包、单个普通窗口、1512×884 pt、30 项媒体库和本地许可的 240 秒 4K HEVC Main10 无音轨样片，播放中返回 Library 后的 `Now Playing` 仍显示 Pause。两轮 20 秒 warmup + 20 秒 recording 中，CUA 均向下滚动两页再向上返回顶部，滚动条在 recording 段由 0→0.437276→0；阶段标记分别显示 `invocation=2`，测量前后仍为同一个播放器进程。XCTest 两轮各 1/1 通过：
+
+| 结果目录 | Hitches | Hitch Time Ratio | 总时长 |
+| --- | ---: | ---: | ---: |
+| `.build/benchmarks/library-hitches-20261027-141232.xaiMsN/result.xcresult` | 1 | 1.666237 ms/s | 0.033335249 s |
+| `.build/benchmarks/library-hitches-20261027-141402.Qh9I5p/result.xcresult` | 3 | 3.332889 ms/s | 0.066670415 s |
+
+这两轮为同尺寸、同素材、同路径的重复有限样本，均低于修正前的 91 hitches；滚动幅度比修正前单次 0→0.218638→0 更大。播放进度、缓存和系统负载仍不同，不能把比值解释为稳定收益、p95/p99 帧时长或冷缓存大库结论。后续改为 A/B 固定阶段与更大媒体库时继续采样即可，不为凑单一数字重复运行。
