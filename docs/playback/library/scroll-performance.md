@@ -80,3 +80,5 @@ runner 编译墙钟上限 300 秒，测量命令上限 180 秒；XCTest 单用�
 随后只读复查 12:12 的原生宿主 PID 84002：`sample` 的 1680 个采样全部停在 dyld 加载依赖时的 `__open`；macOS 统一日志在进程启动后约 0.2 秒记录 `kTCCServiceSystemPolicyDesktopFolder` 的 `AUTHREQ_PROMPTING`，访问者正是 Desktop 仓库 `.build/DerivedData-Tests` 中的 Bomu 测试宿主。在 12:15 宿主结束前，这段日志没有该请求的完成记录。两条证据高度指向测试产物所在的 Desktop 受保护目录导致启动等待，但尚未由成功复跑证明因果。原始窄范围日志保存在忽略的 `.build/acceptance/native-host-desktop-tcc.log`，采样在 `.build/benchmarks/bomu-native-hidden-test.sample.txt`。
 
 `scripts/test-dev.sh --native` 现在仅把其 DerivedData 放到用户临时目录的 `Bomu-NativeTests`，无宿主入口仍沿用仓库忽略的 `.build/DerivedData-Tests`。`bash -n` 与 `git diff --check` 通过；临时父目录已确认位于仓库外且可写。原生用例尚未在新位置执行，修正仍属待验证状态；不通过授予 Desktop 访问权限或关闭系统安全机制来代替复跑。
+
+无窗口 `xcodebuild build-for-testing` 使用与 `--native` 相同的临时 DerivedData 路径、固定依赖缓存、ad-hoc 签名和单线程测试设置，于 2026-10-27 12:42 完成，退出码 0。回读得到临时目录中的 `Bomu.app` 与内嵌 `BomuTests.xctest`，`codesign --verify --deep --strict` 通过；构建日志在 `.build/acceptance/native-tmp-build-20261027.log`。首次受限命令因 Xcode 不能写用户级 SwiftPM/Clang 缓存而退出 74；随后保留仓库模块缓存设置，在允许 Xcode 正常访问缓存的构建环境中成功。此结果只证明测试宿主能编译、封装和签名，**不证明其已启动或任何 XCTest 已执行**。
