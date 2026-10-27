@@ -10,10 +10,11 @@ struct MediaLibrarySourceFolderRow: View {
                 .foregroundStyle(AppTheme.folderRowIconForeground)
                 .frame(width: AppTheme.Layout.folderListIconWidth, height: AppTheme.Layout.folderListIconHeight)
                 .background(AppTheme.folderRowIconSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderRowIcon))
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Layout.folderRowTextGap) {
                 Text(root.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
+                    .foregroundStyle(AppTheme.textPrimary)
                 Text("\(root.volumeName) · \(root.relativePath)")
-                    .font(AppTheme.Typography.metadata)
+                    .font(AppTheme.Typography.mediaMetadata)
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(1)
             }
@@ -93,7 +94,7 @@ struct MediaLibraryFolderBreadcrumbs: View {
     private var separator: some View {
         Image(systemName: "chevron.right")
             .font(AppTheme.Typography.Symbol.folderBreadcrumb)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(AppTheme.textSecondary.opacity(0.7))
             .accessibilityHidden(true)
     }
 
@@ -117,6 +118,7 @@ struct MediaLibraryFolderTile: View {
             Text(directory.displayName)
                 .font(AppTheme.Typography.mediaTitle)
                 .lineLimit(1)
+                .foregroundStyle(AppTheme.textPrimary)
         }
         .contentShape(Rectangle())
     }
@@ -133,6 +135,7 @@ struct MediaLibraryFolderRow: View {
                 .frame(width: AppTheme.Layout.folderListIconWidth, height: AppTheme.Layout.folderListIconHeight)
                 .background(AppTheme.folderRowIconSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.folderRowIcon))
             Text(directory.displayName).font(AppTheme.Typography.mediaTitle).lineLimit(1)
+                .foregroundStyle(AppTheme.textPrimary)
             Spacer()
             Image(systemName: "chevron.right")
                 .font(AppTheme.Typography.Symbol.folderDisclosure)
@@ -153,6 +156,7 @@ struct MediaLibraryOfflineSources: View {
                 Text("library.offlineTitle")
                     .font(AppTheme.Typography.sectionTitle)
                     .tracking(AppTheme.Typography.sectionTitleTracking)
+                    .foregroundStyle(AppTheme.textPrimary)
                 ForEach(roots) { root in
                     HStack(spacing: 10) {
                         Label("\(root.displayName) · \(root.volumeName)", systemImage: "externaldrive.badge.xmark")

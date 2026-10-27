@@ -3,6 +3,408 @@ import XCTest
 
 @MainActor
 final class PlayerModelTests: XCTestCase {
+    func testSubtitleScaleAppliesDefaultsAndRejectsStaleOrInvalidCommands() async throws {
+        let suite = "Bomu.SubtitleSize.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = PlaybackPreferences(defaults: defaults)
+        preferences.defaultSubtitleScale = 1.5
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, preferences: preferences)
+        player.open(URL(filePath: "/media/scale.mp4"))
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        engine.onEvent?(.loaded(id))
+        XCTAssertEqual(engine.subtitleScales, [.init(scale: 1.5, requestID: id)])
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 0, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 45, subtitleScale: 1.5)))
+        player.setSubtitleScale(2, requestID: id)
+        for scale in [Double.nan, .infinity, 0.1, 5, 1.3] {
+            player.setSubtitleScale(scale, requestID: id)
+        }
+        player.open(URL(filePath: "/media/new-scale.mp4"))
+        player.setSubtitleScale(0.5, requestID: id)
+        XCTAssertEqual(engine.subtitleScales, [.init(scale: 1.5, requestID: id), .init(scale: 2, requestID: id)])
+        let next = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(next))
+        XCTAssertEqual(engine.subtitleScales.last, .init(scale: 1.5, requestID: next),
+                       "Current-file changes must not overwrite the user's new-file default")
+        await player.shutdown()
+    }
+
+
+    func testMuteUsesLatestIntentWithoutChangingVolumeAndRejectsOldSnapshots() async throws {
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        player.open(URL(filePath: "/media/mute.mp4"))
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        var snapshot = PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 10, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 73)
+        engine.onEvent?(.snapshot(snapshot))
+        player.toggleMute()
+        XCTAssertTrue(engine.mutes.isEmpty, "Unknown mute state must not be guessed")
+        snapshot.isMuted = false
+        engine.onEvent?(.snapshot(snapshot))
+        player.toggleMute()
+        player.toggleMute()
+        XCTAssertEqual(engine.mutes.map(\.isMuted), [true, false])
+        XCTAssertEqual(player.isMuted, false)
+        snapshot.isMuted = true
+        snapshot.muteCommandID = 1
+        engine.onEvent?(.snapshot(snapshot))
+        XCTAssertEqual(player.isMuted, false, "An older confirmation cannot replace the newest intent")
+        snapshot.isMuted = false
+        snapshot.muteCommandID = 2
+        engine.onEvent?(.snapshot(snapshot))
+        snapshot.isMuted = true
+        snapshot.muteCommandID = 1
+        engine.onEvent?(.snapshot(snapshot))
+        XCTAssertEqual(player.isMuted, false)
+        XCTAssertEqual(player.state.snapshot?.volume, 73)
+        XCTAssertTrue(engine.volumes.isEmpty, "Mute must not overwrite the user's volume")
+        player.toggleMute()
+        player.setVolume(45)
+        XCTAssertEqual(engine.volumes, [45])
+        XCTAssertEqual(player.isMuted, true, "Changing the volume while muted does not silently unmute")
+        player.open(URL(filePath: "/media/next.mp4"))
+        engine.onEvent?(.snapshot(snapshot))
+        XCTAssertNil(player.isMuted)
+        XCTAssertFalse(player.canToggleMute)
+        let next = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(next))
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: next, pauseCommandID: 0,
+            position: 0, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 45, isMuted: true)))
+        XCTAssertEqual(player.isMuted, true)
+        player.stop()
+        XCTAssertNil(player.isMuted)
+        await player.shutdown()
+    }
+
+
+    func testReturnPausePreferenceDefaultsToContinueAndNeverResumesPausedMedia() async throws {
+        let suite = "Bomu.ReturnPause.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = PlaybackPreferences(defaults: defaults)
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, preferences: preferences)
+        player.open(URL(filePath: "/media/return.mp4"))
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        var snapshot = PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 10, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)
+        engine.onEvent?(.snapshot(snapshot))
+        player.prepareForReturnToLibrary()
+        XCTAssertTrue(engine.pauses.isEmpty)
+        preferences.pauseOnReturn = true
+        player.prepareForReturnToLibrary()
+        player.prepareForReturnToLibrary()
+        XCTAssertEqual(engine.pauses, [true], "Repeated return must not toggle or duplicate the pending pause")
+        snapshot.pauseCommandID = 1
+        snapshot.isPaused = true
+        engine.onEvent?(.snapshot(snapshot))
+        player.prepareForReturnToLibrary()
+        XCTAssertEqual(engine.pauses, [true], "Returning from an already paused file must leave it paused")
+        XCTAssertEqual(engine.requests.count, 1)
+        await player.shutdown()
+    }
+
+    func testReturnDuringOpeningPausesOnlyThatRequestWhenItsSnapshotArrives() async throws {
+        let suite = "Bomu.ReturnOpening.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = PlaybackPreferences(defaults: defaults)
+        preferences.pauseOnReturn = true
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, preferences: preferences)
+        player.open(URL(filePath: "/media/first.mp4"))
+        player.prepareForReturnToLibrary()
+        try await waitUntil { engine.requests.count == 1 }
+        let first = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(first))
+        XCTAssertTrue(engine.pauses.isEmpty)
+        var snapshot = PlaybackSnapshot(requestID: first, pauseCommandID: 0,
+            position: 0, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)
+        engine.onEvent?(.snapshot(snapshot))
+        XCTAssertEqual(engine.pauses, [true])
+        player.open(URL(filePath: "/media/second.mp4"))
+        player.prepareForReturnToLibrary()
+        player.open(URL(filePath: "/media/third.mp4"))
+        let third = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.snapshot(snapshot))
+        engine.onEvent?(.loaded(third))
+        snapshot = PlaybackSnapshot(requestID: third, pauseCommandID: 0,
+            position: 0, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)
+        engine.onEvent?(.snapshot(snapshot))
+        XCTAssertEqual(engine.pauses, [true], "A return intent for the replaced second file cannot pause the third")
+        XCTAssertFalse(player.isPaused)
+        await player.shutdown()
+    }
+
+    func testAutomaticResumeRespectsShortUnknownAndCompletedMediaButExplicitContinueWorks() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = "Bomu.CompletionResume.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        for (index, duration) in ([nil, 29.9, 30, 600] as [Double?]).enumerated() {
+            let url = directory.appending(path: "file-\(index).mp4")
+            try Data("resume threshold".utf8).write(to: url)
+            let position = duration == 600 ? 480.0 : 15.0
+            try await store.save(for: try await store.openHistory(for: url).binding, position: position,
+                                 volume: 70, progress: PlaybackProgress(position: position, duration: duration))
+            let engine = RecordingPlaybackEngine()
+            let player = PlayerModel(engine: engine, historyStore: store,
+                                     preferences: PlaybackPreferences(defaults: defaults))
+            player.open(url)
+            try await waitUntil { engine.requests.count == 1 }
+            if duration == 30 {
+                XCTAssertEqual(engine.openOptions.last?.startPosition?.seconds, 15)
+            } else {
+                XCTAssertNil(engine.openOptions.last?.startPosition)
+            }
+            player.continuePlayback(url)
+            try await waitUntil { engine.requests.count == 2 }
+            XCTAssertEqual(engine.openOptions.last?.startPosition?.seconds, position)
+            await player.shutdown()
+        }
+    }
+
+    func testLegacyCheckpointResumesOnlyAfterCurrentLongUnfinishedDurationIsKnown() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = "Bomu.LegacyResume.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store,
+                                 preferences: PlaybackPreferences(defaults: defaults))
+
+        for (name, checkpoint, duration, expectedSeek) in [
+            ("long.mp4", 20.0, 100.0, true),
+            ("short.mp4", 9.0, 20.0, false),
+            ("completed.mp4", 96.0, 100.0, false)
+        ] {
+            let url = directory.appending(path: name)
+            try Data("legacy checkpoint".utf8).write(to: url)
+            try await store.save(for: try await store.openHistory(for: url).binding,
+                                 position: checkpoint, volume: 70)
+            player.open(url)
+            let requestCount = engine.requests.count + 1
+            try await waitUntil { engine.requests.count == requestCount }
+            XCTAssertNil(engine.openOptions.last?.startPosition,
+                         "A legacy checkpoint must wait for the current file's duration")
+            let requestID = try XCTUnwrap(engine.requests.last?.id)
+            let priorSeekCount = engine.seeks.count
+            engine.onEvent?(.loaded(requestID))
+            engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: requestID, pauseCommandID: 0,
+                position: 0, duration: nil, isPaused: false, isSeeking: false,
+                isBuffering: false, isSeekable: true, volume: 70)))
+            XCTAssertEqual(engine.seeks.count, priorSeekCount)
+            let known = PlaybackSnapshot(requestID: requestID, pauseCommandID: 0,
+                position: 0.5, duration: duration, isPaused: false, isSeeking: false,
+                isBuffering: false, isSeekable: true, volume: 70)
+            engine.onEvent?(.snapshot(known))
+            engine.onEvent?(.snapshot(known))
+            XCTAssertEqual(engine.seeks.count, priorSeekCount + (expectedSeek ? 1 : 0))
+            if expectedSeek {
+                XCTAssertEqual(engine.seeks.last,
+                    PlaybackSeekRequest(requestID: requestID, target: .absolute(checkpoint)))
+            }
+        }
+        await player.shutdown()
+    }
+
+    func testLegacyResumeIgnoresReplacedRequestAndExplicitBeginning() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let first = directory.appending(path: "first.mp4")
+        let second = directory.appending(path: "second.mp4")
+        for url in [first, second] { try Data("legacy".utf8).write(to: url) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        for url in [first, second] {
+            try await store.save(for: try await store.openHistory(for: url).binding,
+                                 position: 20, volume: 70)
+        }
+        let suite = "Bomu.LegacyReplacement.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store,
+                                 preferences: PlaybackPreferences(defaults: defaults))
+        player.open(first)
+        try await waitUntil { engine.requests.count == 1 }
+        let firstID = try XCTUnwrap(engine.requests.last?.id)
+        engine.onEvent?(.loaded(firstID))
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: firstID, pauseCommandID: 0,
+            position: 1, duration: nil, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 70)))
+        player.open(second)
+        try await waitUntil { engine.requests.count == 2 }
+        let secondID = try XCTUnwrap(engine.requests.last?.id)
+        engine.onEvent?(.loaded(secondID))
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: firstID, pauseCommandID: 0,
+            position: 1, duration: 100, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 70)))
+        XCTAssertTrue(engine.seeks.isEmpty)
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: secondID, pauseCommandID: 0,
+            position: 1, duration: 100, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 70)))
+        XCTAssertEqual(engine.seeks, [PlaybackSeekRequest(requestID: secondID, target: .absolute(20))])
+
+        player.playFromBeginning(first)
+        try await waitUntil { engine.requests.count == 3 }
+        let beginningID = try XCTUnwrap(engine.requests.last?.id)
+        engine.onEvent?(.loaded(beginningID))
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: beginningID, pauseCommandID: 0,
+            position: 1, duration: 100, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 70)))
+        XCTAssertEqual(engine.seeks.count, 1)
+        await player.shutdown()
+    }
+
+    func testNaturalEndPersistsCompletionBeforeAdvancingToNextMedia() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let files = ["first.mp4", "second.mp4"].map { directory.appending(path: $0) }
+        for file in files { try Data("end checkpoint".utf8).write(to: file) }
+        let suite = "Bomu.CompletionNext.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store,
+                                 preferences: PlaybackPreferences(defaults: defaults))
+        player.open(files)
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        engine.onEvent?(.snapshot(PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 25, duration: 30, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)))
+        engine.onEvent?(.ended(id))
+        try await waitUntil { engine.requests.count == 2 }
+        let saved = try await store.history(for: files[0])
+        XCTAssertEqual(saved?.isWatched, true, "EOF is authoritative even if the last periodic snapshot preceded 95%")
+        XCTAssertEqual(player.state.request?.url, files[1])
+        await player.shutdown()
+    }
+
+    func testPauseConfirmationSavesLatestPositionOnceAndIgnoresSupersededIntent() async throws {
+        let store = RecordingHistoryStore()
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store)
+        player.open(URL(filePath: "/media/paused.mp4"))
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        var snapshot = PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 10, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)
+        engine.onEvent?(.snapshot(snapshot))
+        player.togglePause()
+        player.togglePause()
+        snapshot.pauseCommandID = 1
+        snapshot.isPaused = true
+        snapshot.position = 11
+        engine.onEvent?(.snapshot(snapshot))
+        player.togglePause()
+        snapshot.pauseCommandID = 3
+        snapshot.position = 12
+        engine.onEvent?(.snapshot(snapshot))
+        engine.onEvent?(.snapshot(snapshot))
+        snapshot.position = 13
+        engine.onEvent?(.snapshot(snapshot))
+        // Explicit checkpoint is a deterministic barrier after all earlier writes.
+        try await player.checkpointPlaybackHistory()
+        let saved = await store.positions
+        XCTAssertEqual(saved, [12, 13], "Save the confirmed pause once, never the obsolete pause at 11")
+        await player.shutdown()
+    }
+
+    func testCorePauseSavesButLatePauseFromReplacedMediaCannotSave() async throws {
+        let store = RecordingHistoryStore()
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine, historyStore: store)
+        player.open(URL(filePath: "/media/first.mp4"))
+        try await waitUntil { engine.requests.count == 1 }
+        let id = try XCTUnwrap(player.state.request?.id)
+        engine.onEvent?(.loaded(id))
+        var snapshot = PlaybackSnapshot(requestID: id, pauseCommandID: 0,
+            position: 20, duration: 300, isPaused: false, isSeeking: false,
+            isBuffering: false, isSeekable: true, volume: 80)
+        engine.onEvent?(.snapshot(snapshot))
+        snapshot.isPaused = true
+        snapshot.position = 21
+        engine.onEvent?(.snapshot(snapshot))
+        try await player.checkpointPlaybackHistory()
+        let paused = await store.positions
+        XCTAssertEqual(paused, [21, 21])
+        player.open(URL(filePath: "/media/second.mp4"))
+        try await waitUntil { engine.requests.count == 2 }
+        snapshot.position = 99
+        engine.onEvent?(.snapshot(snapshot))
+        await player.shutdown()
+        let saved = await store.positions
+        XCTAssertEqual(saved, [21, 21, 21], "An old snapshot must not become the replacement file's checkpoint")
+    }
+
+    func testAppendQueuePreservesActivePlaybackAndStaleInputCannotReplaceNewerOpen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let files = ["episode-5.mp4", "episode-2.mp4", "episode-10.mp4"].map { directory.appending(path: $0) }
+        for file in files { try Data().write(to: file) }
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        player.open(files[0])
+        try await waitUntilPrepared(player)
+        let original = player.state.request
+        player.appendToQueue([files[2], files[0], files[1]])
+        try await waitUntil { player.queue.items.count == 3 }
+        XCTAssertEqual(player.queue.items, files)
+        XCTAssertEqual(player.state.request, original)
+        XCTAssertEqual(engine.requests.count, 1)
+        let obsolete = try XCTUnwrap(player.beginInputResolution(disposition: .append))
+        player.open(files[2])
+        player.open([files[1]], for: obsolete)
+        XCTAssertEqual(player.queue.items, [files[2]])
+        await player.shutdown()
+    }
+
+    func testAppendToIdleStartsPlaybackAndFailurePreservesExistingQueue() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appending(path: "first.mp4")
+        try Data().write(to: file)
+        let engine = RecordingPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        player.appendToQueue([file])
+        try await waitUntil { engine.requests.count == 1 }
+        player.appendToQueue([directory.appending(path: "missing.mp4")])
+        try await waitUntil { player.inputError != nil }
+        XCTAssertEqual(player.queue.items, [file])
+        XCTAssertEqual(engine.requests.count, 1)
+        await player.shutdown()
+    }
+
     func testPlaybackActivityPublishesOnlyResourceTransitions() async throws {
         let engine = RecordingPlaybackEngine()
         var changes: [Bool] = []
@@ -519,7 +921,8 @@ final class PlayerModelTests: XCTestCase {
         let url = directory.appending(path: "resume.mkv")
         try Data("resume media".utf8).write(to: url)
         try await store.save(for: try await store.openHistory(for: url).binding, position: 42, audioTrackID: 3,
-                             subtitleTrackID: 5, volume: 37)
+                             subtitleTrackID: 5, volume: 37,
+                             progress: PlaybackProgress(position: 42, duration: 120))
         let engine = RecordingPlaybackEngine()
         let player = PlayerModel(engine: engine, historyStore: store)
 
@@ -703,7 +1106,8 @@ final class PlayerModelTests: XCTestCase {
         try Data("replay from beginning".utf8).write(to: url)
         try Data("next queued episode".utf8).write(to: nextURL)
         defer { try? FileManager.default.removeItem(at: directory) }
-        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, volume: 70)
+        try await store.save(for: try await store.openHistory(for: url).binding, position: 42, volume: 70,
+                             progress: PlaybackProgress(position: 42, duration: 120))
         let suite = "Bomu.ReplayFromBeginning.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defaults.set(false, forKey: "playback.automaticallyPlayNext")
@@ -1937,6 +2341,21 @@ final class PlayerModelTests: XCTestCase {
 }
 
 
+private actor RecordingHistoryStore: PlaybackHistoryPersisting {
+    private(set) var positions: [Double] = []
+
+    func openHistory(for url: URL) async throws -> PlaybackHistorySession {
+        stubHistorySession(for: url)
+    }
+
+    func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws {
+        positions.append(position)
+    }
+
+    func clearAll() async throws { positions.removeAll() }
+}
+
 private actor FailingLibraryStore: MediaLibraryPersisting {
     enum Failure: Error { case expected }
 
@@ -1953,7 +2372,7 @@ private actor FailingLibraryStore: MediaLibraryPersisting {
     }
 
     func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
-              volume: Double, updatedAt: Date) async throws {
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws {
         saveCount += 1
     }
 
@@ -1991,7 +2410,7 @@ private actor BlockingHistoryStore: PlaybackHistoryPersisting {
     }
 
     func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
-              volume: Double, updatedAt: Date) async throws {
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws {
         saveStarted = true
         let waiters = saveStartWaiters
         saveStartWaiters.removeAll()
@@ -2025,7 +2444,7 @@ private actor FailingHistoryStore: PlaybackHistoryPersisting {
     }
 
     func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
-              volume: Double, updatedAt: Date) async throws {
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws {
         saveCount += 1
         throw Failure.checkpoint
     }
@@ -2041,7 +2460,7 @@ private actor ConflictingHistoryStore: PlaybackHistoryPersisting {
     }
 
     func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
-              volume: Double, updatedAt: Date) async throws {
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws {
         saveCount += 1
         throw PlaybackHistoryError.ambiguousMediaIdentity
     }

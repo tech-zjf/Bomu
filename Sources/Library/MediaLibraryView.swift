@@ -1,6 +1,10 @@
 import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
+
+@MainActor
+private enum WelcomeArtworkResource {
+    static let image = Bundle.main.image(forResource: "WelcomeLandscape")
+}
 
 extension LibraryDestination {
     var title: LocalizedStringKey {
@@ -23,9 +27,150 @@ extension LibraryDestination {
     }
 }
 
-private enum MediaBrowserDensity: String, CaseIterable {
+private extension MediaBrowserDensity {
+    var title: LocalizedStringKey {
+        switch self {
+        case .comfortable: "library.browserDensity.comfortable"
+        case .compact: "library.browserDensity.compact"
+        }
+    }
+}
+
+private enum MediaBrowserLayout: String, CaseIterable {
     case grid
     case list
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .grid: "library.folderDensity.grid"
+        case .list: "library.folderDensity.list"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .grid: "square.grid.2x2"
+        case .list: "list.bullet"
+        }
+    }
+
+    // Each button owns its half of the outer inset so the gray margin is clickable.
+    var hitInsets: EdgeInsets {
+        let inset = AppTheme.Layout.browserLayoutInset
+        return EdgeInsets(top: inset, leading: self == .grid ? inset : 0,
+                          bottom: inset, trailing: self == .list ? inset : 0)
+    }
+}
+
+private struct MediaBrowserLayoutPicker: View {
+    let title: LocalizedStringKey
+    @Binding var selection: MediaBrowserLayout
+    @FocusState private var focusedLayout: MediaBrowserLayout?
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(MediaBrowserLayout.allCases, id: \.self) { layout in
+                Button {
+                    selection = layout
+                } label: {
+                    Image(systemName: layout.symbol)
+                        .font(AppTheme.Typography.Symbol.compactAction)
+                        .frame(width: AppTheme.Layout.browserLayoutButtonWidth,
+                               height: AppTheme.Layout.browserLayoutButtonHeight)
+                        .padding(layout.hitInsets)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(MediaBrowserLayoutButtonStyle(
+                    isSelected: selection == layout,
+                    isFocused: focusedLayout == layout,
+                    insets: layout.hitInsets
+                ))
+                .focused($focusedLayout, equals: layout)
+                .accessibilityLabel(Text(layout.title))
+                .accessibilityAddTraits(selection == layout ? .isSelected : [])
+                .help(Text(layout.title))
+                .onMoveCommand { direction in
+                    guard isEnabled else { return }
+                    switch direction {
+                    case .left:
+                        selection = .grid
+                        focusedLayout = .grid
+                    case .right:
+                        selection = .list
+                        focusedLayout = .list
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+        .background(AppTheme.mutedSurface, in: RoundedRectangle(cornerRadius: AppTheme.Corners.browserLayoutGroup))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(title))
+        .fixedSize()
+    }
+}
+
+private struct MediaBrowserLayoutButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    let isFocused: Bool
+    let insets: EdgeInsets
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(AppTheme.textPrimary)
+            .background {
+                RoundedRectangle(cornerRadius: AppTheme.Corners.browserLayoutOption)
+                    .fill(background)
+                    .shadow(color: isSelected ? Color.black.opacity(1 / 15) : .clear,
+                            radius: 1.5, x: 0, y: 1)
+                    .padding(insets)
+            }
+            .overlay {
+                if isFocused {
+                    RoundedRectangle(cornerRadius: AppTheme.Corners.browserLayoutOption)
+                        .strokeBorder(Color.accentColor, lineWidth: 2)
+                        .padding(insets)
+                }
+            }
+            .opacity(isEnabled ? 1 : 0.45)
+            .opacity(configuration.isPressed ? 0.7 : 1)
+            .onHover { isHovered = $0 }
+    }
+
+    private var background: Color {
+        if isSelected { return AppTheme.surface }
+        if isEnabled && isHovered { return AppTheme.controlHoverSurface }
+        return .clear
+    }
+}
+
+private struct MediaCategoryButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(AppTheme.Typography.categoryLabel)
+            .foregroundStyle(isSelected ? AppTheme.surface : AppTheme.textPrimary)
+            .padding(.horizontal, 12)
+            .frame(minHeight: AppTheme.Layout.libraryCategoryHeight)
+            .background(background, in: Capsule())
+            .contentShape(Rectangle())
+            .opacity(isEnabled ? 1 : 0.45)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .onHover { isHovered = $0 }
+    }
+
+    private var background: Color {
+        if isSelected { return AppTheme.textPrimary }
+        if isEnabled && isHovered { return AppTheme.controlHoverSurface }
+        return .clear
+    }
 }
 
 private extension MediaCategoryFilter {
@@ -71,10 +216,9 @@ struct MediaLibraryView: View {
     let onShowPlayer: () -> Void
 
     let navigation: MainWindowNavigation
-    @State private var isChoosingFolder = false
     @State private var folderPath: [MediaLibraryDirectory] = []
-    @State private var folderDensity = MediaBrowserDensity.grid
-    @State private var libraryDensity = MediaBrowserDensity.grid
+    @State private var folderLayout = MediaBrowserLayout.grid
+    @State private var libraryLayout = MediaBrowserLayout.grid
     @State private var librarySortOrder = MediaLibrarySortOrder.recentlyAdded
     @State private var visibleScrollTarget: String?
     @State private var folderListScrollTarget: String?
@@ -89,8 +233,13 @@ struct MediaLibraryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if showsWelcome {
                 VStack(spacing: 0) {
-                    ScrollView { welcomeView }
+                    GeometryReader { geometry in
+                        ScrollView {
+                            welcomeView
+                                .frame(minHeight: geometry.size.height)
+                        }
                         .bomuOverlayScrollerStyle()
+                    }
                     if let current = player.state.request, player.state.phase == .ready {
                         currentPlaybackBar(title: current.url.deletingPathExtension().lastPathComponent)
                     }
@@ -103,16 +252,7 @@ struct MediaLibraryView: View {
         .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
                minHeight: AppTheme.Layout.minimumWindowHeight)
         .task { await model.refresh() }
-        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder],
-                      allowsMultipleSelection: false) { result in
-            switch result {
-            case .success(let urls):
-                if let folder = urls.first { model.addFolder(folder) }
-            case .failure(let error):
-                guard (error as? CocoaError)?.code != .userCancelled else { return }
-                model.report(error)
-            }
-        }
+
     }
 
     private var showsWelcome: Bool {
@@ -346,6 +486,7 @@ struct MediaLibraryView: View {
                 Text("library.searchResults")
                     .font(AppTheme.Typography.sectionTitle)
                     .tracking(AppTheme.Typography.sectionTitleTracking)
+                    .foregroundStyle(AppTheme.textPrimary)
                 Spacer()
                 Text(verbatim: searchResultCountText(results.count))
                     .font(AppTheme.Typography.caption)
@@ -426,68 +567,84 @@ struct MediaLibraryView: View {
     }
 
     private var filterControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: AppTheme.Layout.libraryCategoryGap) {
-                ForEach(MediaCategoryFilter.allCases) { filter in
-                    Button { categoryFilter = filter } label: {
-                        Text(filter.title)
-                            .font(AppTheme.Typography.filterLabel)
-                            .foregroundStyle(categoryFilter == filter ? AppTheme.surface : AppTheme.textPrimary)
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: AppTheme.Layout.compactControlSize)
-                            .background(categoryFilter == filter ? AppTheme.textPrimary : AppTheme.searchFieldSurface,
-                                        in: Capsule())
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(categoryFilter == filter ? .isSelected : [])
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: AppTheme.Layout.libraryToolsGap) {
+                categoryControls
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                libraryOptions
+                    .fixedSize(horizontal: true, vertical: false)
             }
-
-            HStack(spacing: 16) {
-                Menu {
-                    ForEach(MediaWatchedFilter.allCases) { filter in
-                        filterOption(title: filter.title, isSelected: watchedFilter == filter) {
-                            watchedFilter = filter
-                        }
-                    }
-                } label: {
-                    filterControlLabel(title: "library.watchedFilter", selection: watchedFilter.title)
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Menu {
-                    ForEach(MediaLibrarySortOrder.allCases) { order in
-                        filterOption(title: order.title, isSelected: librarySortOrder == order) {
-                            librarySortOrder = order
-                        }
-                    }
-                } label: {
-                    filterControlLabel(title: "library.sort", selection: librarySortOrder.title)
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .buttonStyle(.plain)
-
-                Picker("library.libraryDensity", selection: $libraryDensity) {
-                    Image(systemName: "square.grid.2x2")
-                        .accessibilityLabel(Text("library.folderDensity.grid"))
-                        .tag(MediaBrowserDensity.grid)
-                    Image(systemName: "list.bullet")
-                        .accessibilityLabel(Text("library.folderDensity.list"))
-                        .tag(MediaBrowserDensity.list)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 92)
-                .fixedSize()
+            VStack(alignment: .leading, spacing: AppTheme.Layout.libraryToolsGap) {
+                categoryControls
+                libraryOptions
             }
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private var categoryControls: some View {
+        HStack(spacing: AppTheme.Layout.libraryCategoryGap) {
+            ForEach(MediaCategoryFilter.allCases) { filter in
+                Button { categoryFilter = filter } label: {
+                    Text(filter.title)
+                }
+                .buttonStyle(MediaCategoryButtonStyle(isSelected: categoryFilter == filter))
+                .accessibilityAddTraits(categoryFilter == filter ? .isSelected : [])
+            }
+        }
+    }
+
+    private var libraryOptions: some View {
+        HStack(spacing: 16) {
+            Menu {
+                ForEach(MediaWatchedFilter.allCases) { filter in
+                    filterOption(title: filter.title, isSelected: watchedFilter == filter) {
+                        watchedFilter = filter
+                    }
+                }
+            } label: {
+                filterControlLabel(title: "library.watchedFilter", selection: watchedFilter.title)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Menu {
+                ForEach(MediaLibrarySortOrder.allCases) { order in
+                    filterOption(title: order.title, isSelected: librarySortOrder == order) {
+                        librarySortOrder = order
+                    }
+                }
+            } label: {
+                filterControlLabel(title: "library.sort", selection: librarySortOrder.title)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .buttonStyle(.plain)
+
+            browserDensityMenu
+            MediaBrowserLayoutPicker(title: "library.libraryDensity", selection: $libraryLayout)
+        }
+    }
+
+    private var browserDensityMenu: some View {
+        Menu {
+            ForEach(MediaBrowserDensity.allCases) { density in
+                filterOption(title: density.title, isSelected: preferences.browserDensity == density) {
+                    preferences.browserDensity = density
+                }
+            }
+        } label: {
+            filterControlLabel(title: "library.browserDensity", selection: preferences.browserDensity.title)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("library.browserDensity"))
+        .accessibilityValue(Text(preferences.browserDensity.title))
     }
 
     private func filterOption(title: LocalizedStringKey, isSelected: Bool,
@@ -536,25 +693,22 @@ struct MediaLibraryView: View {
         if items.isEmpty {
             emptyState(title: "library.noMediaTitle", message: "library.noMediaMessage")
         } else if matches.isEmpty {
-            VStack(spacing: 0) {
-                emptyState(title: "library.noFilterResultsTitle", message: "library.noFilterResultsMessage")
-                Button("library.clearFilters") {
-                    categoryFilter = .all
-                    watchedFilter = .all
-                }
-                .buttonStyle(.bordered)
-            }
+            emptyState(title: "library.noFilterResultsTitle", message: "library.noFilterResultsMessage",
+                       action: (title: "library.clearFilters", perform: {
+                categoryFilter = .all
+                watchedFilter = .all
+            }))
         } else {
             let sorted = MediaLibraryModel.sorting(matches, by: librarySortOrder,
                 durationFacts: model.durationFacts)
-            if libraryDensity == .grid {
-                mediaGrid(sorted)
+            if libraryLayout == .grid {
+                mediaGrid(sorted, density: preferences.browserDensity)
             } else {
                 LazyVStack(spacing: 0) {
                     ForEach(sorted) { item in
                         MediaLibraryListRow(item: item, isPlayable: model.fileURL(for: item) != nil,
                             isVisible: isVisible, model: model, onPlay: onPlay, onContinue: onContinue,
-                            onPlayFromBeginning: onPlayFromBeginning) {
+                            onPlayFromBeginning: onPlayFromBeginning, density: preferences.browserDensity) {
                                 Task { await model.toggleFavorite(item) }
                             }
                         .id("media-\(item.id)")
@@ -622,26 +776,17 @@ struct MediaLibraryView: View {
                     Text(directory.displayName)
                         .font(AppTheme.Typography.pageTitle)
                         .tracking(AppTheme.Typography.pageTitleTracking)
+                        .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .help(directory.displayName)
                     Spacer()
-                    Picker("library.folderDensity", selection: $folderDensity) {
-                        Image(systemName: "square.grid.2x2")
-                            .accessibilityLabel(Text("library.folderDensity.grid"))
-                            .tag(MediaBrowserDensity.grid)
-                        Image(systemName: "list.bullet")
-                            .accessibilityLabel(Text("library.folderDensity.list"))
-                            .tag(MediaBrowserDensity.list)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 92)
-                    .fixedSize()
+                    browserDensityMenu
+                    MediaBrowserLayoutPicker(title: "library.folderDensity", selection: $folderLayout)
                 }
                 if childDirectories.isEmpty && mediaItems.isEmpty {
                     emptyState(title: "library.folderEmptyTitle", message: "library.folderEmptyMessage")
-                } else if folderDensity == .grid {
+                } else if folderLayout == .grid {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 180, maximum: 260),
                                                   spacing: AppTheme.Layout.folderGridGap)],
                               spacing: AppTheme.Layout.folderGridGap) {
@@ -654,7 +799,7 @@ struct MediaLibraryView: View {
                         }
                     }
                     .scrollTargetLayout()
-                    mediaGrid(mediaItems)
+                    mediaGrid(mediaItems, density: preferences.browserDensity)
                 } else {
                     LazyVStack(spacing: 0) {
                         ForEach(childDirectories) { child in
@@ -667,7 +812,7 @@ struct MediaLibraryView: View {
                         ForEach(mediaItems) { item in
                             MediaLibraryListRow(item: item, isPlayable: model.fileURL(for: item) != nil,
                                 isVisible: isVisible, model: model, onPlay: onPlay, onContinue: onContinue,
-                                onPlayFromBeginning: onPlayFromBeginning) {
+                                onPlayFromBeginning: onPlayFromBeginning, density: preferences.browserDensity) {
                                     Task { await model.toggleFavorite(item) }
                                 }
                             .id("media-\(item.id)")
@@ -709,7 +854,7 @@ struct MediaLibraryView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("library.scanRecentlyFound")
                         .font(AppTheme.Typography.emphasizedCaption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.textSecondary)
                     ForEach(Array(model.recentlyDiscoveredFiles.enumerated()), id: \.offset) { entry in
                         Text(entry.element)
                             .font(AppTheme.Typography.caption)
@@ -731,6 +876,7 @@ struct MediaLibraryView: View {
                 Text(title)
                     .font(AppTheme.Typography.pageTitle)
                     .tracking(AppTheme.Typography.pageTitleTracking)
+                    .foregroundStyle(AppTheme.textPrimary)
                 Text(subtitle)
                     .font(AppTheme.Typography.pageSubtitle)
                     .foregroundStyle(AppTheme.textSecondary)
@@ -752,77 +898,158 @@ struct MediaLibraryView: View {
 
     private var welcomeView: some View {
         HStack(spacing: 24) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("library.welcomeKicker")
-                    .font(AppTheme.Typography.welcomeKicker)
-                    .tracking(1)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .padding(.bottom, 6)
-                Text("library.welcomeTitle")
-                    .font(AppTheme.Typography.welcomeTitle)
-                    .lineSpacing(AppTheme.Typography.welcomeTitleLineSpacing)
-                    .tracking(-1.6)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.bottom, 15)
-                Text("library.welcomeMessage")
-                    .font(AppTheme.Typography.subtitle)
-                    .lineSpacing(AppTheme.Typography.welcomeMessageLineSpacing)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .frame(maxWidth: AppTheme.Layout.welcomeMessageMaxWidth, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.bottom, 24)
-                HStack(spacing: 6) {
-                    Button {
-                        OpenMediaPanel.present(for: player)
-                    } label: {
-                        Label("open.video", systemImage: "play.fill")
-                            .font(AppTheme.Typography.controlLabel)
-                            .padding(.horizontal, 16)
-                            .frame(minHeight: 36)
-                            .foregroundStyle(.white)
-                            .background(AppTheme.textPrimary, in: Capsule())
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    Button(action: chooseFolder) {
-                        Label("library.addFolder", systemImage: "folder.badge.plus")
-                            .font(AppTheme.Typography.controlLabel)
-                            .padding(.horizontal, 16)
-                            .frame(minHeight: 36)
-                            .background(AppTheme.surface, in: Capsule())
-                            .overlay(Capsule().strokeBorder(AppTheme.separator))
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-                .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 16) {
-                    Button("library.nav.settings") { navigation.showSettings() }
-                    Button("library.restoreBackup") { navigation.showSettings(section: .storage) }
-                }
-                .font(AppTheme.Typography.controlBody)
-                .buttonStyle(.link)
-                .padding(.top, 16)
-                Label("library.welcomePrivacy", systemImage: "checkmark.shield")
-                    .font(AppTheme.Typography.compactCaption)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .padding(.top, 20)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeVisual)
-                .fill(AppTheme.welcomeVisualSurface)
-                .aspectRatio(1, contentMode: .fit)
-                .overlay {
-                    Image(systemName: "play.rectangle")
-                        .font(AppTheme.Typography.Symbol.welcomeVisual)
-                        .foregroundStyle(AppTheme.folderRowIconForeground)
-                }
-                .frame(maxWidth: .infinity)
-                .accessibilityHidden(true)
+            welcomeCopy
+            welcomeVisual
         }
         .padding(48)
         .frame(maxWidth: .infinity, minHeight: 550)
+    }
+
+    private var welcomeCopy: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            welcomeHeading
+                .padding(.bottom, 15)
+            welcomePrimaryActions
+            welcomeSecondaryActions
+                .padding(.top, 16)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var welcomeHeading: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("library.welcomeKicker")
+                .font(AppTheme.Typography.welcomeKicker)
+                .tracking(1)
+                .foregroundStyle(AppTheme.textSecondary)
+                .padding(.bottom, 6)
+            Text("library.welcomeTitle")
+                .font(AppTheme.Typography.welcomeTitle)
+                .lineSpacing(AppTheme.Typography.welcomeTitleLineSpacing)
+                .tracking(AppTheme.Typography.welcomeTitleTracking)
+                .foregroundStyle(AppTheme.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var welcomePrimaryActions: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("library.welcomeMessage")
+                .font(AppTheme.Typography.subtitle)
+                .lineSpacing(AppTheme.Typography.welcomeMessageLineSpacing)
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: AppTheme.Layout.welcomeMessageMaxWidth, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, 24)
+            HStack(spacing: 6) {
+                Button {
+                    OpenMediaPanel.present(for: player)
+                } label: {
+                    HStack(spacing: AppTheme.Layout.welcomeActionIconGap) {
+                        Image(systemName: "play.fill")
+                            .accessibilityHidden(true)
+                        Text("open.video")
+                    }
+                        .font(AppTheme.Typography.welcomeAction)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 11)
+                        .foregroundStyle(.white)
+                        .background(AppTheme.textPrimary, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                Button(action: chooseFolder) {
+                    HStack(spacing: AppTheme.Layout.welcomeActionIconGap) {
+                        Image(systemName: "folder.badge.plus")
+                            .accessibilityHidden(true)
+                        Text("library.addFolder")
+                    }
+                        .font(AppTheme.Typography.welcomeAction)
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 9)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .background(AppTheme.surface, in: Capsule())
+                        .overlay(Capsule().strokeBorder(AppTheme.separator))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var welcomeSecondaryActions: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 16) {
+                Button {
+                    navigation.showSettings()
+                } label: {
+                    Label("library.nav.settings", systemImage: "gearshape")
+                }
+                Button {
+                    navigation.showSettings(section: .storage)
+                } label: {
+                    Label("library.restoreBackup", systemImage: "arrow.counterclockwise")
+                }
+            }
+            .font(AppTheme.Typography.compactCaption)
+            .foregroundStyle(AppTheme.textSecondary)
+            .buttonStyle(.plain)
+            Label("library.welcomePrivacy", systemImage: "checkmark.shield")
+                .font(AppTheme.Typography.compactCaption)
+                .foregroundStyle(AppTheme.textSecondary)
+                .padding(.top, 18)
+        }
+    }
+
+    private var welcomeVisual: some View {
+        RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeVisual)
+            .fill(AppTheme.welcomeVisualSurface)
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                GeometryReader { geometry in
+                    let side = min(geometry.size.width, geometry.size.height)
+                    ZStack {
+                        if let image = WelcomeArtworkResource.image {
+                            Image(nsImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: side - 2 * AppTheme.Layout.welcomeArtworkInset,
+                                       height: (side - 2 * AppTheme.Layout.welcomeArtworkInset) * 0.75)
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeArtwork))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeArtwork)
+                                        .strokeBorder(.white, lineWidth: 6)
+                                }
+                                .shadow(color: AppTheme.textPrimary.opacity(0.13), radius: 18, y: 20)
+                                .rotationEffect(.degrees(-8))
+                        } else {
+                            Image(systemName: "photo")
+                                .font(AppTheme.Typography.Symbol.welcomeFallback)
+                                .foregroundStyle(AppTheme.folderRowIconForeground)
+                        }
+
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .overlay(alignment: .bottomTrailing) {
+                        HStack(spacing: AppTheme.Layout.welcomeCaptionIconGap) {
+                            Image(systemName: "play.fill")
+                            Text("library.welcomeVisualCaption")
+                        }
+                        .font(AppTheme.Typography.welcomeCaption)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 14)
+                        .background(.white, in: RoundedRectangle(cornerRadius: AppTheme.Corners.welcomeCaption))
+                        .shadow(color: AppTheme.textPrimary.opacity(0.08), radius: 15, y: 8)
+                        .rotationEffect(.degrees(5))
+                        .padding(.trailing, side * AppTheme.Layout.welcomeCaptionTrailingFraction)
+                        .padding(.bottom, side * AppTheme.Layout.welcomeCaptionBottomFraction)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
     }
 
     private func mediaSection(title: LocalizedStringKey, items: [MediaLibraryItem], emptyKey: LocalizedStringKey,
@@ -834,13 +1061,22 @@ struct MediaLibraryView: View {
                 Text(title)
                     .font(AppTheme.Typography.sectionTitle)
                     .tracking(AppTheme.Typography.sectionTitleTracking)
+                    .foregroundStyle(AppTheme.textPrimary)
                 Spacer()
                 if let onViewAll {
                     Button(action: onViewAll) {
-                        Text("library.viewAll")
-                            .font(AppTheme.Typography.controlBody)
-                            .frame(minHeight: AppTheme.Layout.compactControlSize)
-                            .contentShape(Rectangle())
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.up.right")
+                                .font(AppTheme.Typography.Symbol.sectionAction)
+                                .frame(width: 16, height: 16)
+                                .accessibilityHidden(true)
+                            Text("library.viewAll")
+                                .font(AppTheme.Typography.caption)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .frame(minHeight: AppTheme.Layout.compactControlSize)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(AppTheme.textSecondary)
@@ -862,9 +1098,11 @@ struct MediaLibraryView: View {
 
     @ViewBuilder
     private func mediaGrid(_ items: [MediaLibraryItem], columnCount: Int = AppTheme.Layout.mediaGridColumnCount,
-                           presentation: MediaLibraryCard.Presentation = .standard) -> some View {
+                           presentation: MediaLibraryCard.Presentation = .standard,
+                           density: MediaBrowserDensity = .comfortable) -> some View {
         if !items.isEmpty {
-            let spacing = mediaGridSpacing(for: presentation)
+            let columnCount = density == .compact ? AppTheme.Layout.compactMediaGridColumnCount : columnCount
+            let spacing = mediaGridSpacing(for: presentation, density: density)
             LazyVGrid(columns: gridColumns(columnCount, spacing: spacing.columns), spacing: spacing.rows) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { entry in
                     let item = entry.element
@@ -886,26 +1124,33 @@ struct MediaLibraryView: View {
         return Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
     }
 
-    private func mediaGridSpacing(for presentation: MediaLibraryCard.Presentation) -> (columns: CGFloat, rows: CGFloat) {
+    private func mediaGridSpacing(for presentation: MediaLibraryCard.Presentation,
+                                  density: MediaBrowserDensity) -> (columns: CGFloat, rows: CGFloat) {
+        if density == .compact {
+            return (AppTheme.Layout.compactMediaGridColumnGap, AppTheme.Layout.compactMediaGridRowGap)
+        }
         switch presentation {
         case .continueWatching:
-            (AppTheme.Layout.continueWatchingGap, AppTheme.Layout.continueWatchingGap)
+            return (AppTheme.Layout.continueWatchingGap, AppTheme.Layout.continueWatchingGap)
         case .standard:
-            (AppTheme.Layout.mediaGridColumnGap, AppTheme.Layout.mediaGridRowGap)
+            return (AppTheme.Layout.mediaGridColumnGap, AppTheme.Layout.mediaGridRowGap)
         }
     }
 
     private func emptyState(title: LocalizedStringKey, message: LocalizedStringKey,
-                            systemImage: String = "film") -> some View {
-        VStack(spacing: 14) {
+                            systemImage: String = "film",
+                            action: (title: LocalizedStringKey, perform: () -> Void)? = nil) -> some View {
+        VStack(spacing: AppTheme.Layout.emptyStateGap) {
             Image(systemName: systemImage)
                 .font(AppTheme.Typography.Symbol.emptyState)
                 .foregroundStyle(AppTheme.emptyStateIconForeground)
-                .frame(width: 62, height: 62)
+                .frame(width: AppTheme.Layout.emptyStateIconSize,
+                       height: AppTheme.Layout.emptyStateIconSize)
                 .background(
                     AppTheme.mutedSurface,
                     in: RoundedRectangle(cornerRadius: AppTheme.Corners.emptyStateIcon)
                 )
+                .padding(.bottom, AppTheme.Layout.emptyStateIconBottomGap)
                 .accessibilityHidden(true)
             Text(title)
                 .font(AppTheme.Typography.sectionTitle)
@@ -915,18 +1160,24 @@ struct MediaLibraryView: View {
                 .font(AppTheme.Typography.subtitle)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 310)
+                .frame(maxWidth: AppTheme.Layout.emptyStateMessageMaxWidth)
+            if let action {
+                Button(action.title, action: action.perform)
+                    .buttonStyle(.bordered)
+            }
         }
-        .frame(maxWidth: .infinity, minHeight: 180)
-        .padding(15)
-        .accessibilityElement(children: .combine)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, AppTheme.Layout.emptyStateHorizontalInset)
+        .padding(.vertical, AppTheme.Layout.emptyStateVerticalInset)
+        .accessibilityElement(children: .contain)
     }
 
     private func currentPlaybackBar(title: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "play.rectangle.fill").font(AppTheme.Typography.Symbol.nowPlaying)
             VStack(alignment: .leading, spacing: 2) {
-                Text("library.nowPlaying").font(AppTheme.Typography.caption).foregroundStyle(.secondary)
+                Text("library.nowPlaying").font(AppTheme.Typography.caption).foregroundStyle(AppTheme.textSecondary)
                 Text(title).font(AppTheme.Typography.emphasizedCallout).lineLimit(1)
             }
             Spacer()
@@ -951,7 +1202,7 @@ struct MediaLibraryView: View {
     }
 
     private func chooseFolder() {
-        isChoosingFolder = true
+        AddMediaFolderPanel.present(for: model)
     }
 
     private func open(_ root: MediaSourceRoot) {

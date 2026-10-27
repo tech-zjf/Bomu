@@ -8,7 +8,11 @@
 
 ## 调用链与清理
 
-Debug 应用进程环境 → `PlaybackHistoryStore.debugAcceptanceDirectory` → `applicationStore` → `AppLifecycle.mediaLibrary` → Welcome / Settings / Restore 路由。`scripts/isolated-welcome-session.sh` 先核对包身份，在系统临时目录创建标记库并将其传入当前用户的启动环境；该脚本不启动应用窗口。保持脚本运行，用桌面自动化按规范 Debug `.app` 的绝对路径启动本轮唯一窗口。关闭本轮进程后，向脚本发送 Return；脚本撤销环境变量并删除它创建的临时库。若环境未传入或显示真实媒体库，立即停止该轮，不以空库验收计分。不得搬动现有 Application Support 数据。
+Debug 应用进程环境 → `PlaybackHistoryStore.debugAcceptanceDirectory` → `applicationStore` → `AppLifecycle.mediaLibrary` → Welcome / Settings / Restore 路由。
+
+`scripts/isolated-welcome-session.sh` 核对规范包身份，确认没有 Bomu 进程且屏幕已解锁，然后在系统临时目录创建标记库，通过 `open -n -W --env` 启动唯一测试窗口。变量只传给本次启动，不写入全局 `launchctl` 环境。脚本保持运行直至应用正常退出，随后检查无 Bomu 进程并清理自己的临时目录。若脚本被中断或启动失败时仍有应用运行，或无法读取进程状态，则保留目录并报告路径，不能删除应用可能正在使用的 SQLite。
+
+验收结束后立即从规范路径正常重开应用，确认 Home 回到原媒体库再交还用户。若环境未传入或显示真实媒体库，立即停止该轮，不以空库验收计分。不得搬动现有 Application Support 数据。后文 10 月 24 日的全局环境脚本记录是历史行为，已由上述单次启动流程替代。
 
 ## 已完成的后台验证
 
@@ -27,3 +31,15 @@ Debug 应用进程环境 → `PlaybackHistoryStore.debugAcceptanceDirectory` →
 本轮未选择媒体、文件夹或归档，未修改真实用户库和设置。关闭该轮应用后会话脚本正常退出；回读启动环境变量为空，临时库目录已删除。可见检查只覆盖当前窗口尺寸；三个精确尺寸、真实归档预览/应用、菜单点击及键盘/VoiceOver 仍未完成。首次库加载被人为延迟时的 Settings 抢先路由也未单独压测。
 
 随后在当前 Debug 收据 `22f96470841b82d26e7cf77695c9a0fb119ec8090ed8b2d28fd3a56a1d4699c4` 上重开另一轮隔离空库，完成 Welcome 的精确 `960×640`、`1280×800`、`1440×900 pt` 可见布局抽查；设置五分区在大尺寸可导航，Storage 在小尺寸滚动到底可达。Welcome 的 `⌘,` 这次明确到达 Settings / Storage。菜单 Settings… 仍只有菜单项可见证据，点击工具返回元素失效，未记通过。该轮退出后临时库与启动变量再次清理；逐控件命中、VoiceOver、非空归档和首次加载竞态仍待验，详见[可见记录](../roadmap/visible-acceptance-2026-10-24.md#当前收据的隔离空库三尺寸复核)。
+
+## 2026-10-26 单次启动隔离与正常 Home 恢复
+
+当前 `ca997ccf4ca30744c6b0852a2ef9d508cc7e4175d5e7b66818db66b05f147bea` 包（0.0.1 (2)，仅英文）在身份核验、Debug 构建和静态分析通过后，用 `/usr/bin/open -n --env BOMU_ACCEPTANCE_LIBRARY_DIRECTORY=<本轮带标记目录> <规范 Debug app 绝对路径>` 成功启动。此轮没有设置全局 `launchctl` 变量。后续会话脚本已改为该单次启动方式；结束后立即恢复正常应用，避免把空库验收窗口留给用户。
+
+Welcome 在 CoreGraphics 确认的 960×640、1280×800 pt 可见，标题、操作与装饰图可完整显示；960 pt Settings 和 1280 pt Restore → Storage 路由可见。原始截图仅留在被忽略的 `.build/acceptance/ui-captures/2026-10-26-ca997/`。期间另有 1227×800 pt 截图，未混算为 1280 pt。用户期间移动窗口到另一块屏幕，自动化没有执行跨屏迁移；本轮不是连续同屏三尺寸验收，1440×900 pt、逐项视觉测量和完整命中范围仍开放。
+
+用户反馈 Home 一直显示 Welcome 后，核对该进程仍使用本轮空库。Home 在来源列表为空时展示 Welcome，属于空库路由，不是原库丢失。退出本轮进程后，核验标记并删除本轮临时库，确认全局启动变量为空，以不带该变量的启动环境重新打开规范 Debug 包。只读检查原库保留 2 个来源、125 条媒体记录、8 条媒体偏好及 36 条播放历史。正常进程的可见 Home 再次包含侧栏、Continue Watching、Recently Added 及离线来源提示；该正常窗口留给用户使用。本轮未清空或搬动原库，没有修改 Home 路由来掩盖隔离环境问题。
+
+脚本变更的无窗口行为回归覆盖正常退出只清理本轮目录、已有进程拒绝启动、锁屏/未知锁状态拒绝启动、继承的隔离变量（含空值）拒绝启动，以及启动失败时仍有进程或进程查询失败则保留目录。测试用替代命令模拟进程和启动结果，不占用桌面；这不替代新脚本的真实启动到退出整轮验收。此前 `open --env` 的真实可见结果仅证明该启动方式可用。
+
+本轮后台验证：6 项会话脚本行为测试纳入完整 167 项 Python 检查；208 项无宿主 XCTest 执行结果为 2 项 APFS 专项默认跳过、零失败。Debug 构建、静态分析与 `860041ba…` 收据核验通过。在正常 Bomu 进程仍运行时实际调用脚本，身份核验通过后以退出码 1 拒绝启动，未创建新的空库窗口。新脚本完整真实会话未重跑，当前正常 Home 保持不动。

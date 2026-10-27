@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "sourceVersion": "0.41.0",
+  "baseLibrarySHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+  "patch": {
+    "path": "Tools/MPVOverlay/mpv-0.41.0-render-fence.patch",
+    "commit": "dd710281580135b40c98e95bc6a9ad562052f010",
+    "url": "https://github.com/mpv-player/mpv/commit/dd710281580135b40c98e95bc6a9ad562052f010.patch",
+    "sha256": "5978742f49bc5db256674097dc5feabda2435823bc3e76ef34ac87d109df76bb"
+  },
+  "archives": {
+    "libass": {
+      "url": "https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz",
+      "sha256": "2dca25c0e0c837ddf00b52011b3f82cac1e4ddd3ad018227806b0c2288864acc",
+      "filename": "libass-0.17.5.tar.xz"
+    },
+    "libarchive": {
+      "url": "https://github.com/libarchive/libarchive/releases/download/v3.8.8/libarchive-3.8.8.tar.xz",
+      "sha256": "3873a88801da067d0528a989af06877710529d50ee8fe6f3970cbb4302efb918",
+      "filename": "libarchive-3.8.8.tar.xz"
+    },
+    "libbluray": {
+      "url": "https://download.videolan.org/videolan/libbluray/1.4.1/libbluray-1.4.1.tar.xz",
+      "sha256": "76b5dc40097f28dca4ebb009c98ed51321b2927453f75cc72cf74acd09b9f449",
+      "filename": "libbluray-1.4.1.tar.xz"
+    },
+    "lcms2": {
+      "url": "https://downloads.sourceforge.net/project/lcms/lcms/2.19/lcms2-2.19.tar.gz",
+      "sha256": "49e7e134e4299733dd0eda434fa468997a28ab3d33fa397c642b03644f552216",
+      "filename": "lcms2-2.19.tar.gz"
+    },
+    "luajit": {
+      "url": "https://github.com/LuaJIT/LuaJIT/archive/8e6520a7aecd0517e792b359afbbfd7274791f5f.tar.gz",
+      "sha256": "9c4c370559352e0622231d5a1f28e95ff56e2dce6308238e6588b0943aac5e63",
+      "filename": "8e6520a7aecd0517e792b359afbbfd7274791f5f.tar.gz"
+    },
+    "mujs": {
+      "url": "https://mujs.com/downloads/mujs-1.3.9.tar.gz",
+      "sha256": "956d5a20dd4efe5aa58673558787b9e2539255f9bf62585e90e1921fa040d89d",
+      "filename": "mujs-1.3.9.tar.gz"
+    },
+    "rubberband": {
+      "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0.tar.bz2",
+      "sha256": "af050313ee63bc18b35b2e064e5dce05b276aaf6d1aa2b8a82ced1fe2f8028e9",
+      "filename": "rubberband-4.0.0.tar.bz2"
+    },
+    "uchardet": {
+      "url": "https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz",
+      "sha256": "e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0",
+      "filename": "uchardet-0.0.8.tar.xz"
+    },
+    "zimg": {
+      "url": "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz",
+      "sha256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
+      "filename": "release-3.0.6.tar.gz"
+    },
+    "jpeg-turbo": {
+      "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz",
+      "sha256": "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022",
+      "filename": "libjpeg-turbo-3.1.4.1.tar.gz"
+    },
+    "mpv": {
+      "url": "https://github.com/mpv-player/mpv/archive/refs/tags/v0.41.0.tar.gz",
+      "filename": "mpv-0.41.0.tar.gz",
+      "sha256": "ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209"
+    },
+    "ffmpeg": {
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+      "filename": "ffmpeg-9.0.1.tar.xz",
+      "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635"
+    },
+    "libplacebo": {
+      "url": "https://code.videolan.org/videolan/libplacebo/-/archive/cee9b076f2c63104ccfd497fa79c39a867293ec4/libplacebo-cee9b076f2c63104ccfd497fa79c39a867293ec4.tar.gz",
+      "filename": "libplacebo-cee9b076f2c63104ccfd497fa79c39a867293ec4.tar.gz",
+      "sha256": "6f8fa218cbafd8e5f50b8a82d918e1d8bbb92f9f980820bc0b34d92e9b79e484"
+    },
+    "pkgconf": {
+      "url": "https://distfiles.ariadne.space/pkgconf/pkgconf-2.5.1.tar.xz",
+      "filename": "pkgconf-2.5.1.tar.xz",
+      "sha256": "cd05c9589b9f86ecf044c10a2269822bc9eb001eced2582cfffd658b0a50c243"
+    },
+    "meson": {
+      "url": "https://files.pythonhosted.org/packages/9c/07/b48592d325cb86682829f05216e4efb2dc881762b8f1bafb48b57442307a/meson-1.9.1-py3-none-any.whl",
+      "sha256": "f824ab770c041a202f532f69e114c971918ed2daff7ea56583d80642564598d0",
+      "filename": "meson-1.9.1-py3-none-any.whl"
+    },
+    "ninja": {
+      "url": "https://files.pythonhosted.org/packages/3c/74/d02409ed2aa865e051b7edda22ad416a39d81a84980f544f8de717cab133/ninja-1.13.0-py3-none-macosx_10_9_universal2.whl",
+      "sha256": "fa2a8bfc62e31b08f83127d1613d10821775a0eb334197154c4d6067b7068ff1",
+      "filename": "ninja-1.13.0-py3-none-macosx_10_9_universal2.whl"
+    }
+  },
+  "headerConfiguration": {
+    "libplacebo": {
+      "major": 7,
+      "api": 360,
+      "version": "7.360.1",
+      "enabled": [
+        "OPENGL",
+        "LCMS"
+      ],
+      "disabled": [
+        "VULKAN",
+        "D3D11",
+        "SHADERC",
+        "GLSLANG"
+      ],
+      "basis": "ThirdParty/libplacebo-build-recipe.json buildSystem.mesonOptions; source src/include/libplacebo/config.h.in"
+    },
+    "jpeg": {
+      "api": 62,
+      "version": "3.1.4.1",
+      "versionNumber": 3001004,
+      "arithmeticCoding": true,
+      "simd": true,
+      "basis": "locked libjpeg.62 ABI and upstream defaults; src/jconfig.h.in"
+    },
+    "ffmpeg": {
+      "purpose": "Generate public architecture headers only; no new FFmpeg binary; runtime remains separately locked",
+      "configure": [
+        "--disable-everything",
+        "--disable-autodetect",
+        "--disable-programs",
+        "--disable-doc",
+        "--arch=arm64",
+        "--target-os=darwin",
+        "--cc=xcrun clang",
+        "--extra-cflags=-mmacosx-version-min=14.0",
+        "--extra-ldflags=-mmacosx-version-min=14.0"
+      ]
+    }
+  }
+}

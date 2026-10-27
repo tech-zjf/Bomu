@@ -124,11 +124,13 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 guard let row = try Row.fetchOne(
                     db,
                     sql: """
-                    SELECT media_file_id, relative_path, position, audio_track_id,
-                           subtitle_track_id, volume, updated_at
+                    SELECT playback_history.media_file_id, relative_path, position, audio_track_id,
+                           subtitle_track_id, volume, updated_at, allows_automatic_resume,
+                           COALESCE(watched_override, is_completed, 0) AS effective_watched
                     FROM playback_history
                     JOIN media_files ON media_files.id = playback_history.media_file_id
-                    WHERE media_file_id = ?
+                    LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
+                    WHERE playback_history.media_file_id = ?
                     """,
                     arguments: [mediaFileID]
                 ) else { return nil }
@@ -139,7 +141,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     audioTrackID: row["audio_track_id"],
                     subtitleTrackID: row["subtitle_track_id"],
                     volume: row["volume"],
-                    updatedAt: Date(timeIntervalSince1970: row["updated_at"])
+                    updatedAt: Date(timeIntervalSince1970: row["updated_at"]),
+                    allowsAutomaticResume: row["allows_automatic_resume"],
+                    isWatched: row["effective_watched"]
                 )
             }
             history = .success(saved)
@@ -430,7 +434,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
                        media_files.relative_path, media_files.byte_count, media_files.content_revision,
                        media_source_files.is_present, media_file_preferences.is_favorite,
-                       media_file_preferences.is_watched, media_file_preferences.manual_category,
+                       COALESCE(media_file_preferences.watched_override, playback_history.is_completed, 0) AS is_watched,
+                       media_file_preferences.manual_category,
                        ambiguous_identities.file_number IS NOT NULL AS history_conflict,
                        CASE WHEN ambiguous_identities.file_number IS NULL
                             THEN playback_history.position END AS position,
@@ -456,7 +461,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 SELECT media_files.id, media_source_files.source_root_id, media_files.volume_id,
                        media_files.relative_path, media_files.byte_count, media_files.content_revision,
                        media_source_files.is_present, media_file_preferences.is_favorite,
-                       media_file_preferences.is_watched, media_file_preferences.manual_category,
+                       COALESCE(media_file_preferences.watched_override, playback_history.is_completed, 0) AS is_watched,
+                       media_file_preferences.manual_category,
                        ambiguous_identities.file_number IS NOT NULL AS history_conflict,
                        CASE WHEN ambiguous_identities.file_number IS NULL
                             THEN playback_history.position END AS position,
@@ -533,7 +539,20 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     func setWatched(_ isWatched: Bool, for mediaFileID: Int64) async throws {
-        try await setPreference("is_watched", value: isWatched, for: mediaFileID)
+        try await setWatchedOverride(isWatched, for: mediaFileID)
+    }
+
+    func setWatchedOverride(_ value: Bool?, for mediaFileID: Int64) async throws {
+        try await database.write { db in
+            guard try Int64.fetchOne(db, sql: "SELECT id FROM media_files WHERE id = ?",
+                                     arguments: [mediaFileID]) != nil else {
+                throw PlaybackHistoryError.missingMediaFile(mediaFileID)
+            }
+            try db.execute(sql: """
+                INSERT INTO media_file_preferences (media_file_id, watched_override) VALUES (?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET watched_override = excluded.watched_override
+                """, arguments: [mediaFileID, value])
+        }
     }
 
     @discardableResult
@@ -542,8 +561,24 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     @discardableResult
-    func toggleWatched(for mediaFileID: Int64) async throws -> Bool {
-        try await togglePreference("is_watched", for: mediaFileID)
+    func toggleWatched(for mediaFileID: Int64) async throws -> WatchedPreferenceChange {
+        try await database.write { db in
+            guard let row = try Row.fetchOne(db, sql: """
+                SELECT watched_override, COALESCE(watched_override, is_completed, 0) AS effective_watched
+                FROM media_files
+                LEFT JOIN media_file_preferences ON media_file_preferences.media_file_id = media_files.id
+                LEFT JOIN playback_history ON playback_history.media_file_id = media_files.id
+                WHERE media_files.id = ?
+                """, arguments: [mediaFileID]) else {
+                throw PlaybackHistoryError.missingMediaFile(mediaFileID)
+            }
+            let nextValue = !(row["effective_watched"] as Bool)
+            try db.execute(sql: """
+                INSERT INTO media_file_preferences (media_file_id, watched_override) VALUES (?, ?)
+                ON CONFLICT(media_file_id) DO UPDATE SET watched_override = excluded.watched_override
+                """, arguments: [mediaFileID, nextValue])
+            return WatchedPreferenceChange(previousOverride: row["watched_override"], isWatched: nextValue)
+        }
     }
 
     func setManualCategory(_ category: MediaManualCategory?, for mediaFileID: Int64) async throws {
@@ -562,7 +597,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     private func setPreference(_ column: String, value: Bool, for mediaFileID: Int64) async throws {
-        guard column == "is_favorite" || column == "is_watched" else {
+        guard column == "is_favorite" else {
             throw PlaybackHistoryError.invalidLibraryPreference
         }
         try await database.write { db in
@@ -580,7 +615,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
     }
 
     private func togglePreference(_ column: String, for mediaFileID: Int64) async throws -> Bool {
-        guard column == "is_favorite" || column == "is_watched" else {
+        guard column == "is_favorite" else {
             throw PlaybackHistoryError.invalidLibraryPreference
         }
         return try await database.write { db in
@@ -611,7 +646,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         audioTrackID: Int? = nil,
         subtitleTrackID: Int? = nil,
         volume: Double,
-        updatedAt: Date = .now
+        updatedAt: Date = .now,
+        progress: PlaybackProgress? = nil
     ) async throws {
         guard position.isFinite, position >= 0 else {
             throw PlaybackHistoryError.invalidPosition
@@ -652,14 +688,17 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             try db.execute(
                 sql: """
                 INSERT INTO playback_history
-                    (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at,
+                     is_completed, allows_automatic_resume)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(media_file_id) DO UPDATE SET
                     position = excluded.position,
                     audio_track_id = excluded.audio_track_id,
                     subtitle_track_id = excluded.subtitle_track_id,
                     volume = excluded.volume,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    is_completed = MAX(playback_history.is_completed, excluded.is_completed),
+                    allows_automatic_resume = COALESCE(excluded.allows_automatic_resume, playback_history.allows_automatic_resume)
                 """,
                 arguments: [
                     mediaFileID,
@@ -667,7 +706,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     audioTrackID,
                     subtitleTrackID,
                     volume,
-                    updatedAt.timeIntervalSince1970
+                    updatedAt.timeIntervalSince1970,
+                    progress?.isCompleted ?? false,
+                    progress?.allowsAutomaticResume
                 ]
             )
         }
@@ -724,7 +765,9 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                        COALESCE(media_files.content_fingerprint, media_files.legacy_content_fingerprint) AS content_fingerprint,
                        media_files.relative_path,
                        media_files.byte_count, media_files.modified_at,
-                       media_file_preferences.is_favorite, media_file_preferences.is_watched,
+                       media_file_preferences.is_favorite, media_file_preferences.watched_override,
+                       COALESCE(media_file_preferences.watched_override, playback_history.is_completed, 0) AS is_watched,
+                       playback_history.is_completed, playback_history.allows_automatic_resume,
                        media_file_preferences.manual_category, playback_history.position,
                        playback_history.audio_track_id, playback_history.subtitle_track_id,
                        playback_history.volume AS saved_volume, playback_history.updated_at
@@ -745,7 +788,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     history = MediaLibraryArchive.History(position: position,
                         audioTrackID: row["audio_track_id"], subtitleTrackID: row["subtitle_track_id"],
                         volume: row["saved_volume"],
-                        updatedAt: Date(timeIntervalSince1970: row["updated_at"]))
+                        updatedAt: Date(timeIntervalSince1970: row["updated_at"]),
+                        isCompleted: row["is_completed"], allowsAutomaticResume: row["allows_automatic_resume"])
                 } else {
                     history = nil
                 }
@@ -763,7 +807,8 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                     },
                     isFavorite: row["is_favorite"] ?? false, isWatched: row["is_watched"] ?? false,
                     manualCategory: (row["manual_category"] as String?).flatMap(MediaManualCategory.init(rawValue:)),
-                    history: history
+                    history: history,
+                    watchedPreference: (row["watched_override"] as Bool?).map { .manual($0) } ?? .automatic
                 )
             }
             let privateFolders = try Row.fetchAll(db, sql: """
@@ -788,7 +833,7 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 let hasExistingData = try Int.fetchOne(db, sql: """
                     SELECT 1 FROM media_file_preferences
                     WHERE media_file_id = ? AND
-                      (is_favorite = 1 OR is_watched = 1 OR manual_category IS NOT NULL)
+                      (is_favorite = 1 OR watched_override IS NOT NULL OR manual_category IS NOT NULL)
                     UNION ALL
                     SELECT 1 FROM playback_history WHERE media_file_id = ?
                     LIMIT 1
@@ -838,15 +883,23 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             var importScanIDs: [Int64: String] = [:]
             for match in matches {
                 let file = match.file
+                let watchedOverride: Bool?
+                if let preference = file.watchedPreference {
+                    watchedOverride = preference.override
+                } else {
+                    // Old archives cannot distinguish default false from a manual reset.
+                    watchedOverride = file.isWatched ? true : nil
+                }
                 try db.execute(sql: """
                     INSERT INTO media_file_preferences
-                        (media_file_id, is_favorite, is_watched, manual_category)
+                        (media_file_id, is_favorite, watched_override, manual_category)
                     VALUES (?, ?, ?, ?)
                     ON CONFLICT(media_file_id) DO UPDATE SET
                         is_favorite = excluded.is_favorite,
-                        is_watched = excluded.is_watched,
+                        watched_override = excluded.watched_override,
                         manual_category = excluded.manual_category
-                    """, arguments: [match.mediaFileID, file.isFavorite, file.isWatched,
+                    """, arguments: [match.mediaFileID, file.isFavorite,
+                                      watchedOverride,
                                       file.manualCategory?.rawValue])
                 let excludesHistory = try Self.isHistoryExcluded(
                     volumeID: file.volumeID, relativePath: match.relativePath, in: db
@@ -854,17 +907,21 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
                 if let history = file.history, !excludesHistory {
                     try db.execute(sql: """
                         INSERT INTO playback_history
-                            (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                            (media_file_id, position, audio_track_id, subtitle_track_id, volume, updated_at,
+                             is_completed, allows_automatic_resume)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(media_file_id) DO UPDATE SET
                             position = excluded.position,
                             audio_track_id = excluded.audio_track_id,
                             subtitle_track_id = excluded.subtitle_track_id,
                             volume = excluded.volume,
-                            updated_at = excluded.updated_at
+                            updated_at = excluded.updated_at,
+                            is_completed = excluded.is_completed,
+                            allows_automatic_resume = excluded.allows_automatic_resume
                         """, arguments: [match.mediaFileID, history.position, history.audioTrackID,
                                           history.subtitleTrackID, history.volume,
-                                          history.updatedAt.timeIntervalSince1970])
+                                          history.updatedAt.timeIntervalSince1970, history.isCompleted ?? false,
+                                          history.allowsAutomaticResume])
                 } else {
                     try db.execute(sql: "DELETE FROM playback_history WHERE media_file_id = ?",
                                    arguments: [match.mediaFileID])
@@ -927,6 +984,10 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
         guard validSpeeds.contains(archive.settings.defaultSpeed),
               archive.settings.defaultSubtitleDelay.isFinite,
               (-30...30).contains(archive.settings.defaultSubtitleDelay) else {
+            throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidSettings"))
+        }
+        if let scale = archive.settings.defaultSubtitleScale,
+           !PlaybackPreferences.supportedSubtitleScales.contains(scale) {
             throw MediaLibraryArchiveError.invalidContent(String(localized: "error.archiveInvalidSettings"))
         }
         for source in archive.sources {
@@ -1612,6 +1673,21 @@ actor PlaybackHistoryStore: MediaLibraryPersisting {
             }
             for row in try Row.fetchAll(db, sql: "SELECT volume_id, relative_path FROM private_media_roots") {
                 try Self.purgeHistory(volumeID: row["volume_id"], relativePath: row["relative_path"], in: db)
+            }
+        }
+        migrator.registerMigration("playbackCompletionAndWatchedOverride") { db in
+            try db.alter(table: "playback_history") { table in
+                table.add(column: "is_completed", .boolean).notNull().defaults(to: false)
+                table.add(column: "allows_automatic_resume", .boolean)
+            }
+            try db.alter(table: "media_file_preferences") { table in
+                table.add(column: "watched_override", .boolean)
+            }
+            // The old schema conflated default false and an explicit unwatched choice.
+            // Do not invent a manual override for rows created only by favorite/category edits.
+            try db.execute(sql: "UPDATE media_file_preferences SET watched_override = 1 WHERE is_watched = 1")
+            try db.alter(table: "media_file_preferences") { table in
+                table.drop(column: "is_watched")
             }
         }
         return migrator

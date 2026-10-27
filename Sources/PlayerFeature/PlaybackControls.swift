@@ -7,8 +7,10 @@ struct PlaybackControls: View {
     let canToggleFavorite: Bool
     let onToggleFavorite: () -> Void
     let onReturnToLibrary: () -> Void
+    let returnLabel: LocalizedStringKey
     let toggleFullScreen: () -> Void
     @Binding var isMediaInfoPresented: Bool
+    var onFocusPlayer: () -> Void = {}
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -21,7 +23,7 @@ struct PlaybackControls: View {
     @State private var interaction = 0
     @State private var idleExpired = false
     private enum Region { case header, transport, timeline }
-    private enum Control: Hashable { case back, speed, tracks, queue, favorite, info, backSeek, pause, forward, seek, volume, fullscreen }
+    private enum Control: Hashable { case back, speed, tracks, queue, favorite, info, backSeek, pause, forward, seek, mute, volume, fullscreen }
 
     private struct HideTask: Equatable {
         let interaction: Int
@@ -48,7 +50,7 @@ struct PlaybackControls: View {
             }
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { focusedControl = nil; reveal() }
+                .onTapGesture { focusedControl = nil; onFocusPlayer(); reveal() }
             controls
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)
@@ -135,7 +137,7 @@ struct PlaybackControls: View {
             }
             .buttonStyle(.plain)
             .focused($focusedControl, equals: .back)
-            .accessibilityLabel(Text("library.backToLibrary"))
+            .accessibilityLabel(Text(returnLabel))
 
             Text(player.state.request?.url.lastPathComponent ?? "")
                 .font(AppTheme.Typography.playerFileName)
@@ -194,6 +196,7 @@ struct PlaybackControls: View {
             Menu("player.audioTracks") {
                 if let requestID = player.state.request?.id {
                     let tracks = player.state.snapshot?.tracks.filter { $0.kind == .audio } ?? []
+                    if tracks.isEmpty { Text("player.noAudioTracks") }
                     ForEach(tracks) { track in
                         Button {
                             player.selectAudioTrack(track.id, requestID: requestID)
@@ -226,6 +229,20 @@ struct PlaybackControls: View {
                     Button("player.loadExternalSubtitle") {
                         OpenMediaPanel.presentSubtitle(for: player, requestID: requestID)
                     }
+                    Menu("player.subtitleSize") {
+                        ForEach(PlaybackPreferences.supportedSubtitleScales, id: \.self) { scale in
+                            Button { player.setSubtitleScale(scale, requestID: requestID) } label: {
+                                if player.state.snapshot?.subtitleScale == scale {
+                                    Label {
+                                        Text(scale, format: .percent.precision(.fractionLength(0)))
+                                    } icon: { Image(systemName: "checkmark") }
+                                } else {
+                                    Text(scale, format: .percent.precision(.fractionLength(0)))
+                                }
+                            }
+                        }
+                    }
+                    .disabled(!player.canControlPlayback)
                     Menu("player.subtitleDelay") {
                         let delay = player.state.snapshot?.subtitleDelay ?? 0
                         HStack {
@@ -293,9 +310,17 @@ struct PlaybackControls: View {
                 Spacer(minLength: 8)
             }
 
-            Image(systemName: "speaker.wave.2.fill")
-                .font(AppTheme.Typography.Symbol.playerVolume)
-                .accessibilityHidden(true)
+            Button { player.toggleMute() } label: {
+                Image(systemName: player.isMuted == true ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(AppTheme.Typography.Symbol.playerVolume)
+                    .frame(width: AppTheme.Layout.toolbarControlSize, height: AppTheme.Layout.toolbarControlSize)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focused($focusedControl, equals: .mute)
+            .disabled(!player.canToggleMute)
+            .accessibilityLabel(Text(player.isMuted == true ? "player.unmute" : "player.mute"))
+            .help(Text(player.isMuted == true ? "player.unmute" : "player.mute"))
             if let snapshot = player.state.snapshot {
                 Slider(value: Binding(
                     get: { min(100, max(0, snapshot.volume)) },
@@ -400,6 +425,11 @@ struct PlaybackQueueMenu: View {
 
     var body: some View {
         Menu {
+            Button("player.appendToQueue") {
+                OpenMediaPanel.present(for: player, disposition: .append)
+            }
+            .disabled(!player.canOpenMedia)
+            Divider()
             if let requestID = player.state.request?.id, let currentIndex = player.queue.currentIndex {
                 Button("player.previousItem") {
                     player.playQueueItem(at: currentIndex - 1, requestID: requestID)

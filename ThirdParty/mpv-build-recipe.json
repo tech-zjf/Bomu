@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "component": "libmpv.2.dylib",
   "source": {
     "url": "https://github.com/mpv-player/mpv/archive/refs/tags/v0.41.0.tar.gz",
@@ -11,7 +11,7 @@
     "expression": "GPL-2.0-or-later",
     "copyright": "mpv project authors and contributors; file-level notices are retained in ThirdParty/mpv-Copyright.txt",
     "noticeFile": "ThirdParty/mpv-NOTICE.txt",
-    "noticeSHA256": "4674e7dd03955502e46bd4f6d22c2650ce76ecc45dc29d7050ca8465dc80f12d"
+    "noticeSHA256": "9584e7296dee34e6d6caf04cab8ec47abe75fdf0cff5e3112623000761034d12"
   },
   "buildSystem": {
     "repository": "https://github.com/iina/deps-buildscripts",
@@ -73,9 +73,19 @@
       "shared-library",
       "arm64",
       "macOS deployment target 11.0"
-    ]
+    ],
+    "scope": "Original upstream base artifact build; unchanged historical facts. Current local overlay uses localBuild."
   },
-  "binaryComparison": {
+  "releaseArtifact": {
+    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
+    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
+    "sha256VerifiedLocally": true,
+    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
+    "workflowRunID": 35411161790,
+    "fileSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a"
+  },
+  "provenanceKind": "local-source-overlay",
+  "baseArtifactComparison": {
     "workspaceBinarySHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
     "fixedReleaseArtifactCanonicalArm64SHA256": "3a9aef3ab68b83929f69affd05c4fca63d42af79fde95d5ab76040939f9125dc",
     "canonicalContentMatch": true,
@@ -85,14 +95,65 @@
     "reason": "The locked runtime file is copied byte-for-byte from the SHA-256-verified IINA deps-buildscripts Release ZIP. The release tag resolves to the recorded source commit, and the successful workflow run produced the release asset.",
     "workspaceCanonicalArm64SHA256": "3a9aef3ab68b83929f69affd05c4fca63d42af79fde95d5ab76040939f9125dc",
     "fixedReleaseArtifactSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
-    "previousDMGWorkspaceBinarySHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8"
+    "previousDMGWorkspaceBinarySHA256": "64247b1b41eabfa3b24e579cb747f098bf6852f2dd727a856db3f2ebd89af6e8",
+    "scope": "Historical unmodified release artifact only; not the overlay output"
   },
-  "releaseArtifact": {
-    "asset": "https://github.com/iina/deps-buildscripts/releases/download/iina-1.5.0-release/iina-deps-fat.zip",
-    "sha256": "d6b3bb920f14780ec9c9df22e323e2bf72a5ca2b198473c67bf37581f0a60b6e",
-    "sha256VerifiedLocally": true,
-    "sourceCommit": "f86d54276547df6d14104583ea604af67433f1e1",
-    "workflowRunID": 35411161790,
-    "fileSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a"
+  "localBuild": {
+    "version": "0.41.0",
+    "library": "libmpv.2.dylib",
+    "baseSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+    "inputsFile": "Tools/MPVOverlay/inputs.json",
+    "inputsSHA256": "6103f388bbc4839e9f98e21a6c9e04af044e6c1524bf0bd5e2d7f95c05b988f2",
+    "builderFiles": {
+      "scripts/mpv_overlay.py": "c3e6856cb146a954aa8c71c6f307e38caa45671d872635553a7322c2a4cccd9d",
+      "scripts/mpv_overlay_headers.py": "5ebdbc3827a465f110de583e5486a78bed7372ce067d699cec50fc1bd4a5b7a8",
+      "scripts/ffmpeg_overlay.py": "b4deafda364bdda70957024e27a1a2fcddcc66df3c3b279f065c34391a1d2d9b"
+    },
+    "configure": [
+      "-Dlibmpv=true",
+      "-Dcplayer=false",
+      "-Dmacos-cocoa-cb=disabled",
+      "-Dmacos-touchbar=disabled",
+      "-Dmacos-media-player=disabled",
+      "-Dmanpage-build=disabled",
+      "-Dtests=false",
+      "-Dlua=luajit",
+      "-Djavascript=enabled",
+      "-Dlcms2=enabled",
+      "-Dvulkan=disabled",
+      "-Dgl=enabled",
+      "-Dzimg=enabled",
+      "-Dlibbluray=enabled",
+      "-Dlibarchive=enabled",
+      "-Duchardet=enabled",
+      "-Djpeg=enabled",
+      "-Drubberband=enabled",
+      "-Dbuild-date=false",
+      "-Dswift-flags=-target arm64-apple-macosx14.0",
+      "-Dprefix=/bomu-runtime",
+      "-Dbuildtype=release",
+      "-Ddefault_library=shared",
+      "-Dwrap_mode=nofallback",
+      "-Dc_link_args=-Wl,-headerpad_max_install_names"
+    ],
+    "normalizeBuildUUID": "content-sha256-v1",
+    "normalization": "portable-rpath-relink; strip-S; content-UUID; ad-hoc libmpv.2",
+    "librarySHA256": "68befb7152a917850db3b345bc54129f79815d845675f65c8243490801f7e9db"
+  },
+  "verificationStatus": {
+    "status": "verified",
+    "scope": "source provenance and repeated local build output; native app playback acceptance tracked separately"
+  },
+  "output": {
+    "binarySHA256InDependencyLock": "68befb7152a917850db3b345bc54129f79815d845675f65c8243490801f7e9db",
+    "architecture": "arm64",
+    "deploymentTarget": "14.0",
+    "verification": "Three isolated full-input builds at different paths, including spaces, produce this hash. Inputs are verified; copied build-tool and dependency caches do not bypass hashes. Final bootstrap receipt still required after integration."
+  },
+  "upstreamPatch": {
+    "path": "Tools/MPVOverlay/mpv-0.41.0-render-fence.patch",
+    "commit": "dd710281580135b40c98e95bc6a9ad562052f010",
+    "url": "https://github.com/mpv-player/mpv/commit/dd710281580135b40c98e95bc6a9ad562052f010.patch",
+    "sha256": "5978742f49bc5db256674097dc5feabda2435823bc3e76ef34ac87d109df76bb"
   }
 }

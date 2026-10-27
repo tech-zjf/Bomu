@@ -36,6 +36,8 @@ typedef NS_ENUM(NSInteger, BMPlaybackCommandFailureKind) {
 @property(nonatomic, readonly) BMPlaybackUpdateKind kind;
 @property(nonatomic, readonly) uint64_t requestID;
 @property(nonatomic, readonly) uint64_t pauseCommandID;
+@property(nonatomic, readonly) uint64_t muteCommandID;
+@property(nonatomic, readonly, nullable) NSNumber *muted;
 @property(nonatomic, readonly) double position;
 @property(nonatomic, readonly, nullable) NSNumber *duration;
 @property(nonatomic, readonly) BOOL paused;
@@ -48,6 +50,7 @@ typedef NS_ENUM(NSInteger, BMPlaybackCommandFailureKind) {
 @property(nonatomic, readonly, nullable) NSNumber *subtitleTrackID;
 @property(nonatomic, copy, readonly) NSArray<BMPlaybackTrack *> *tracks;
 @property(nonatomic, readonly) double subtitleDelay;
+@property(nonatomic, readonly, nullable) NSNumber *subtitleScale;
 @property(nonatomic, readonly, nullable) NSString *message;
 @property(nonatomic, readonly) BMPlaybackFailureKind failureKind;
 @property(nonatomic, readonly) BMPlaybackCommandFailureKind commandFailureKind;
@@ -101,6 +104,7 @@ NS_SWIFT_UI_ACTOR
 - (void)prepareWithCompletion:(void (^)(NSError * _Nullable error))completion;
 - (void)openURL:(NSURL *)url requestID:(uint64_t)requestID startPosition:(nullable NSNumber *)startPosition;
 - (void)setPaused:(BOOL)paused requestID:(uint64_t)requestID commandID:(uint64_t)commandID;
+- (void)setMuted:(BOOL)muted requestID:(uint64_t)requestID commandID:(uint64_t)commandID;
 - (void)seekSeconds:(double)seconds relative:(BOOL)relative requestID:(uint64_t)requestID
     NS_SWIFT_NAME(seek(seconds:relative:requestID:));
 - (void)setVolume:(double)volume;
@@ -109,6 +113,7 @@ NS_SWIFT_UI_ACTOR
 - (void)setSubtitleTrackID:(int64_t)trackID requestID:(uint64_t)requestID;
 - (void)addExternalSubtitleURL:(NSURL *)url requestID:(uint64_t)requestID;
 - (void)setSubtitleDelay:(double)seconds requestID:(uint64_t)requestID;
+- (void)setSubtitleScale:(double)scale requestID:(uint64_t)requestID;
 - (void)stop;
 - (void)shutdownWithCompletion:(void (^)(void))completion;
 - (void)collectDiagnosticsWithCompletion:(void (^)(BMPlaybackDiagnostics *))completion;

@@ -30,6 +30,13 @@ struct PlaybackPauseRequest: Equatable, Sendable {
     let isPaused: Bool
 }
 
+/// Mute is independent of volume; command identity protects rapid reversals.
+struct PlaybackMuteRequest: Equatable, Sendable {
+    let requestID: UInt64
+    let commandID: UInt64
+    let isMuted: Bool
+}
+
 /// Preserve relative intent until it reaches the engine's authoritative seek queue.
 /// Progress snapshots confirm observed position; they are not a basis for queued skips.
 struct PlaybackSeekRequest: Equatable, Sendable {
@@ -147,6 +154,9 @@ struct PlaybackSnapshot: Equatable, Sendable {
     var subtitleTrackID: Int? = nil
     var subtitleDelay: Double = 0
     var tracks: [PlaybackTrack] = []
+    var muteCommandID: UInt64 = 0
+    var isMuted: Bool? = nil
+    var subtitleScale: Double? = nil
 }
 
 enum PlaybackEvent: Equatable, Sendable {
@@ -222,6 +232,7 @@ struct PlaybackState: Equatable, Sendable {
             guard request?.id == value.requestID, phase == .ready else { return false }
             // Once a newer command is observed, an older command's snapshot cannot roll it back.
             if let snapshot, value.pauseCommandID < snapshot.pauseCommandID { return false }
+            if let snapshot, value.muteCommandID < snapshot.muteCommandID { return false }
             snapshot = value
             return true
         case .ended(let id):

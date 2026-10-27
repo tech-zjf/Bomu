@@ -79,6 +79,8 @@ struct MediaLibraryArchive: Codable, Sendable {
         let subtitleTrackID: Int?
         let volume: Double
         let updatedAt: Date
+        var isCompleted: Bool? = nil
+        var allowsAutomaticResume: Bool? = nil
     }
 
     struct File: Codable, Sendable {
@@ -95,6 +97,20 @@ struct MediaLibraryArchive: Codable, Sendable {
         let isWatched: Bool
         let manualCategory: MediaManualCategory?
         let history: History?
+        // Absent in old archives: true is manual; false has unknown/default provenance.
+        var watchedPreference: WatchedPreference? = nil
+    }
+
+    enum WatchedPreference: Codable, Sendable {
+        case automatic
+        case manual(Bool)
+
+        var override: Bool? {
+            switch self {
+            case .automatic: nil
+            case .manual(let value): value
+            }
+        }
     }
 
     struct PrivateFolder: Codable, Sendable {
@@ -108,6 +124,10 @@ struct MediaLibraryArchive: Codable, Sendable {
         let resumeFromLastPosition: Bool
         let defaultSpeed: Double
         let defaultSubtitleDelay: Double
+        // Archives predating this preference retain the default background playback behavior.
+        var pauseOnReturn: Bool? = nil
+        var defaultSubtitleScale: Double? = nil
+        var browserDensity: MediaBrowserDensity? = nil
     }
 }
 

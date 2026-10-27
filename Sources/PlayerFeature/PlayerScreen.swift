@@ -9,10 +9,13 @@ struct PlayerScreen: View {
     let canToggleFavorite: Bool
     let onToggleFavorite: () -> Void
     let onReturnToLibrary: () -> Void
+    let returnLabel: LocalizedStringKey
+    var isVisible = true
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var isMediaInfoPresented = false
     @State private var isFailureDetailPresented = false
+    @FocusState private var hasKeyboardFocus: Bool
 
     var body: some View {
         GeometryReader { geometry in
@@ -27,9 +30,74 @@ struct PlayerScreen: View {
         .background(AppTheme.surface)
         .frame(minWidth: AppTheme.Layout.minimumWindowWidth,
                minHeight: AppTheme.Layout.minimumWindowHeight)
+        .focusable(isVisible, interactions: .edit)
+        .focused($hasKeyboardFocus)
+        .focusEffectDisabled()
+        .onKeyPress(keys: [.escape, .space, .leftArrow, .rightArrow], action: handleKeyPress)
+        .onChange(of: isVisible, initial: true) { _, visible in
+            hasKeyboardFocus = visible
+        }
+        .onChange(of: player.state.request?.id) { _, _ in
+            if isVisible { hasKeyboardFocus = true }
+        }
         .onAppear { player.prepare() }
         .onChange(of: player.state) { _, _ in nowPlaying.update() }
         .onDisappear { nowPlaying.deactivate() }
+    }
+
+    private func handleKeyPress(_ press: KeyPress) -> KeyPress.Result {
+        let key: PlaybackKeyboardAction.Key
+        switch press.key {
+        case .escape: key = .escape
+        case .space: key = .space
+        case .leftArrow: key = .left
+        case .rightArrow: key = .right
+        default: return .ignored
+        }
+        let window = NSApp.keyWindow
+        let owner: PlaybackKeyboardAction.Owner
+        if !isVisible {
+            owner = .outsidePlayer
+        } else if window?.attachedSheet != nil || NSApp.modalWindow != nil {
+            owner = .systemPresentation
+        } else if Self.isEditingText(window?.firstResponder) {
+            owner = .editingText
+        } else if hasKeyboardFocus {
+            owner = .playerSurface
+        } else {
+            owner = .playerControl
+        }
+        let context = PlaybackKeyboardAction.Context(
+            owner: owner, mediaInfoPresented: isMediaInfoPresented,
+            failureDetailsPresented: isFailureDetailPresented,
+            commandFailurePresented: player.state.commandFailure != nil,
+            isFullScreen: window?.styleMask.contains(.fullScreen) == true,
+            canTogglePlayback: player.canControlPlayback || player.state.phase == .ended,
+            canSeek: player.canSeek
+        )
+        guard let action = PlaybackKeyboardAction.resolve(key, in: context,
+            isRepeat: press.phase == .repeat,
+            hasModifiers: !press.modifiers.intersection([.command, .control, .option, .shift]).isEmpty
+        ) else { return .ignored }
+        switch action {
+        case .dismissMediaInfo: isMediaInfoPresented = false
+        case .dismissFailureDetails: isFailureDetailPresented = false
+        case .dismissCommandFailure: player.dismissCommandFailure()
+        case .leaveFullScreen: window?.toggleFullScreen(nil)
+        case .returnToLibrary: onReturnToLibrary()
+        case .togglePlayback: player.togglePause()
+        case .skipBackward: player.skip(by: -10)
+        case .skipForward: player.skip(by: 10)
+        case .consumeRepeat: break
+        }
+        return .handled
+    }
+
+    private static func isEditingText(_ responder: NSResponder?) -> Bool {
+        if let text = responder as? NSTextView, text.isEditable { return true }
+        if let field = responder as? NSTextField, field.isEditable { return true }
+        if let input = responder as? any NSTextInputClient, input.hasMarkedText() { return true }
+        return false
     }
 
     @ViewBuilder
@@ -63,8 +131,10 @@ struct PlayerScreen: View {
                     canToggleFavorite: canToggleFavorite,
                     onToggleFavorite: onToggleFavorite,
                     onReturnToLibrary: onReturnToLibrary,
+                    returnLabel: returnLabel,
                     toggleFullScreen: { videoView.window?.toggleFullScreen(nil) },
-                    isMediaInfoPresented: $isMediaInfoPresented
+                    isMediaInfoPresented: $isMediaInfoPresented,
+                    onFocusPlayer: { hasKeyboardFocus = true }
                 )
                 // A file owns its scrub/focus/idle state; the video host keeps its identity.
                 .id(player.state.request?.id)
@@ -76,7 +146,7 @@ struct PlayerScreen: View {
                         .font(AppTheme.Typography.headline)
                     HStack(spacing: 10) {
                         Button(action: onReturnToLibrary) {
-                            Label("library.backToLibrary", systemImage: "chevron.left")
+                            Label(returnLabel, systemImage: "chevron.left")
                         }
                         .buttonStyle(PlayerCompletionButtonStyle())
                         if player.queue.items.count > 1 {
@@ -148,7 +218,7 @@ struct PlayerScreen: View {
                     Button("player.retry") { player.retryCurrentMedia() }
                 }
                 Button("open.another") { OpenMediaPanel.present(for: player) }
-                Button("library.backToLibrary", action: onReturnToLibrary)
+                Button(returnLabel, action: onReturnToLibrary)
             }
             .buttonStyle(.bordered)
             .tint(.white)

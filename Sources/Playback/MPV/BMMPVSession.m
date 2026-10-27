@@ -64,6 +64,8 @@ static NSString *BMGPUTimeModeName(BMGPURenderTimingMode mode) {
 @property(nonatomic) BMPlaybackUpdateKind kind;
 @property(nonatomic) uint64_t requestID;
 @property(nonatomic) uint64_t pauseCommandID;
+@property(nonatomic) uint64_t muteCommandID;
+@property(nonatomic, nullable) NSNumber *muted;
 @property(nonatomic) double position;
 @property(nonatomic, nullable) NSNumber *duration;
 @property(nonatomic) BOOL paused;
@@ -76,6 +78,7 @@ static NSString *BMGPUTimeModeName(BMGPURenderTimingMode mode) {
 @property(nonatomic, nullable) NSNumber *subtitleTrackID;
 @property(nonatomic, copy) NSArray<BMPlaybackTrack *> *tracks;
 @property(nonatomic) double subtitleDelay;
+@property(nonatomic, nullable) NSNumber *subtitleScale;
 @property(nonatomic, nullable) NSString *message;
 @property(nonatomic) BMPlaybackFailureKind failureKind;
 @property(nonatomic) BMPlaybackCommandFailureKind commandFailureKind;
@@ -143,6 +146,7 @@ static NSString *BMGPUTimeModeName(BMGPURenderTimingMode mode) {
     int64_t _activeEntryID;
     uint64_t _requestID;
     uint64_t _pauseCommandID;
+    uint64_t _muteCommandID;
     BOOL _loaded;
     BOOL _closing;
     uint64_t _coreCreationCount;
@@ -217,6 +221,7 @@ static const uint64_t BMVideoOutputObservation = 1;
         if (!self->_handle || self->_closing) return;
         self->_requestID = requestID;
         self->_pauseCommandID = 0;
+        self->_muteCommandID = 0;
         self->_desiredEntryID = -1;
         self->_loaded = NO;
         [self setSampling:NO];
@@ -268,6 +273,23 @@ static const uint64_t BMVideoOutputObservation = 1;
         }
         // Only snapshots sampled after the property succeeds acknowledge this command.
         self->_pauseCommandID = commandID;
+        [self samplePlayback];
+    });
+}
+
+- (void)setMuted:(BOOL)muted requestID:(uint64_t)requestID commandID:(uint64_t)commandID {
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID ||
+            commandID <= self->_muteCommandID) return;
+        int flag = muted;
+        int result = mpv_set_property(self->_handle, "mute", MPV_FORMAT_FLAG, &flag);
+        if (result < 0) {
+            [self publishFailure:[self errorForCode:result].localizedDescription
+                             kind:BMPlaybackFailureEngine];
+            return;
+        }
+        // Volume remains untouched. Only a successful property write confirms the intent.
+        self->_muteCommandID = commandID;
         [self samplePlayback];
     });
 }
@@ -341,6 +363,18 @@ static const uint64_t BMVideoOutputObservation = 1;
         int result = mpv_set_property(self->_handle, "sub-delay", MPV_FORMAT_DOUBLE, &value);
         if (result < 0) [self publishFailure:[self errorForCode:result].localizedDescription
                                          kind:BMPlaybackFailureEngine];
+        else [self samplePlayback];
+    });
+}
+
+- (void)setSubtitleScale:(double)scale requestID:(uint64_t)requestID {
+    if (!isfinite(scale) || scale < 0.5 || scale > 2) return;
+    dispatch_async(_controlQueue, ^{
+        if (!self->_handle || self->_closing || !self->_loaded || self->_requestID != requestID) return;
+        double value = scale;
+        int result = mpv_set_property(self->_handle, "sub-scale", MPV_FORMAT_DOUBLE, &value);
+        if (result < 0) [self publishCommandFailure:[self errorForCode:result].localizedDescription
+                                                kind:BMPlaybackCommandFailureSubtitle];
         else [self samplePlayback];
     });
 }
@@ -468,9 +502,10 @@ static const uint64_t BMVideoOutputObservation = 1;
         {"keep-open", "no"}, {"audio-display", "no"},
         // The stage owns its 16:9 geometry; fit source video inside it without crop/stretch.
         {"keepaspect", "yes"}, {"panscan", "0"},
-        // External subtitles are chosen explicitly in Bomu. Avoid mpv's implicit
-        // sidecar search while opening media.
-        {"sub-auto", "no"},
+        // Bomu loads external tracks explicitly and owns library artwork. All
+        // sidecar discovery must be off: sub-auto alone still lets cover-art
+        // discovery scan the parent directory before cancellation is checked.
+        {"sub-auto", "no"}, {"audio-file-auto", "no"}, {"cover-art-auto", "no"},
         // BMVideoLayer must not wait inside an AppKit draw. Let mpv issue audio-timed
         // frames when due, with no advance-render headroom that would require that wait.
         {"video-sync", "audio"}, {"video-timing-offset", "0"},
@@ -566,6 +601,8 @@ static const uint64_t BMVideoOutputObservation = 1;
     if (mpv_get_property(_handle, "time-pos", MPV_FORMAT_DOUBLE, &position) < 0) return;
     update.position = fmax(0, position);
     update.pauseCommandID = _pauseCommandID;
+    update.muteCommandID = _muteCommandID;
+    update.muted = [self optionalFlagProperty:"mute"];
     double duration = 0;
     if (mpv_get_property(_handle, "duration", MPV_FORMAT_DOUBLE, &duration) >= 0 && isfinite(duration) && duration > 0) {
         update.duration = @(duration);
@@ -583,6 +620,11 @@ static const uint64_t BMVideoOutputObservation = 1;
     double subtitleDelay = 0;
     if (mpv_get_property(_handle, "sub-delay", MPV_FORMAT_DOUBLE, &subtitleDelay) >= 0) {
         update.subtitleDelay = subtitleDelay;
+    }
+    double subtitleScale = 0;
+    if (mpv_get_property(_handle, "sub-scale", MPV_FORMAT_DOUBLE, &subtitleScale) >= 0 &&
+        isfinite(subtitleScale) && subtitleScale > 0) {
+        update.subtitleScale = @(subtitleScale);
     }
     update.tracks = [self currentTracks];
     _snapshotCount += 1;

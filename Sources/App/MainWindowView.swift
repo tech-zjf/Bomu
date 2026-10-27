@@ -44,7 +44,9 @@ struct MainWindowView: View {
                 isFavorite: activeLibraryItem?.isFavorite ?? false,
                 canToggleFavorite: activeLibraryItem != nil && !isUpdatingFavorite,
                 onToggleFavorite: toggleActiveFavorite,
-                onReturnToLibrary: returnToLibrary
+                onReturnToLibrary: returnToLibrary,
+                returnLabel: playerReturnLabel,
+                isVisible: navigation.isPlayerVisible
             )
                 .opacity(navigation.isPlayerVisible ? 1 : 0)
                 .allowsHitTesting(navigation.isPlayerVisible && player.startupError == nil)
@@ -162,12 +164,25 @@ struct MainWindowView: View {
     }
 
     private func returnToLibrary() {
+        player.prepareForReturnToLibrary()
         navigation.showLibrary {
             try? await player.checkpointPlaybackHistory()
             guard !Task.isCancelled else { return }
             _ = await library.refresh()
             guard !Task.isCancelled else { return }
             nowPlaying.update()
+        }
+    }
+
+    private var playerReturnLabel: LocalizedStringKey {
+        switch navigation.libraryPage {
+        case .destination(.home): "library.backToHome"
+        case .destination(.library): "library.backToLibrary"
+        case .destination(.folders): "library.backToFolders"
+        case .destination(.favorites): "library.backToFavorites"
+        case .destination(.search): "library.backToSearch"
+        case .continueWatching: "library.backToContinueWatching"
+        case .settings: "settings.backToSettings"
         }
     }
 

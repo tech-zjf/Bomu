@@ -52,7 +52,8 @@ def collect_gaps(lock, manifest, root=ROOT):
         if recipe_path and (recipe_hash is None or recipe_hash != record.get('buildRecipeSHA256')):
             gaps.append(f'{name}: build recipe missing or hash mismatch')
         elif recipe_hash is not None:
-            gaps.extend(_recipe_binary_gaps(name, record, root / recipe_path, root))
+            overlay = lock.get('mpvOverlay') if name == 'libmpv.2.dylib' else None
+            gaps.extend(_recipe_binary_gaps(name, record, root / recipe_path, root, overlay))
 
     package_records = manifest.get('swiftPackages', {})
     for name in sorted(set(package_records) - set(lock.get('swiftPackages', {}))):
@@ -105,7 +106,7 @@ def _is_sha256(value):
     return isinstance(value, str) and re.fullmatch(r'[0-9a-fA-F]{64}', value) is not None
 
 
-def _recipe_binary_gaps(name, record, recipe_path, repository_root):
+def _recipe_binary_gaps(name, record, recipe_path, repository_root, locked_overlay=None):
     try:
         recipe = json.loads(recipe_path.read_text())
     except (OSError, json.JSONDecodeError):
@@ -161,6 +162,42 @@ def _recipe_binary_gaps(name, record, recipe_path, repository_root):
     output_hash = recipe.get('output', {}).get('binarySHA256InDependencyLock')
     if output_hash and output_hash != record.get('binarySHA256'):
         gaps.append(f'{name}: build output hash differs from license manifest')
+    if locked_overlay is not None or recipe.get('provenanceKind') == 'local-source-overlay':
+        if recipe.get('provenanceKind') != 'local-source-overlay':
+            gaps.append(f'{name}: locked overlay requires local-source-overlay provenance')
+        local = recipe.get('localBuild')
+        if not isinstance(local, dict) or not local or local != locked_overlay:
+            gaps.append(f'{name}: local overlay recipe differs from dependency lock')
+        else:
+            if (local.get('librarySHA256') != record.get('binarySHA256')
+                    or output_hash != record.get('binarySHA256')):
+                gaps.append(f'{name}: local overlay output lacks matching hash evidence')
+            builders = local.get('builderFiles', {})
+            if not builders:
+                gaps.append(f'{name}: local overlay builder evidence is missing')
+            for path, checksum in builders.items():
+                if not _is_sha256(checksum) or _hash_at(repository_root, path) != checksum:
+                    gaps.append(f'{name}: local overlay builder missing or hash mismatch')
+            inputs_path = local.get('inputsFile')
+            if (not inputs_path or not _is_sha256(local.get('inputsSHA256'))
+                    or _hash_at(repository_root, inputs_path) != local.get('inputsSHA256')):
+                gaps.append(f'{name}: local overlay inputs missing or hash mismatch')
+            else:
+                try:
+                    inputs = json.loads((repository_root / inputs_path).read_text())
+                    source = inputs['archives']['mpv']
+                    patch = inputs['patch']
+                    if (source['sha256'] != record.get('sourceSHA256')
+                            or source['url'] != record.get('sourceURL')):
+                        gaps.append(f'{name}: local overlay source differs from license manifest')
+                    if (not _is_sha256(patch.get('sha256')) or not patch.get('path')
+                            or _hash_at(repository_root, patch['path']) != patch['sha256']):
+                        gaps.append(f'{name}: local overlay patch missing or hash mismatch')
+                    if (inputs.get('baseLibrarySHA256') != local.get('baseSHA256')
+                            or not _is_sha256(local.get('baseSHA256'))):
+                        gaps.append(f'{name}: local overlay base artifact differs from lock')
+                except (OSError, ValueError, KeyError, TypeError):
+                    gaps.append(f'{name}: local overlay inputs are invalid')
     return gaps
 
 

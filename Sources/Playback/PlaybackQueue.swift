@@ -40,6 +40,13 @@ struct PlaybackQueue: Equatable, Sendable {
         return items[index]
     }
 
+    /// Sorts the new batch, preserving both the existing order and current selection.
+    mutating func append(_ urls: [URL]) {
+        let existing = Set(items.map(\.path))
+        items.append(contentsOf: Self(urls: urls).items.filter { !existing.contains($0.path) })
+        if currentIndex == nil, !items.isEmpty { currentIndex = 0 }
+    }
+
     @discardableResult
     mutating func advance() -> URL? {
         guard let currentIndex else { return nil }

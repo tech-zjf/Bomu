@@ -122,9 +122,14 @@ enum AppTheme {
     static let emptyStateIconForeground = Color(red: 131 / 255, green: 152 / 255, blue: 170 / 255)
     static let welcomeVisualSurface = Color(red: 239 / 255, green: 243 / 255, blue: 247 / 255)
     static let searchFieldSurface = Color(red: 244 / 255, green: 247 / 255, blue: 250 / 255)
+    static let controlHoverSurface = Color(red: 232 / 255, green: 237 / 255, blue: 243 / 255)
     static let separator = Color(red: 229 / 255, green: 234 / 255, blue: 240 / 255)
     static let thumbnailPlaceholder = Color(red: 218 / 255, green: 229 / 255, blue: 231 / 255)
     static let selectionAccent = Color(red: 239 / 255, green: 185 / 255, blue: 143 / 255)
+    static func durationBadgeBackground(reduceTransparency: Bool) -> Color {
+        Color(red: 22 / 255, green: 36 / 255, blue: 52 / 255)
+            .opacity(reduceTransparency ? 1 : 179 / 255)
+    }
     static let playerFallback = Color(red: 17 / 255, green: 23 / 255, blue: 34 / 255)
     static let playerInfoSurface = Color(red: 34 / 255, green: 43 / 255, blue: 56 / 255)
     static func playerToolbarBackground(reduceTransparency: Bool) -> Color {
@@ -137,13 +142,16 @@ enum AppTheme {
     }
 
     enum Typography {
-        // The serif face is reserved for the brand; all working interface text stays sans-serif.
+        // Keep serif for the brand only; page and action typography uses the system sans face.
         static let pageTitle = Font.system(size: 27, weight: .bold)
         static let welcomeTitle = Font.system(size: 38, weight: .bold)
         static let welcomeTitleLineSpacing: CGFloat = 4
         static let welcomeKicker = Font.system(size: 11, weight: .regular)
+        static let welcomeAction = Font.system(size: 14, weight: .regular)
+        static let welcomeCaption = Font.system(size: 12, weight: .regular)
         static let welcomeMessageLineSpacing: CGFloat = 9
         static let pageTitleTracking: CGFloat = -0.8
+        static let welcomeTitleTracking: CGFloat = -1.6
         static let sectionTitle = Font.system(size: 18, weight: .semibold)
         static let sectionTitleTracking: CGFloat = -0.4
         static let brandName = Font.system(size: 32, weight: .semibold, design: .serif)
@@ -157,38 +165,42 @@ enum AppTheme {
         static let controlLabel = Font.system(size: 13, weight: .medium)
         static let controlEmphasis = Font.system(size: 13, weight: .semibold)
         static let filterLabel = Font.system(size: 12, weight: .medium)
+        static let categoryLabel = Font.system(size: 12, weight: .regular)
         static let sidebarLabel = Font.system(size: 13)
         static let sidebarSelected = Font.system(size: 13, weight: .semibold)
-        static let sidebarSection = Font.system(size: 10, weight: .semibold)
+        static let sidebarSection = Font.system(size: 10, weight: .regular)
         static let sidebarLocalTag = Font.system(size: 10)
         static let compactCaption = Font.system(size: 11)
         static let compactBadge = Font.system(size: 10, weight: .medium)
-        static let durationBadge = Font.system(size: 10, weight: .medium).monospacedDigit()
+        static let durationBadge = Font.system(size: 10, weight: .regular).monospacedDigit()
         static let timeReadout = Font.system(size: 11, weight: .medium).monospacedDigit()
         static let playerFileName = Font.system(size: 13, weight: .medium)
         static let playerMediaTitle = Font.system(size: 16, weight: .semibold)
         static let mediaPath = Font.system(size: 11)
         static let commandDiagnostic = Font.system(size: 11, design: .monospaced)
-        static let diagnostic = Font.system(.caption, design: .monospaced)
-        static let headline = Font.headline
-        static let callout = Font.callout
-        static let emphasizedCallout = Font.callout.weight(.medium)
-        static let caption = Font.caption
-        static let emphasizedCaption = Font.caption.weight(.semibold)
+        static let diagnostic = Font.system(size: 11, design: .monospaced)
+        // Keep these common roles fixed to the approved macOS point sizes.
+        static let headline = Font.system(size: 16, weight: .semibold)
+        static let callout = Font.system(size: 13)
+        static let emphasizedCallout = Font.system(size: 13, weight: .medium)
+        static let caption = Font.system(size: 12)
+        static let emphasizedCaption = Font.system(size: 12, weight: .semibold)
 
         enum Symbol {
             static let sidebar = Font.system(size: 14, weight: .regular)
+            static let sidebarLocalTag = Font.system(size: 13, weight: .regular)
             static let nowPlaying = Font.system(size: 20, weight: .regular)
             static let compactAction = Font.system(size: 13, weight: .regular)
+            static let sectionAction = Font.system(size: 16, weight: .regular)
             static let folderRow = Font.system(size: 21, weight: .regular)
             static let folderTile = Font.system(size: 25, weight: .regular)
             static let folderDisclosure = Font.system(size: 10, weight: .semibold)
-            static let folderBreadcrumb = Font.caption2
+            static let folderBreadcrumb = Font.system(size: 11)
             static let mediaPlay = Font.system(size: 12, weight: .semibold)
             static let mediaActions = Font.system(size: 14, weight: .semibold)
             static let thumbnailPlaceholder = Font.system(size: 24, weight: .light)
             static let emptyState = Font.system(size: 27, weight: .light)
-            static let welcomeVisual = Font.system(size: 84, weight: .ultraLight)
+            static let welcomeFallback = Font.system(size: 48, weight: .ultraLight)
             static let startupFailure = Font.system(size: 28, weight: .light)
             static let playbackFailure = Font.system(size: 30, weight: .light)
             static let emptyPlayer = Font.system(size: 58)
@@ -205,13 +217,25 @@ enum AppTheme {
         static let toolbarControlSize: CGFloat = 35
         static let sidebarIconWidth: CGFloat = 16
         static let sidebarIconGap: CGFloat = 10
+        static let sidebarLocalTagIconWidth: CGFloat = 13
+        static let sidebarLocalTagIconGap: CGFloat = 7
         static let folderListIconWidth: CGFloat = 48
         static let folderListIconHeight: CGFloat = 45
         static let folderRowContentGap: CGFloat = 14
+        static let folderRowTextGap: CGFloat = 3
+        static let emptyStateVerticalInset: CGFloat = 70
+        static let emptyStateHorizontalInset: CGFloat = 15
+        static let emptyStateGap: CGFloat = 14
+        static let emptyStateIconSize: CGFloat = 62
+        static let emptyStateIconBottomGap: CGFloat = 4
+        static let emptyStateMessageMaxWidth: CGFloat = 310
+        static let durationBadgeTrailingInset: CGFloat = 9
+        static let durationBadgeBottomInset: CGFloat = 10
         static let folderRowVerticalInset: CGFloat = 19
         static let mediaSummaryLineHeight: CGFloat = 14
         static let mediaListRowVerticalInset: CGFloat = 13
         static let sidebarWidth: CGFloat = 176
+        // Matches the reference's border-box width, including the trailing inset.
         static let settingsNavigationWidth: CGFloat = 164
         static let sidebarHorizontalInset: CGFloat = 13
         static let sidebarTopInset: CGFloat = 25
@@ -225,6 +249,10 @@ enum AppTheme {
         static let contentHorizontalInset: CGFloat = 30
         static let contentVerticalInset: CGFloat = 28
         static let mediaGridColumnCount = 3
+        static let compactMediaGridColumnCount = 4
+        static let compactMediaGridColumnGap: CGFloat = 12
+        static let compactMediaGridRowGap: CGFloat = 16
+        static let compactMediaListRowVerticalInset: CGFloat = 6
         static let folderGridGap: CGFloat = 17
         static let continueWatchingGap: CGFloat = 16
         static let mediaGridColumnGap: CGFloat = 17
@@ -234,17 +262,29 @@ enum AppTheme {
         static let libraryToolsTopGap: CGFloat = 24
         static let libraryResultsTopGap: CGFloat = 20
         static let libraryCategoryGap: CGFloat = 5
+        static let libraryCategoryHeight: CGFloat = 32
+        static let libraryToolsGap: CGFloat = 12
+        static let browserLayoutButtonWidth: CGFloat = 29
+        static let browserLayoutButtonHeight: CGFloat = 28
+        static let browserLayoutInset: CGFloat = 2
         static let searchFieldTopGap: CGFloat = 22
         static let searchFieldHorizontalInset: CGFloat = 12
         static let searchFieldVerticalInset: CGFloat = 9
         static let playerStageInset: CGFloat = 12
         static let playerHorizontalInset: CGFloat = 22
         static let welcomeMessageMaxWidth: CGFloat = 340
+        static let welcomeArtworkInset: CGFloat = 30
+        static let welcomeCaptionTrailingFraction: CGFloat = 0.06
+        static let welcomeCaptionBottomFraction: CGFloat = 0.16
+        static let welcomeActionIconGap: CGFloat = 8
+        static let welcomeCaptionIconGap: CGFloat = 9
         static let minimumWindowWidth: CGFloat = 900
         static let minimumWindowHeight: CGFloat = 600
     }
 
     enum Corners {
+        static let browserLayoutGroup: CGFloat = 9
+        static let browserLayoutOption: CGFloat = 7
         static let dropTargetOverlay: CGFloat = 8
         static let surface: CGFloat = 12
         static let artwork: CGFloat = 14
@@ -258,6 +298,8 @@ enum AppTheme {
         static let badge: CGFloat = 6
         static let emptyStateIcon: CGFloat = 20
         static let welcomeVisual: CGFloat = 30
+        static let welcomeArtwork: CGFloat = 18
+        static let welcomeCaption: CGFloat = 18
     }
 
     enum PlayerControls {

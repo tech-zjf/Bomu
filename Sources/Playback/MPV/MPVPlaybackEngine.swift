@@ -35,6 +35,9 @@ final class MPVPlaybackEngine: PlaybackEngine {
     func setPaused(_ request: PlaybackPauseRequest) {
         session.setPaused(request.isPaused, requestID: request.requestID, commandID: request.commandID)
     }
+    func setMuted(_ request: PlaybackMuteRequest) {
+        session.setMuted(request.isMuted, requestID: request.requestID, commandID: request.commandID)
+    }
     func seek(_ request: PlaybackSeekRequest) {
         switch request.target {
         case .absolute(let seconds):
@@ -52,6 +55,9 @@ final class MPVPlaybackEngine: PlaybackEngine {
     }
     func setSubtitleDelay(_ seconds: Double, requestID: UInt64) {
         session.setSubtitleDelay(seconds, requestID: requestID)
+    }
+    func setSubtitleScale(_ scale: Double, requestID: UInt64) {
+        session.setSubtitleScale(scale, requestID: requestID)
     }
     func stop() { session.stop() }
 
@@ -96,7 +102,10 @@ final class MPVPlaybackEngine: PlaybackEngine {
                     guard let kind = PlaybackTrack.Kind(rawValue: kindValue) else { return nil }
                     return PlaybackTrack(id: Int(value.trackID), kind: kind, language: value.language,
                                          title: value.title, isSelected: value.selected, isExternal: value.external)
-                }
+                },
+                muteCommandID: update.muteCommandID,
+                isMuted: update.muted?.boolValue,
+                subtitleScale: update.subtitleScale?.doubleValue
             )))
         case .ended:
             onEvent?(.ended(update.requestID))

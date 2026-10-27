@@ -141,6 +141,32 @@ final class MediaLibraryScannerTests: XCTestCase {
     }
 
     @MainActor
+    func testContinueWatchingAndUndoFollowAutomaticCompletionWithoutCreatingManualOverride() async throws {
+        let library = try await makeIndexedLibrary()
+        defer { try? FileManager.default.removeItem(at: library.root) }
+        let binding = try await library.store.openHistory(for: library.mediaURL).binding
+        try await library.store.save(for: binding, position: 50, volume: 80,
+                                     progress: PlaybackProgress(position: 50, duration: 100))
+        await library.model.refresh()
+        XCTAssertEqual(library.model.continueWatching.count, 1)
+        try await library.store.save(for: binding, position: 95, volume: 80,
+                                     progress: PlaybackProgress(position: 95, duration: 100))
+        await library.model.refresh()
+        XCTAssertTrue(library.model.continueWatching.isEmpty)
+        await library.model.toggleWatched(try XCTUnwrap(library.model.items.first))
+        XCTAssertEqual(library.model.continueWatching.count, 1)
+        await library.model.undoLastPreferenceChange()
+        XCTAssertTrue(library.model.continueWatching.isEmpty)
+        try await library.store.clearAll()
+        try await library.store.save(for: binding, position: 20, volume: 80,
+                                     progress: PlaybackProgress(position: 20, duration: 100))
+        await library.model.refresh()
+        XCTAssertEqual(library.model.continueWatching.count, 1,
+                       "Undo must restore automatic policy, not create a permanent manual watched override")
+        await library.model.shutdown()
+    }
+
+    @MainActor
     func testAmbiguousSavedProgressIsHiddenFromLibraryAndContinueWatching() async throws {
         let root = FileManager.default.temporaryDirectory.appending(
             path: UUID().uuidString, directoryHint: .isDirectory
@@ -1389,6 +1415,59 @@ final class MediaLibraryScannerTests: XCTestCase {
 
         let retained = try await store.history(for: media)
         XCTAssertEqual(retained?.position, 42)
+    }
+
+    @MainActor
+    func testAddFolderChoicePersistsAndNarrowingScopeKeepsUserFacts() async throws {
+        let workspace = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let root = workspace.appending(path: "Media", directoryHint: .isDirectory)
+        let nested = root.appending(path: "Nested", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: workspace) }
+        let rootFile = root.appending(path: "root.mp4")
+        let nestedFile = nested.appending(path: "nested.mp4")
+        try Data("root fixture".utf8).write(to: rootFile)
+        try Data("nested fixture".utf8).write(to: nestedFile)
+        let databasePath = workspace.appending(path: "library.sqlite").path
+        let store = try PlaybackHistoryStore(path: databasePath)
+        let model = MediaLibraryModel(store: store, thumbnailCache: nil)
+
+        @MainActor func scan(_ recursive: Bool) async throws {
+            model.addFolder(root, includingSubfolders: recursive)
+            for _ in 0..<1_000 where model.isScanning {
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertFalse(model.isScanning)
+            XCTAssertNil(model.errorMessage)
+            XCTAssertEqual(try XCTUnwrap(model.roots.first).includingSubfolders, recursive)
+            let directories = try await store.libraryDirectories(in: XCTUnwrap(model.roots.first).id)
+            XCTAssertEqual(directories.count, recursive ? 2 : 1,
+                           "Excluded subfolders must not appear as empty navigable folders")
+        }
+
+        try await scan(false)
+        XCTAssertEqual(model.browsableItems.map(\.displayName), ["root.mp4"])
+        let reopened = try PlaybackHistoryStore(path: databasePath)
+        let roots = try await reopened.sourceRoots(mountedVolumeIDs: [])
+        XCTAssertFalse(try XCTUnwrap(roots.first).includingSubfolders,
+                       "Background scans must load the saved choice, not restore recursive=true")
+        try await scan(true)
+        XCTAssertEqual(Set(model.browsableItems.map(\.displayName)), ["root.mp4", "nested.mp4"])
+        let child = try XCTUnwrap(model.browsableItems.first { $0.displayName == "nested.mp4" })
+        await model.toggleFavorite(child)
+        let binding = try await store.openHistory(for: nestedFile).binding
+        try await store.save(for: binding, position: 42, volume: 75,
+                             progress: PlaybackProgress(position: 42, duration: 120))
+        try await scan(false)
+        XCTAssertEqual(model.browsableItems.map(\.displayName), ["root.mp4"])
+        let history = try await store.history(for: nestedFile)
+        XCTAssertEqual(history?.position, 42)
+        try await scan(true)
+        let returned = try XCTUnwrap(model.browsableItems.first { $0.id == child.id })
+        XCTAssertTrue(returned.isFavorite)
+        XCTAssertEqual(returned.playbackPosition, 42)
+        XCTAssertEqual(try Data(contentsOf: nestedFile), Data("nested fixture".utf8))
+        await model.shutdown()
     }
 
     func testNonRecursiveScanSkipsNestedDirectories() async throws {

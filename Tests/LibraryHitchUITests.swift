@@ -17,9 +17,10 @@ final class LibraryHitchUITests: XCTestCase {
         let instances = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
         XCTAssertEqual(instances.count, 1, "Run exactly one Bomu instance before measuring")
         guard instances.count == 1, let instance = instances.first else { return }
-        XCTAssertEqual(instance.bundleURL?.resolvingSymlinksInPath().standardizedFileURL,
-                       applicationURL, "The running player must be the verified Debug package")
-        guard instance.bundleURL?.resolvingSymlinksInPath().standardizedFileURL == applicationURL else { return }
+        let runningBundleComponents = instance.bundleURL?.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        XCTAssertEqual(runningBundleComponents, applicationURL.pathComponents,
+                       "The running player must be the verified Debug package")
+        guard runningBundleComponents == applicationURL.pathComponents else { return }
 
         let application = XCUIApplication(url: applicationURL)
         XCTAssertEqual(application.windows.count, 1, "Use one ordinary player window")
@@ -32,9 +33,47 @@ final class LibraryHitchUITests: XCTestCase {
         XCTAssertEqual(playbackControl.label, "Pause", "Playback must be active during scrolling")
         guard playbackControl.label == "Pause" else { return }
 
-        measure(metrics: [XCTHitchMetric(application: application)]) {
-            results.swipeUp()
-            results.swipeDown()
+        // The first invocation is XCTest's discarded warm-up. One subsequent sample is
+        // exploratory evidence, not a statistically repeatable performance gate.
+        let options = XCTMeasureOptions()
+        options.iterationCount = 1
+        // XCTest may be denied Desktop access even when the launcher can write there.
+        // Use the per-user temporary directory so the observer can publish its phase.
+        let phaseURL = FileManager.default.temporaryDirectory
+            .appending(path: "bomu-library-hitch-phase-\(instance.processIdentifier).json")
+        try FileManager.default.createDirectory(at: phaseURL.deletingLastPathComponent(),
+                                               withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: phaseURL) }
+        var invocation = 0
+        var phaseWriteFailed = false
+        measure(metrics: [XCTHitchMetric(application: application)], options: options) {
+            invocation += 1
+            let phase = invocation == 1 ? "warmup" : "recording"
+            let startedAt = Date()
+            let status: [String: Any] = [
+                "phase": phase,
+                "invocation": invocation,
+                "pid": instance.processIdentifier,
+                "startedAt": startedAt.timeIntervalSince1970,
+                "deadline": startedAt.addingTimeInterval(20).timeIntervalSince1970,
+            ]
+            do {
+                let data = try JSONSerialization.data(withJSONObject: status, options: .sortedKeys)
+                try data.write(to: phaseURL, options: .atomic)
+            } catch {
+                phaseWriteFailed = true
+                XCTFail("Cannot publish the bounded measurement phase: \(error)")
+                return
+            }
+            // This runner only observes the app. CUA supplies scrolling during both
+            // announced intervals; no XCTest launch, activation, input or termination.
+            Thread.sleep(forTimeInterval: 20)
         }
+        guard !phaseWriteFailed else { return }
+        XCTAssertEqual(invocation, 2, "Recheck warm-up semantics if the toolchain changes")
+        XCTAssertFalse(instance.isTerminated, "Discard measurements if the player exited")
+        XCTAssertEqual(application.windows.count, 1, "The one-window precondition must remain true")
+        XCTAssertTrue(results.exists, "Remain on the Library page throughout measurement")
+        XCTAssertEqual(playbackControl.label, "Pause", "Playback must still be active")
     }
 }

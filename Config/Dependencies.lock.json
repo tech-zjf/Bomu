@@ -80,7 +80,7 @@
   "runtime": {
     "mpv-version": "mpv v0.41.0",
     "ffmpeg-version": "9.0.1",
-    "mpv-configuration": "-Dbuildtype=release -Dprefix=<IINA_DEPS_BUILD_ROOT>/install/arm64 -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dmacos-cocoa-cb=disabled -Dmacos-touchbar=disabled -Dmacos-media-player=disabled -Dmanpage-build=disabled -Dtests=false -Dlua=luajit -Djavascript=enabled -Dlcms2=enabled -Dvulkan=disabled -Dgl=enabled -Dzimg=enabled -Dlibbluray=enabled -Dlibarchive=enabled -Duchardet=enabled -Djpeg=enabled -Drubberband=enabled '-Dswift-flags=-target arm64-apple-macosx11.0' --native-file=<IINA_DEPS_BUILD_ROOT>/extra/meson-arm64-darwin.ini",
+    "mpv-configuration": "-Dlibmpv=true -Dcplayer=false -Dmacos-cocoa-cb=disabled -Dmacos-touchbar=disabled -Dmacos-media-player=disabled -Dmanpage-build=disabled -Dtests=false -Dlua=luajit -Djavascript=enabled -Dlcms2=enabled -Dvulkan=disabled -Dgl=enabled -Dzimg=enabled -Dlibbluray=enabled -Dlibarchive=enabled -Duchardet=enabled -Djpeg=enabled -Drubberband=enabled -Dbuild-date=false '-Dswift-flags=-target arm64-apple-macosx14.0' -Dprefix=/bomu-runtime -Dbuildtype=release -Ddefault_library=shared -Dwrap_mode=nofallback -Dc_link_args=-Wl,-headerpad_max_install_names",
     "ffmpeg-configuration": "--prefix=<IINA_DEPS_BUILD_ROOT>/install/arm64 --arch=arm64 --target-os=darwin --cc=clang --cxx=clang++ --extra-cflags='-arch arm64 -mmacosx-version-min=11.0 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -O2 -I<IINA_DEPS_BUILD_ROOT>/install/arm64/include' --extra-ldflags='-arch arm64 -mmacosx-version-min=11.0 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -L<IINA_DEPS_BUILD_ROOT>/install/arm64/lib' --pkg-config=pkg-config --enable-gpl --enable-shared --disable-static --disable-programs --disable-doc --disable-debug --enable-network --enable-securetransport --enable-videotoolbox --enable-audiotoolbox --enable-libspeex --enable-libvorbis --enable-libdav1d --enable-libass --enable-libwebp --enable-libjxl --enable-libsvtav1 --enable-libbs2b --enable-libsoxr --enable-librubberband --enable-libzimg --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libharfbuzz"
   },
   "libraries": {
@@ -287,7 +287,7 @@
       "dependencies": []
     },
     "libmpv.2.dylib": {
-      "sha256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+      "sha256": "68befb7152a917850db3b345bc54129f79815d845675f65c8243490801f7e9db",
       "dependencies": [
         "libarchive.13.dylib",
         "libass.9.dylib",
@@ -411,5 +411,47 @@
       "revision": "b83108d10f42680d78f23fe4d4d80fc88dab3212",
       "license": "MIT"
     }
+  },
+  "mpvOverlay": {
+    "version": "0.41.0",
+    "library": "libmpv.2.dylib",
+    "baseSHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+    "inputsFile": "Tools/MPVOverlay/inputs.json",
+    "inputsSHA256": "6103f388bbc4839e9f98e21a6c9e04af044e6c1524bf0bd5e2d7f95c05b988f2",
+    "builderFiles": {
+      "scripts/mpv_overlay.py": "c3e6856cb146a954aa8c71c6f307e38caa45671d872635553a7322c2a4cccd9d",
+      "scripts/mpv_overlay_headers.py": "5ebdbc3827a465f110de583e5486a78bed7372ce067d699cec50fc1bd4a5b7a8",
+      "scripts/ffmpeg_overlay.py": "b4deafda364bdda70957024e27a1a2fcddcc66df3c3b279f065c34391a1d2d9b"
+    },
+    "configure": [
+      "-Dlibmpv=true",
+      "-Dcplayer=false",
+      "-Dmacos-cocoa-cb=disabled",
+      "-Dmacos-touchbar=disabled",
+      "-Dmacos-media-player=disabled",
+      "-Dmanpage-build=disabled",
+      "-Dtests=false",
+      "-Dlua=luajit",
+      "-Djavascript=enabled",
+      "-Dlcms2=enabled",
+      "-Dvulkan=disabled",
+      "-Dgl=enabled",
+      "-Dzimg=enabled",
+      "-Dlibbluray=enabled",
+      "-Dlibarchive=enabled",
+      "-Duchardet=enabled",
+      "-Djpeg=enabled",
+      "-Drubberband=enabled",
+      "-Dbuild-date=false",
+      "-Dswift-flags=-target arm64-apple-macosx14.0",
+      "-Dprefix=/bomu-runtime",
+      "-Dbuildtype=release",
+      "-Ddefault_library=shared",
+      "-Dwrap_mode=nofallback",
+      "-Dc_link_args=-Wl,-headerpad_max_install_names"
+    ],
+    "normalizeBuildUUID": "content-sha256-v1",
+    "normalization": "portable-rpath-relink; strip-S; content-UUID; ad-hoc libmpv.2",
+    "librarySHA256": "68befb7152a917850db3b345bc54129f79815d845675f65c8243490801f7e9db"
   }
 }

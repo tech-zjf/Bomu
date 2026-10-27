@@ -76,8 +76,11 @@ struct MediaLibraryScanner: MediaLibraryScanning {
                         continue
                     }
                     if values.isDirectory == true {
+                        guard includingSubfolders else {
+                            enumerator.skipDescendants()
+                            continue
+                        }
                         try await historyStore.indexDirectory(at: url, in: session)
-                        if !includingSubfolders { enumerator.skipDescendants() }
                         continue
                     }
                     guard values.isRegularFile == true, Self.isPlayableMedia(url) else { continue }

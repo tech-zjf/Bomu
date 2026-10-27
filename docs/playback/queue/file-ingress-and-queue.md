@@ -1,5 +1,7 @@
 # 文件入口与播放队列
 
+2026-10-26 新增[追加队列](append.md)：独立菜单与 Cmd-Shift-O 入口，保留当前请求及已有顺序。下文旧“短片不自动续播”的队列测试只验证自动下一项；真正的短片位置恢复策略见[完成与检查点](../persistence/completion-and-checkpoints.md)，两者不是同一验收项。
+
 ## 责任边界
 
 `OpenMediaPanel` 负责把系统面板的单选、多选和目录选择转成 URL；`AppLifecycle.application(_:openFiles:)` 接收 Finder 的“打开方式”与启动时文件事件；`MainWindowView` 在媒体库与播放器共享的窗口表面接收拖放 file URL。三个入口最终交给 `PlayerModel.open(_ urls:)`，页面不直接创建播放请求，也不接触 mpv。拖放因此在应用默认显示媒体库时也可用。

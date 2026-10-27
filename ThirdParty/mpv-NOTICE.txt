@@ -1,3 +1,6 @@
+Bomu render-fence overlay (2026-10-26)
+mpv 0.41.0 is rebuilt with upstream commit dd710281580135b40c98e95bc6a9ad562052f010. The change only creates OpenGL render fences when a swap-buffers callback owns their cleanup. The original patch, including author metadata, is retained at Tools/MPVOverlay/mpv-0.41.0-render-fence.patch. This locally rebuilt library is not byte-identical to the IINA release artifact. Source, input/tool hashes, commands and output are recorded in the build recipe and runtime lock. Original copyright and license texts below remain unchanged.
+
 mpv 0.41.0 libmpv notice.
 The fixed Meson build uses the upstream default -Dgpl=true, so mpv source files licensed GPL-2.0-or-later are included. The LGPL text is retained with the source copyright inventory. This component is dynamically linked to separately noticed runtime libraries; its actual binary does not include the CLI player or test targets.
 --- Copyright and per-file license inventory ---

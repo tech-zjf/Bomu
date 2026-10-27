@@ -9,6 +9,7 @@ struct MediaLibraryListRow: View {
     let onPlay: (MediaLibraryItem) -> Void
     let onContinue: (MediaLibraryItem) -> Void
     let onPlayFromBeginning: (MediaLibraryItem) -> Void
+    var density: MediaBrowserDensity = .comfortable
     let onToggleFavorite: () -> Void
 
     @State private var thumbnailResult: (key: MediaLibraryAssetKey, image: CGImage?)?
@@ -102,7 +103,8 @@ struct MediaLibraryListRow: View {
                                     onContinue: onContinue, onPlayFromBeginning: onPlayFromBeginning,
                                     popoverArrowEdge: .leading)
         }
-        .padding(.vertical, AppTheme.Layout.mediaListRowVerticalInset)
+        .padding(.vertical, density == .compact
+                 ? AppTheme.Layout.compactMediaListRowVerticalInset : AppTheme.Layout.mediaListRowVerticalInset)
         .contentShape(Rectangle())
         .onTapGesture { model.select(item) }
         .background(model.selectedItemID == item.id ? AppTheme.mutedSurface : .clear)

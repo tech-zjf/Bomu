@@ -46,6 +46,7 @@ struct MediaLibrarySidebar: View {
 
             VStack(alignment: .leading, spacing: AppTheme.Layout.sidebarSectionSpacing) {
                 Label("library.localOnly", systemImage: "lock.shield")
+                    .labelStyle(SidebarLocalTagLabelStyle())
                     .font(AppTheme.Typography.sidebarLocalTag)
                     .foregroundStyle(AppTheme.textSecondary)
                     .padding(.horizontal, 10)
@@ -102,6 +103,17 @@ private struct SidebarLabelStyle: LabelStyle {
             configuration.icon
                 .font(AppTheme.Typography.Symbol.sidebar)
                 .frame(width: AppTheme.Layout.sidebarIconWidth)
+            configuration.title
+        }
+    }
+}
+
+private struct SidebarLocalTagLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: AppTheme.Layout.sidebarLocalTagIconGap) {
+            configuration.icon
+                .font(AppTheme.Typography.Symbol.sidebarLocalTag)
+                .frame(width: AppTheme.Layout.sidebarLocalTagIconWidth)
             configuration.title
         }
     }

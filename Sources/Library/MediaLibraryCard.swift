@@ -138,9 +138,10 @@ struct MediaLibraryCard: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
-                    .background(.black.opacity(reduceTransparency ? 1 : 0.68),
+                    .background(AppTheme.durationBadgeBackground(reduceTransparency: reduceTransparency),
                                 in: RoundedRectangle(cornerRadius: AppTheme.Corners.badge))
-                    .padding(9)
+                    .padding(.trailing, AppTheme.Layout.durationBadgeTrailingInset)
+                    .padding(.bottom, AppTheme.Layout.durationBadgeBottomInset)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)

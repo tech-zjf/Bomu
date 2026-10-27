@@ -9,9 +9,10 @@ from pathlib import Path
 import plistlib
 
 
-INPUT_DIRECTORIES = ('Sources', 'Tools/PlaybackBenchmark', 'Config', 'Bomu.xcodeproj', 'scripts')
+INPUT_DIRECTORIES = ('Sources', 'Tools/PlaybackBenchmark', 'Tools/MPVOverlay',
+                     'Config', 'Bomu.xcodeproj', 'scripts')
 INPUT_SUFFIXES = {'.swift', '.m', '.mm', '.c', '.h', '.strings', '.xcassets', '.py',
-                  '.sh', '.json', '.plist', '.xcconfig', '.pbxproj', '.xcscheme'}
+                  '.sh', '.json', '.plist', '.xcconfig', '.pbxproj', '.xcscheme', '.patch'}
 
 
 def sha256_file(path: Path) -> str:
@@ -31,10 +32,16 @@ def source_files(root: Path) -> dict[str, str]:
     files = {}
     for directory in INPUT_DIRECTORIES:
         for path in sorted((root / directory).rglob('*')):
-            if path.is_file() and path.suffix in INPUT_SUFFIXES:
+            # Resource bytes affect the visible app just as source code does.
+            # Include all resource formats and asset-catalog contents, not only
+            # text files: an edited illustration must invalidate an old receipt.
+            is_resource = path.is_relative_to(root / 'Sources/Resources') or any(
+                parent.suffix == '.xcassets' for parent in path.relative_to(root).parents)
+            if path.is_file() and (path.suffix in INPUT_SUFFIXES or is_resource):
                 files[str(path.relative_to(root))] = sha256_file(path)
     for name in ('Package.swift', 'Package.resolved',
-                 'Bomu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'):
+                 'Bomu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+                 'Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch'):
         path = root / name
         if path.is_file():
             files[name] = sha256_file(path)

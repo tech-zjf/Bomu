@@ -824,7 +824,15 @@ class LicenseAuditTests(unittest.TestCase):
                 notice = (repository_root / record['noticeFile']).read_bytes()
                 build_system = recipe['buildSystem']
                 gaps = license_audit.collect_gaps(current_lock, current_manifest, repository_root)
-                binary = recipe['binaryComparison']
+                if name == 'libmpv.2.dylib':
+                    binary = recipe['baseArtifactComparison']
+                    self.assertEqual('local-source-overlay', recipe['provenanceKind'])
+                    self.assertEqual(current_lock['mpvOverlay'], recipe['localBuild'])
+                    self.assertEqual(current_lock['mpvOverlay']['baseSHA256'],
+                                     binary['workspaceBinarySHA256'])
+                    self.assertNotEqual(record['binarySHA256'], binary['workspaceBinarySHA256'])
+                else:
+                    binary = recipe['binaryComparison']
                 artifact = current_lock['verifiedRuntimeArtifact']
 
                 self.assertEqual('verified', record['status'])
@@ -855,6 +863,56 @@ class LicenseAuditTests(unittest.TestCase):
         jpeg = json.loads((repository_root /
             current_manifest['libraries']['libjpeg.62.dylib']['buildRecipeFile']).read_text())
         self.assertIn('-DWITH_TURBOJPEG=OFF', jpeg['buildSystem']['buildOptions'])
+
+    def test_local_overlay_requires_matching_inputs_patch_builder_and_output(self):
+        record = self.manifest['libraries'].pop('libsample.dylib')
+        self.manifest['libraries']['libmpv.2.dylib'] = record
+        self.lock['libraries'] = {'libmpv.2.dylib': {'sha256': 'c' * 64}}
+        record['binarySHA256'] = 'c' * 64
+        (self.root / 'builder.py').write_text('pinned builder')
+        (self.root / 'fix.patch').write_text('pinned patch')
+        inputs = {'baseLibrarySHA256': 'b' * 64,
+                  'archives': {'mpv': {'sha256': record['sourceSHA256'], 'url': record['sourceURL']}},
+                  'patch': {'path': 'fix.patch', 'sha256': self.digest('fix.patch')}}
+        (self.root / 'inputs.json').write_text(json.dumps(inputs))
+        local = {'inputsFile': 'inputs.json', 'inputsSHA256': self.digest('inputs.json'),
+                 'builderFiles': {'builder.py': self.digest('builder.py')},
+                 'baseSHA256': 'b' * 64, 'librarySHA256': 'c' * 64}
+        self.lock['mpvOverlay'] = local
+        recipe = {'provenanceKind': 'local-source-overlay',
+                  'verificationStatus': {'status': 'verified'}, 'localBuild': local,
+                  'output': {'binarySHA256InDependencyLock': 'c' * 64}}
+        path = self.root / 'recipes/component.txt'
+        path.write_text(json.dumps(recipe))
+        record['buildRecipeSHA256'] = self.digest('recipes/component.txt')
+        self.assertEqual([], license_audit.collect_gaps(self.lock, self.manifest, self.root))
+        for filename, expected in [('builder.py', 'builder missing or hash mismatch'),
+                                   ('inputs.json', 'inputs missing or hash mismatch'),
+                                   ('fix.patch', 'patch missing or hash mismatch')]:
+            with self.subTest(filename=filename):
+                file = self.root / filename
+                original = file.read_bytes()
+                file.write_bytes(b'changed')
+                gaps = license_audit.collect_gaps(self.lock, self.manifest, self.root)
+                self.assertTrue(any(expected in gap for gap in gaps), gaps)
+                file.write_bytes(original)
+        for field, value in [('provenanceKind', None), ('provenanceKind', 'local-source-overaly'),
+                             ('localBuild', None)]:
+            with self.subTest(field=field, value=value):
+                changed = json.loads(json.dumps(recipe))
+                if value is None:
+                    changed.pop(field)
+                else:
+                    changed[field] = value
+                path.write_text(json.dumps(changed))
+                record['buildRecipeSHA256'] = self.digest('recipes/component.txt')
+                gaps = license_audit.collect_gaps(self.lock, self.manifest, self.root)
+                self.assertTrue(any('overlay' in gap for gap in gaps), gaps)
+        recipe['output']['binarySHA256InDependencyLock'] = 'd' * 64
+        path.write_text(json.dumps(recipe))
+        record['buildRecipeSHA256'] = self.digest('recipes/component.txt')
+        gaps = license_audit.collect_gaps(self.lock, self.manifest, self.root)
+        self.assertIn('libmpv.2.dylib: local overlay output lacks matching hash evidence', gaps)
 
     def test_notice_or_pinned_package_revision_mismatch_fails_closed(self):
         self.manifest['libraries']['libsample.dylib']['noticeSHA256'] = 'wrong-hash'

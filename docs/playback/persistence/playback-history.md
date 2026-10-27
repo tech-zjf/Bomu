@@ -1,5 +1,7 @@
 # Playback history storage
 
+2026-10-26: [Completion and checkpoints](completion-and-checkpoints.md) adds confirmed-pause writes, automatic completion, explicit manual overrides/undo, short-clip resume eligibility, and the corresponding migration/archive contract. Its evidence supersedes the older resume-policy details below; historical test results remain historical.
+
 ## Boundary and ownership
 
 `PlaybackState` remains the authority for the active request and live playback snapshot. `PlaybackHistoryStore` is the authority for durable resume preferences and owns the SQLite connection and schema migrations. The SwiftUI feature submits playback events and user commands; it does not hold a database handle or depend on GRDB.

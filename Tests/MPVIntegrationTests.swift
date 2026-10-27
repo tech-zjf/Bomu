@@ -8,6 +8,260 @@ import XCTest
 /// Audible output, calibrated color and multi-display behavior still require manual acceptance.
 @MainActor
 final class MPVIntegrationTests: XCTestCase {
+    func testAudioOnlyOpeningDoesNotDiscoverSiblingCoverArt() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let media = directory.appending(path: "clip.wav")
+        try writeSilentWave(to: media)
+        let cache = MediaThumbnailCache(directory: directory.appending(path: "thumbnails"),
+                                        timeout: .seconds(10))
+        let image = try await cache.thumbnail(mediaFileID: 1, contentRevision: "audio-cover-test",
+                                              sourceURL: fixture("h264-sdr"))
+        try FileManager.default.copyItem(at: image, to: directory.appending(path: "clip.jpg"))
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(media)
+            try await waitUntil { player.canControlPlayback && player.state.snapshot?.tracks.isEmpty == false }
+            let tracks = try XCTUnwrap(player.state.snapshot?.tracks)
+            XCTAssertEqual(tracks.filter { $0.kind == .audio }.count, 1)
+            XCTAssertFalse(tracks.contains { $0.kind == .video && $0.isExternal },
+                           "Audio-only playback must not discover sibling cover art")
+            await player.shutdown()
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+    func testOpeningIgnoresSidecarsButAllowsExplicitSubtitle() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let media = directory.appending(path: "clip.mp4")
+        try FileManager.default.copyItem(at: fixture("h264-sdr"), to: media)
+        let cache = MediaThumbnailCache(directory: directory.appending(path: "thumbnails"),
+                                        timeout: .seconds(10))
+        let image = try await cache.thumbnail(mediaFileID: 1, contentRevision: "sidecar-test", sourceURL: media)
+        try FileManager.default.copyItem(at: image, to: directory.appending(path: "clip.jpg"))
+        let subtitle = directory.appending(path: "clip.srt")
+        try "1\n00:00:00,000 --> 00:00:12,000\nExplicit subtitle test\n".write(
+            to: subtitle, atomically: true, encoding: .utf8)
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(media)
+            try await waitUntil { player.canControlPlayback && player.state.snapshot?.tracks.isEmpty == false }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            let tracks = try XCTUnwrap(player.state.snapshot?.tracks)
+            XCTAssertEqual(tracks.filter { $0.kind == .video }.count, 1)
+            XCTAssertTrue(tracks.contains { $0.kind == .audio && !$0.isExternal })
+            XCTAssertFalse(tracks.contains(where: \.isExternal), "Opening must not discover sibling artwork or tracks")
+            let requestID = try XCTUnwrap(player.state.request?.id)
+            player.addExternalSubtitle(subtitle, requestID: requestID)
+            try await waitUntil {
+                player.state.snapshot?.tracks.contains {
+                    $0.kind == .subtitle && $0.isExternal && $0.isSelected
+                } == true
+            }
+            player.stop()
+            player.open(media)
+            try await waitUntil {
+                player.canControlPlayback && player.state.request?.id != requestID
+                    && player.state.snapshot?.tracks.isEmpty == false
+            }
+            XCTAssertFalse(try XCTUnwrap(player.state.snapshot?.tracks).contains(where: \.isExternal))
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+    func testNativeTextSubtitleScaleAppliesAndKeepsTrackSelection() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let subtitle = directory.appending(path: "Bomu-test.srt")
+        // Test-authored text; no third-party subtitles or personal media.
+        try "1\n00:00:00,000 --> 00:00:12,000\nBomu subtitle size test\n".write(to: subtitle, atomically: true, encoding: .utf8)
+        let suite = "Bomu.NativeSubtitleSize.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = PlaybackPreferences(defaults: defaults)
+        preferences.defaultSubtitleScale = 1.25
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine, preferences: preferences)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(try fixture("h264-sdr"))
+            try await waitUntil { player.canControlPlayback && player.state.snapshot?.subtitleScale == 1.25 }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            let id = try XCTUnwrap(player.state.request?.id)
+            player.addExternalSubtitle(subtitle, requestID: id)
+            try await waitUntil {
+                player.state.snapshot?.tracks.contains { $0.kind == .subtitle && $0.isSelected && $0.isExternal } == true
+            }
+            let selected = try XCTUnwrap(player.state.snapshot?.subtitleTrackID)
+            for scale in [0.5, 2.0, 1.0] {
+                player.setSubtitleScale(scale, requestID: id)
+                try await waitUntil { player.state.snapshot?.subtitleScale == scale }
+                XCTAssertEqual(player.state.snapshot?.subtitleTrackID, selected)
+                XCTAssertEqual(player.state.snapshot?.isPaused, true)
+            }
+            player.open(try fixture("mixed-audio-tracks"))
+            try await waitUntil { player.canControlPlayback && player.state.snapshot?.subtitleScale == 1.25 }
+            engine.setSubtitleScale(2, requestID: id)
+            try await Task.sleep(for: .milliseconds(150))
+            XCTAssertEqual(player.state.snapshot?.subtitleScale, 1.25)
+            XCTAssertNil(player.state.commandFailure)
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+
+    func testNativeMutePreservesVolumeAndReturnPauseSurvivesOpening() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let suite = "Bomu.NativeReturnMute.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = PlaybackPreferences(defaults: defaults)
+        preferences.pauseOnReturn = true
+        let engine = MPVPlaybackEngine()
+        let player = PlayerModel(engine: engine, preferences: preferences)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            player.open(try fixture("h264-sdr"))
+            player.prepareForReturnToLibrary()
+            try await waitUntil { player.state.snapshot?.isPaused == true && player.canToggleMute }
+            let first = try XCTUnwrap(player.state.request?.id)
+            XCTAssertEqual(player.isMuted, false)
+            player.toggleMute()
+            try await waitUntil { player.state.snapshot?.isMuted == true }
+            player.setVolume(73)
+            try await waitUntil { abs((player.state.snapshot?.volume ?? 0) - 73) < 0.1 }
+            XCTAssertEqual(player.isMuted, true)
+            player.toggleMute()
+            player.toggleMute()
+            try await waitUntil { player.state.snapshot?.muteCommandID == 3 }
+            XCTAssertEqual(player.state.snapshot?.isMuted, true)
+            XCTAssertEqual(try XCTUnwrap(player.state.snapshot?.volume), 73, accuracy: 0.1)
+            player.open(try fixture("mixed-audio-tracks"))
+            player.prepareForReturnToLibrary()
+            try await waitUntil { player.state.snapshot?.isPaused == true && player.canToggleMute }
+            let second = try XCTUnwrap(player.state.request?.id)
+            XCTAssertNotEqual(first, second)
+            XCTAssertEqual(player.state.snapshot?.isMuted, true, "The session keeps mute across files")
+            engine.setMuted(PlaybackMuteRequest(requestID: first, commandID: 100, isMuted: false))
+            player.toggleMute()
+            try await waitUntil { player.state.snapshot?.muteCommandID == 4 }
+            XCTAssertEqual(player.state.snapshot?.isMuted, false)
+            XCTAssertEqual(try XCTUnwrap(player.state.snapshot?.volume), 73, accuracy: 0.1)
+            engine.setMuted(PlaybackMuteRequest(requestID: second, commandID: 3, isMuted: true))
+            player.prepareForReturnToLibrary()
+            try await Task.sleep(for: .milliseconds(150))
+            XCTAssertEqual(player.state.snapshot?.isMuted, false, "A stale command cannot remute")
+            XCTAssertEqual(player.state.snapshot?.isPaused, true, "Returning again must never resume")
+            let active = await engine.diagnostics()
+            XCTAssertEqual(active.coreCreationCount, 1)
+            XCTAssertEqual(active.renderContextCreationCount, 1)
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
+
+    func testPauseCheckpointAndQueueAppendReuseCurrentNativeSession() async throws {
+        let window = try await applicationHostWindow()
+        let originalContent = try XCTUnwrap(window.contentView)
+        let engine = MPVPlaybackEngine()
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let player = PlayerModel(engine: engine, historyStore: store)
+        window.contentView = engine.videoView
+        defer { window.contentView = originalContent }
+        do {
+            player.prepare()
+            try await waitUntil { player.isPrepared || player.startupError != nil }
+            XCTAssertNil(player.startupError)
+            player.setVolume(0)
+            let media = try fixture("h264-sdr")
+            player.open(media)
+            try await waitUntil { player.canSeek }
+            let requestID = try XCTUnwrap(player.state.request?.id)
+            player.seek(to: 6, requestID: requestID)
+            try await waitUntil { self.hasSettledPosition(player, seconds: 6) }
+            player.togglePause()
+            try await waitUntil { player.state.snapshot?.isPaused == true }
+            try await waitUntil {
+                guard let saved = try? await store.history(for: media) else { return false }
+                return abs(saved.position - 6) < 0.3
+            }
+            XCTAssertEqual(player.state.phase, .ready, "The pause checkpoint must exist before stop or shutdown")
+            player.appendToQueue([try fixture("mixed-audio-tracks"), media])
+            try await waitUntil { player.queue.items.count == 2 }
+            XCTAssertEqual(player.state.request?.id, requestID)
+            XCTAssertTrue(player.isPaused)
+            XCTAssertTrue(hasSettledPosition(player, seconds: 6))
+            let diagnostics = await engine.diagnostics()
+            XCTAssertEqual(diagnostics.coreCreationCount, 1)
+            XCTAssertEqual(diagnostics.renderContextCreationCount, 1)
+            XCTAssertGreaterThan(diagnostics.videoFrameCount, 0)
+            await player.shutdown()
+            let closed = await engine.diagnostics()
+            XCTAssertFalse(closed.coreAlive)
+            XCTAssertFalse(closed.renderContextAlive)
+        } catch {
+            await player.shutdown()
+            throw error
+        }
+    }
+
     func testPlaybackOverlaySurvivesOneHundredWindowResizes() async throws {
         let window = try await applicationHostWindow()
         let originalContent = try XCTUnwrap(window.contentView)
@@ -356,7 +610,7 @@ final class MPVIntegrationTests: XCTestCase {
                 try await waitUntil { secondPlayer.isPrepared || secondPlayer.startupError != nil }
                 XCTAssertNil(secondPlayer.startupError)
                 secondPlayer.setVolume(0)
-                secondPlayer.open(media)
+                secondPlayer.continuePlayback(media)
                 try await waitUntil {
                     secondPlayer.state.snapshot?.audioTrackID == restoredTrack.id
                         && secondPlayer.state.snapshot?.tracks.first { $0.id == restoredTrack.id }?.isSelected == true
@@ -561,7 +815,7 @@ final class MPVIntegrationTests: XCTestCase {
         }
     }
 
-    func testSavedPlaybackStateRestoresPositionInNewNativeSession() async throws {
+    func testShortClipDoesNotAutomaticallyRestoreSavedPosition() async throws {
         let store = try PlaybackHistoryStore(path: ":memory:")
         let media = try fixture("h264-sdr")
         let firstEngine = MPVPlaybackEngine()
@@ -590,7 +844,9 @@ final class MPVIntegrationTests: XCTestCase {
                 XCTAssertNil(secondPlayer.startupError)
                 secondPlayer.setVolume(0)
                 secondPlayer.open(media)
-                try await waitUntil { self.hasSettledPosition(secondPlayer, seconds: 6) }
+                try await waitUntil { secondPlayer.canSeek }
+                XCTAssertLessThan(try XCTUnwrap(secondPlayer.state.snapshot?.position), 2,
+                                  "A short clip must not automatically resume the saved position at 6 seconds")
                 XCTAssertTrue(secondPlayer.canSeek)
                 await secondPlayer.shutdown()
                 let closed = await secondEngine.diagnostics()
@@ -722,6 +978,29 @@ final class MPVIntegrationTests: XCTestCase {
             await player.shutdown()
             throw error
         }
+    }
+
+    private func writeSilentWave(to url: URL) throws {
+        // Test-authored 12-second mono PCM; no codec tool or user media required.
+        let byteCount: UInt32 = 8_000 * 12 * 2
+        var data = Data("RIFF".utf8)
+        func append<T: FixedWidthInteger>(_ number: T) {
+            var value = number.littleEndian
+            withUnsafeBytes(of: &value) { data.append(contentsOf: $0) }
+        }
+        append(byteCount + 36)
+        data.append(contentsOf: "WAVEfmt ".utf8)
+        append(UInt32(16))
+        append(UInt16(1))
+        append(UInt16(1))
+        append(UInt32(8_000))
+        append(UInt32(16_000))
+        append(UInt16(2))
+        append(UInt16(16))
+        data.append(contentsOf: "data".utf8)
+        append(byteCount)
+        data.append(Data(count: Int(byteCount)))
+        try data.write(to: url)
     }
 
     private func hasSettledPosition(_ player: PlayerModel, seconds: Double) -> Bool {

@@ -20,6 +20,7 @@
 "library.welcomeTitle" = "Open a video.\nEnjoy the moment.";
 "library.welcomeMessage" = "Films, trips, and everyday moments.\nYour familiar folders, in a comfortable place to watch.";
 "library.welcomePrivacy" = "Local playback · No account needed";
+"library.welcomeVisualCaption" = "Moments worth watching";
 "library.librarySubtitle" = "Browse media added on this Mac.";
 "library.foldersSubtitle" = "Manage locations on this Mac and external disks.";
 "library.favoritesSubtitle" = "Your favorite local media.";
@@ -67,6 +68,11 @@
 "library.nowPlaying" = "Now Playing";
 "library.showPlayer" = "Show Player";
 "library.backToLibrary" = "Back to Library";
+"library.backToFolders" = "Back to Folders";
+"library.backToFavorites" = "Back to Favorites";
+"library.backToSearch" = "Back to Search";
+"library.backToContinueWatching" = "Back to Continue Watching";
+"settings.backToSettings" = "Back to Settings";
 "library.addFavorite" = "Add to Favorites";
 "library.removeFavorite" = "Remove from Favorites";
 "library.metadata.noAudio" = "No audio";
@@ -279,3 +285,30 @@
 "error.fileOutsideVolume" = "The file is outside its reported volume root.";
 "error.folderMetadataUnavailable" = "Required volume or folder metadata is unavailable.";
 "error.folderOutsideVolume" = "The folder is outside its reported volume root.";
+
+"player.appendToQueue" = "Add to Queue…";
+
+"open.appendMessage" = "Choose media files or folders to add after the current queue.";
+
+"player.noAudioTracks" = "No audio tracks";
+
+"settings.playback.pauseOnReturn" = "Pause when returning to browsing";
+
+"player.mute" = "Mute";
+"player.unmute" = "Unmute";
+
+"player.subtitleSize" = "Subtitle Size";
+"settings.subtitles.defaultSize" = "Default subtitle size";
+"settings.subtitles.sizeExplanation" = "Applies to text subtitles. Styled subtitles may scale differently; image subtitles do not have a text size. The default applies when opening a video.";
+
+"library.browserDensity" = "Density";
+
+"library.browserDensity.comfortable" = "Comfortable";
+
+"library.browserDensity.compact" = "Compact";
+
+"settings.appearance.densityExplanation" = "Changes media spacing in Library and Folders. Grid and list remain separate layout choices.";
+
+"library.includeSubfolders" = "Include subfolders";
+
+"library.addFolderMessage" = "Choose a folder to add to your library. Media files stay in their original location.";

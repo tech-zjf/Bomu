@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 
 import ffmpeg_overlay
+import mpv_overlay
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = json.loads((ROOT / 'Config/Dependencies.lock.json').read_text())
@@ -65,6 +66,7 @@ def copy_locked_archive_libraries(archive_path, destination, *, expected_names, 
 
 
 def check(directory=LIBRARIES):
+    mpv_overlay.verify_definition(LOCK['mpvOverlay'], LOCK['libraries']['libmpv.2.dylib']['sha256'])
     unexpected = {p.name for p in directory.glob('*.dylib')} - set(LOCK['libraries'])
     if unexpected:
         raise SystemExit(f'Unexpected libraries in the dependency cache: {sorted(unexpected)}')
@@ -106,6 +108,30 @@ def copy_original_format_library(destination):
     verify(destination, overlay['baseSHA256'])
 
 
+def publish_runtime(staging, destination):
+    """Publish a verified set, restoring the previous set on catchable failure.
+
+    Keep the backup outside bootstrap's auto-cleaned staging directory: if the
+    rollback itself fails, the previous bytes must remain recoverable. This is
+    process-error rollback, not a claim of crash-atomic directory replacement.
+    """
+    staging, destination = Path(staging), Path(destination)
+    backup_root = Path(tempfile.mkdtemp(prefix='runtime-backup-', dir=destination.parent))
+    backup = backup_root / 'lib'
+    try:
+        if destination.exists():
+            destination.replace(backup)
+        staging.replace(destination)
+    except BaseException:
+        if backup.exists() and not destination.exists():
+            backup.replace(destination)
+        if not backup.exists():
+            backup_root.rmdir()
+        raise
+    else:
+        shutil.rmtree(backup_root)
+
+
 def bootstrap():
     source = LOCK['source']
     overlay = LOCK['ffmpegOverlay']
@@ -117,6 +143,7 @@ def bootstrap():
             or overlay['patchSHA256'] != hashlib.sha256(ffmpeg_overlay.PATCH.read_bytes()).hexdigest()
             or overlay['configure'] != ffmpeg_overlay.CONFIGURE):
         raise SystemExit('FFmpeg overlay definition differs from its verified builder.')
+    mpv_overlay.verify_definition(LOCK['mpvOverlay'], LOCK['libraries']['libmpv.2.dylib']['sha256'])
     archive = ROOT / '.build/downloads' / f"IINA.v{source['version']}.dmg"
     runtime_artifact = LOCK['verifiedRuntimeArtifact']
     runtime_archive = ROOT / '.build/downloads' / 'iina-deps-fat.zip'
@@ -159,24 +186,24 @@ def bootstrap():
             runtime_archive,
             staging,
             expected_names=LOCK['libraries'],
-            selected_hashes={name: LOCK['libraries'][name]['sha256'] for name in replacement_names},
+            selected_hashes={name: (LOCK['mpvOverlay']['baseSHA256']
+                                   if name == LOCK['mpvOverlay']['library']
+                                   else LOCK['libraries'][name]['sha256'])
+                             for name in replacement_names},
         )
         overlay_build = work / 'ffmpeg-overlay'
         overlay_build.mkdir()
         library = ffmpeg_overlay.build_library(overlay_build)
         shutil.copy2(library, staging / overlay['library'])
         verify(staging / overlay['library'], overlay['librarySHA256'])
+        mpv_build = work / 'mpv-overlay'
+        mpv_build.mkdir()
+        library = mpv_overlay.build_library(mpv_build, staging)
+        verify(library, LOCK['mpvOverlay']['librarySHA256'])
+        shutil.copy2(library, staging / LOCK['mpvOverlay']['library'])
         check(staging)
-        backup = work / 'previous-lib'
-        if LIBRARIES.exists():
-            LIBRARIES.replace(backup)
-        try:
-            staging.replace(LIBRARIES)
-        except Exception:
-            if backup.exists() and not LIBRARIES.exists():
-                backup.replace(LIBRARIES)
-            raise
-    print('Verified development runtime: mpv 0.41.0 / FFmpeg 9.0.1 + pinned TS-seek overlay')
+        publish_runtime(staging, LIBRARIES)
+    print('Verified development runtime: mpv 0.41.0 + render-fence overlay / FFmpeg 9.0.1 + TS-seek overlay')
 
 
 def embed(destination):

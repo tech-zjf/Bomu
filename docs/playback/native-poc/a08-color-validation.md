@@ -37,7 +37,7 @@ On 2026-10-16, the current local fixture hash and `ffprobe` fields were rechecke
 
 - The internal display has SDR smoke-test evidence for a Rec.709 clip and an HDR10 clip mapped into the configured SDR output.
 - No colorimeter or trusted mastering reference was used; color accuracy, black level, peak luminance and display scanout are unmeasured.
-- No external-display color judgment or calibration was performed in this validation. The current desktop-use instruction confines testing to Screen 1; moving the player to another display requires separate authorization.
+- No external-display color judgment or calibration was performed in this validation. The desktop-use instruction requires staying on the same display used for the current coordinated session; moving the player to another display requires separate authorization. Historical Screen 1 observations do not authorize a later migration.
 - No native HDR or metadata passthrough test was run because the application does not implement that output path.
 
 A08 is partially verified and remains open for external-display evidence and calibrated SDR color validation. The current supported behavior is Rec.709/sRGB SDR output, including a smoke-tested HDR-to-SDR path.

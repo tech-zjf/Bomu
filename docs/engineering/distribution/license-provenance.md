@@ -5,13 +5,14 @@ This record covers the development runtime currently pinned by `Config/Dependenc
 ## Verified inputs
 
 - The runtime closure contains 44 hashed dylibs. Each library has a machine-readable record under `ThirdParty/`, linked from `Config/ThirdPartyLicenses.json`.
-- Most binaries come from the hash-verified IINA 1.5.0 arm64 dependency image. Five libraries—`libSvtAv1Enc.4.dylib`, `libjpeg.62.dylib`, `libmpv.2.dylib`, `libvorbis.0.dylib`, and `libvorbisenc.2.dylib`—are taken byte-for-byte from the pinned [IINA dependency release archive](https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release).
+- Most binaries come from the hash-verified IINA 1.5.0 arm64 dependency image. Four libraries—`libSvtAv1Enc.4.dylib`, `libjpeg.62.dylib`, `libvorbis.0.dylib`, and `libvorbisenc.2.dylib`—are taken byte-for-byte from the pinned [IINA dependency release archive](https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release).
 - `libavformat.63.dylib` is built from FFmpeg 9.0.1 with Bomu's recorded transport-stream seek patch. The dependency lock and recipe record its source archive, patch, build settings, output hash, and notices.
+- `libmpv.2.dylib` is built locally from the pinned mpv 0.41.0 source with the upstream OpenGL render-fence fix (`dd710281580135b40c98e95bc6a9ad562052f010`). `Tools/MPVOverlay/inputs.json`, the dependency lock, build recipe, and notice record the source archives, original release binary hash, patch, generated-header inputs, tool versions, configuration, and final output hash. The original IINA release binary remains a checked build input, not the shipped development binary.
 - The per-library audit checks dependency-lock hashes, license expressions, notice text, recipe hashes, source versions, and binary provenance. Run `python3 scripts/license_audit.py check` after changing any dependency evidence.
 
 The IINA build repository is pinned to commit `f86d54276547df6d14104583ea604af67433f1e1`. Its recipes keep permanent source permalinks and Git blob IDs rather than redistributing copies of upstream build scripts; the upstream repository does not declare a detectable license. These references establish which build inputs were reviewed, not permission to redistribute the upstream scripts.
 
-The [runtime comparison report](iina-1.5.0-deps-comparison-2026-10-14.json) records the original image comparison. The [artifact adoption record](iina-runtime-artifact-adoption-2026-10-15.json) explains why five binaries were replaced with files from the pinned release archive.
+The [runtime comparison report](iina-1.5.0-deps-comparison-2026-10-14.json) records the original image comparison. The [artifact adoption record](iina-runtime-artifact-adoption-2026-10-15.json) records why five original binaries were adopted from the pinned release archive. The later mpv overlay supersedes that record for the current `libmpv.2.dylib`; the other four remain release-archive bytes.
 
 ## Release gate
 
@@ -24,5 +25,5 @@ The release build remains blocked until the license review is complete. The deve
 ## Upstream references
 
 - [IINA dependency build scripts](https://github.com/iina/deps-buildscripts) and the [pinned 1.5.0 build commit](https://github.com/iina/deps-buildscripts/commit/f86d54276547df6d14104583ea604af67433f1e1).
-- [IINA 1.5.0 dependency release](https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release), used as the exact binary source for the five listed libraries.
+- [IINA 1.5.0 dependency release](https://github.com/iina/deps-buildscripts/releases/tag/iina-1.5.0-release), used as the exact binary source for the four listed libraries and the checked mpv base input.
 - [IINA's versioned dylib file list](https://iina.io/dylibs/1.5.0/universal/filelist.txt), retained as a comparison input, not as a source or binary integrity guarantee.

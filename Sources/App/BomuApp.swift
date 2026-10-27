@@ -22,19 +22,26 @@ struct BomuApp: App {
                 Button("open.video") { OpenMediaPanel.present(for: lifecycle.player) }
                     .keyboardShortcut("o")
                     .disabled(!lifecycle.player.canOpenMedia)
+                Button("player.appendToQueue") {
+                    OpenMediaPanel.present(for: lifecycle.player, disposition: .append)
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
+                .disabled(!lifecycle.player.canOpenMedia)
             }
             CommandMenu("menu.playback") {
                 Button("player.togglePause") { lifecycle.player.togglePause() }
-                    .keyboardShortcut(.space, modifiers: [])
                     .disabled(!lifecycle.player.canControlPlayback && lifecycle.player.state.phase != .ended)
                 Button("player.back") { lifecycle.player.skip(by: -10) }
-                    .keyboardShortcut(.leftArrow, modifiers: [])
                     .disabled(!lifecycle.player.canSeek)
                 Button("player.forward") { lifecycle.player.skip(by: 10) }
-                    .keyboardShortcut(.rightArrow, modifiers: [])
                     .disabled(!lifecycle.player.canSeek)
                 Button("player.stop") { lifecycle.player.stop() }
                     .disabled(lifecycle.player.state.request == nil)
+                Button(lifecycle.player.isMuted == true ? "player.unmute" : "player.mute") {
+                    lifecycle.player.toggleMute()
+                }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
+                .disabled(!lifecycle.player.canToggleMute)
             }
         }
     }

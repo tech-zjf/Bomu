@@ -6,6 +6,11 @@ import Observation
 final class PlayerModel {
     struct InputResolution: Equatable, Sendable {
         fileprivate let revision: UInt64
+        fileprivate let disposition: QueueDisposition
+    }
+
+    enum QueueDisposition: Sendable {
+        case replace, append
     }
 
     private(set) var state = PlaybackState() {
@@ -20,6 +25,8 @@ final class PlayerModel {
     private(set) var historyClearError: String?
     private(set) var dataManagementError: String?
     private var pendingPause: PlaybackPauseRequest?
+    private var pendingMute: PlaybackMuteRequest?
+    private var returnPauseRequestID: UInt64?
     @ObservationIgnored private let onPlaybackActivityChanged: (@MainActor (Bool) -> Void)?
     @ObservationIgnored private var lastPublishedPlaybackActivity = false
     @ObservationIgnored private let engine: any PlaybackEngine
@@ -27,6 +34,7 @@ final class PlayerModel {
     @ObservationIgnored private let preferences: PlaybackPreferences
     @ObservationIgnored private var nextRequestID: UInt64 = 0
     @ObservationIgnored private var nextPauseCommandID: UInt64 = 0
+    @ObservationIgnored private var nextMuteCommandID: UInt64 = 0
     @ObservationIgnored private var startupTask: Task<Void, Never>?
     @ObservationIgnored private var shutdownTask: Task<Void, Never>?
     @ObservationIgnored private var restorationTask: Task<Void, Never>?
@@ -38,6 +46,7 @@ final class PlayerModel {
     @ObservationIgnored private var historyBinding: PlaybackHistoryBinding?
     @ObservationIgnored private var resumeHistory: PlaybackHistory?
     @ObservationIgnored private var resumeMode: ResumeMode = .preference
+    @ObservationIgnored private var pendingLegacyResume: LegacyResume?
     @ObservationIgnored private var lastRequestedVolume: Double?
     @ObservationIgnored private var pendingSubtitleDelay: Double?
     @ObservationIgnored private var historySuppressedRequestID: UInt64?
@@ -55,6 +64,11 @@ final class PlayerModel {
         case preference
         case savedCheckpoint
         case beginning
+    }
+
+    private struct LegacyResume {
+        let requestID: UInt64
+        let position: Double
     }
 
     private static let minimumAutomaticNextDuration: TimeInterval = 30
@@ -75,6 +89,8 @@ final class PlayerModel {
     }
 
     var canControlPlayback: Bool { state.phase == .ready && state.snapshot != nil }
+    var isMuted: Bool? { pendingMute?.isMuted ?? state.snapshot?.isMuted }
+    var canToggleMute: Bool { canControlPlayback && isMuted != nil }
     var hasPlaybackHistoryStore: Bool { historyStore != nil }
     var hasMediaLibraryStore: Bool { historyStore is any MediaLibraryPersisting }
     var canSeek: Bool {
@@ -147,13 +163,18 @@ final class PlayerModel {
         open(urls, for: intent)
     }
 
+    func appendToQueue(_ urls: [URL]) {
+        guard !urls.isEmpty, let intent = beginInputResolution(disposition: .append) else { return }
+        open(urls, for: intent)
+    }
+
     /// Reserves the latest user input before asynchronous providers have returned their URLs.
-    func beginInputResolution() -> InputResolution? {
+    func beginInputResolution(disposition: QueueDisposition = .replace) -> InputResolution? {
         guard canOpenMedia else { return nil }
         mediaImportID += 1
         cancelPendingMediaImport()
         inputError = nil
-        return InputResolution(revision: mediaImportID)
+        return InputResolution(revision: mediaImportID, disposition: disposition)
     }
 
     /// A delayed input may commit only while it remains the most recent user choice.
@@ -182,10 +203,18 @@ final class PlayerModel {
                     self.mediaImportTask = nil
                     return
                 }
-                self.queue = PlaybackQueue(urls: files)
                 self.inputError = nil
                 self.mediaImportTask = nil
-                if let url = self.queue.currentURL { self.openMedia(url) }
+                switch intent.disposition {
+                case .replace:
+                    self.queue = PlaybackQueue(urls: files)
+                    if let url = self.queue.currentURL { self.openMedia(url) }
+                case .append:
+                    self.queue.append(files)
+                    if self.state.request == nil, let url = self.queue.currentURL {
+                        self.openMedia(url)
+                    }
+                }
             } catch {
                 guard let self, self.mediaImportID == importID else { return }
                 self.mediaDiscoveryTask = nil
@@ -228,8 +257,11 @@ final class PlayerModel {
         self.resumeMode = resumeMode
         historySuppressedRequestID = nil
         resumeHistory = nil
+        pendingLegacyResume = nil
         historyBinding = nil
         pendingPause = nil
+        pendingMute = nil
+        returnPauseRequestID = nil
         pendingSubtitleDelay = nil
         state.open(request)
         if isPrepared { restoreAndOpen(request) }
@@ -241,12 +273,20 @@ final class PlayerModel {
             replay()
             return
         }
-        guard canControlPlayback, let request = state.request else { return }
-        nextPauseCommandID += 1
-        let pause = PlaybackPauseRequest(requestID: request.id,
-            commandID: nextPauseCommandID, isPaused: !isPaused)
-        pendingPause = pause
-        engine.setPaused(pause)
+        setPaused(!isPaused)
+    }
+
+    /// Bind the return intent before navigation starts its asynchronous checkpoint work.
+    func prepareForReturnToLibrary() {
+        guard preferences.pauseOnReturn, !isShuttingDown,
+              let request = state.request else { return }
+        switch state.phase {
+        case .opening, .ready:
+            returnPauseRequestID = request.id
+            applyReturnPauseIfReady()
+        case .idle, .ended, .failed:
+            break
+        }
     }
 
     func replay() {
@@ -257,12 +297,23 @@ final class PlayerModel {
     func seek(to seconds: Double, requestID: UInt64) {
         guard canSeek, let request = state.request, request.id == requestID,
               let duration = state.snapshot?.duration, seconds.isFinite else { return }
+        pendingLegacyResume = nil
         engine.seek(PlaybackSeekRequest(requestID: request.id, target: .absolute(min(duration, max(0, seconds)))))
     }
 
     func skip(by seconds: Double) {
         guard canSeek, let request = state.request, seconds.isFinite, seconds != 0 else { return }
+        pendingLegacyResume = nil
         engine.seek(PlaybackSeekRequest(requestID: request.id, target: .relative(seconds)))
+    }
+
+    func toggleMute() {
+        guard canToggleMute, let request = state.request, let isMuted else { return }
+        nextMuteCommandID += 1
+        let intent = PlaybackMuteRequest(requestID: request.id,
+            commandID: nextMuteCommandID, isMuted: !isMuted)
+        pendingMute = intent
+        engine.setMuted(intent)
     }
 
     func setVolume(_ volume: Double) {
@@ -293,6 +344,13 @@ final class PlayerModel {
         guard canControlPlayback, state.request?.id == requestID else { return }
         state.dismissCommandFailure()
         engine.addExternalSubtitle(url, requestID: requestID)
+    }
+
+    func setSubtitleScale(_ scale: Double, requestID: UInt64) {
+        guard canControlPlayback, state.request?.id == requestID,
+              PlaybackPreferences.supportedSubtitleScales.contains(scale) else { return }
+        state.dismissCommandFailure()
+        engine.setSubtitleScale(scale, requestID: requestID)
     }
 
     func adjustSubtitleDelay(by seconds: Double, requestID: UInt64) {
@@ -450,10 +508,13 @@ final class PlayerModel {
         persistCurrentHistory()
         restorationTask?.cancel()
         restorationTask = nil
+        pendingLegacyResume = nil
         progressTask?.cancel()
         progressTask = nil
         state.stop()
         pendingPause = nil
+        pendingMute = nil
+        returnPauseRequestID = nil
         pendingSubtitleDelay = nil
         if isPrepared { engine.stop() }
     }
@@ -478,12 +539,15 @@ final class PlayerModel {
         if let mediaDiscoveryTask { _ = try? await mediaDiscoveryTask.value }
         restorationTask?.cancel()
         restorationTask = nil
+        pendingLegacyResume = nil
         progressTask?.cancel()
         await progressTask?.value
         progressTask = nil
         await persistCurrentHistoryAndWait()
         engine.onEvent = nil
         pendingPause = nil
+        pendingMute = nil
+        returnPauseRequestID = nil
         state.stop()
         let task = Task { [startupTask, engine] in
             // Initialization owns resources until it returns, even when the window closes early.
@@ -517,8 +581,24 @@ final class PlayerModel {
         mediaDiscoveryTask = nil
     }
 
+    private func setPaused(_ paused: Bool) {
+        guard canControlPlayback, let request = state.request, isPaused != paused else { return }
+        nextPauseCommandID += 1
+        let pause = PlaybackPauseRequest(requestID: request.id,
+            commandID: nextPauseCommandID, isPaused: paused)
+        pendingPause = pause
+        engine.setPaused(pause)
+    }
+
+    private func applyReturnPauseIfReady() {
+        guard canControlPlayback, returnPauseRequestID == state.request?.id else { return }
+        returnPauseRequestID = nil
+        setPaused(true)
+    }
+
     private func receive(_ event: PlaybackEvent) {
         guard !isShuttingDown else { return }
+        let wasPaused = state.snapshot?.isPaused
         guard state.receive(event) else { return }
         if case .snapshot(let value) = event, value.requestID == state.request?.id,
            let lastRequestedVolume,
@@ -533,6 +613,8 @@ final class PlayerModel {
             self.pendingSubtitleDelay = nil
         }
         switch event {
+        case .snapshot(let snapshot) where state.request?.id == snapshot.requestID:
+            resumeLegacyCheckpointIfEligible(snapshot)
         case .loaded(let requestID) where state.request?.id == requestID:
             if let resumeHistory {
                 if let audioTrackID = resumeHistory.audioTrackID {
@@ -545,8 +627,10 @@ final class PlayerModel {
             }
             engine.setSpeed(preferences.defaultSpeed)
             engine.setSubtitleDelay(preferences.defaultSubtitleDelay, requestID: requestID)
+            engine.setSubtitleScale(preferences.defaultSubtitleScale, requestID: requestID)
             startProgressPersistence()
         case .ended(let requestID) where state.request?.id == requestID && state.phase == .ended:
+            pendingLegacyResume = nil
             if preferences.automaticallyPlayNext, allowsAutomaticQueueAdvance,
                queue.advance() != nil, let nextURL = queue.currentURL {
                 openMedia(nextURL)
@@ -556,17 +640,38 @@ final class PlayerModel {
                 persistCurrentHistory()
             }
         case .failed(let requestID, _) where state.request?.id == requestID && isFailedPlayback:
+            pendingLegacyResume = nil
             progressTask?.cancel()
             progressTask = nil
         default:
             break
         }
-        guard state.phase == .ready else { pendingPause = nil; return }
+        switch state.phase {
+        case .idle, .ended, .failed: returnPauseRequestID = nil
+        case .opening, .ready: break
+        }
+        guard state.phase == .ready else {
+            pendingPause = nil
+            pendingMute = nil
+            return
+        }
+        if let pendingMute, let snapshot = state.snapshot,
+           snapshot.muteCommandID == pendingMute.commandID,
+           snapshot.requestID == pendingMute.requestID,
+           snapshot.isMuted == pendingMute.isMuted {
+            self.pendingMute = nil
+        }
+        applyReturnPauseIfReady()
         if let pendingPause, let snapshot = state.snapshot,
            snapshot.requestID == pendingPause.requestID,
            snapshot.pauseCommandID == pendingPause.commandID,
            snapshot.isPaused == pendingPause.isPaused {
             self.pendingPause = nil
+            if snapshot.isPaused { persistCurrentHistory() }
+        } else if case .snapshot(let snapshot) = event,
+                  pendingPause == nil, wasPaused == false, snapshot.isPaused {
+            // Also checkpoint a pause observed from the core, but never a superseded intent.
+            persistCurrentHistory()
         }
     }
 
@@ -578,6 +683,22 @@ final class PlayerModel {
     private var allowsAutomaticQueueAdvance: Bool {
         guard let duration = state.snapshot?.duration, duration.isFinite else { return false }
         return duration >= Self.minimumAutomaticNextDuration
+    }
+
+    /// Old checkpoints lack a duration classification. Decide once the current file reports
+    /// its own duration, so a legacy short or completed file does not jump near its end.
+    private func resumeLegacyCheckpointIfEligible(_ snapshot: PlaybackSnapshot) {
+        guard let pending = pendingLegacyResume, pending.requestID == snapshot.requestID else { return }
+        guard let duration = snapshot.duration, duration.isFinite, duration > 0 else { return }
+        let progress = PlaybackProgress(position: pending.position, duration: duration)
+        guard progress.allowsAutomaticResume == true, !progress.isCompleted else {
+            pendingLegacyResume = nil
+            return
+        }
+        guard snapshot.isSeekable else { return }
+        pendingLegacyResume = nil
+        guard snapshot.position.isFinite, snapshot.position < pending.position else { return }
+        engine.seek(PlaybackSeekRequest(requestID: pending.requestID, target: .absolute(pending.position)))
     }
 
     private func restoreAndOpen(_ request: PlaybackRequest) {
@@ -598,7 +719,15 @@ final class PlayerModel {
                 let saved = try session.history.get()
                 let shouldResumePosition: Bool
                 switch self.resumeMode {
-                case .preference: shouldResumePosition = self.preferences.resumeFromLastPosition
+                case .preference:
+                    shouldResumePosition = self.preferences.resumeFromLastPosition
+                        && saved?.allowsAutomaticResume == true && saved?.isWatched == false
+                    if self.preferences.resumeFromLastPosition,
+                       let saved, saved.allowsAutomaticResume == nil,
+                       !saved.isWatched, saved.position.isFinite, saved.position > 0 {
+                        self.pendingLegacyResume = LegacyResume(requestID: request.id,
+                                                                 position: saved.position)
+                    }
                 case .savedCheckpoint: shouldResumePosition = true
                 case .beginning: shouldResumePosition = false
                 }
@@ -652,6 +781,8 @@ final class PlayerModel {
         let audioTrackID = snapshot.audioTrackID
         let subtitleTrackID = snapshot.subtitleTrackID
         let volume = lastRequestedVolume ?? min(100, max(0, snapshot.volume))
+        let progress = PlaybackProgress(position: snapshot.position, duration: snapshot.duration,
+                                        reachedEnd: state.phase == .ended)
         let pendingWrite = persistenceTask
         persistenceTask = Task { [weak self, historyStore] in
             _ = await pendingWrite?.value
@@ -659,7 +790,7 @@ final class PlayerModel {
                 try await historyStore.save(for: binding, position: position,
                                             audioTrackID: audioTrackID,
                                             subtitleTrackID: subtitleTrackID,
-                                            volume: volume, updatedAt: .now)
+                                            volume: volume, updatedAt: .now, progress: progress)
                 if self?.state.request?.id == request.id { self?.persistenceError = nil }
                 return .success(())
             } catch {

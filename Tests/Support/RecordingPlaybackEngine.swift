@@ -6,6 +6,7 @@ final class RecordingPlaybackEngine: PlaybackEngine {
     var requests: [PlaybackRequest] = []
     var openOptions: [PlaybackOpenOptions] = []
     var pauses: [Bool] = []
+    var mutes: [PlaybackMuteRequest] = []
     var seeks: [PlaybackSeekRequest] = []
     var volumes: [Double] = []
     var speeds: [Double] = []
@@ -15,6 +16,7 @@ final class RecordingPlaybackEngine: PlaybackEngine {
     var subtitleTrackRequests: [TrackCommand] = []
     var externalSubtitleRequests: [SubtitleCommand] = []
     var subtitleDelays: [SubtitleDelayCommand] = []
+    var subtitleScales: [SubtitleScaleCommand] = []
     var stopCount = 0
     var shutdownCount = 0
     var shouldFailPreparation = false
@@ -27,6 +29,7 @@ final class RecordingPlaybackEngine: PlaybackEngine {
         openOptions.append(options)
     }
     func setPaused(_ request: PlaybackPauseRequest) { pauses.append(request.isPaused) }
+    func setMuted(_ request: PlaybackMuteRequest) { mutes.append(request) }
     func seek(_ request: PlaybackSeekRequest) { seeks.append(request) }
     func setVolume(_ volume: Double) { volumes.append(volume) }
     func setSpeed(_ speed: Double) { speeds.append(speed) }
@@ -44,6 +47,9 @@ final class RecordingPlaybackEngine: PlaybackEngine {
     func setSubtitleDelay(_ seconds: Double, requestID: UInt64) {
         subtitleDelays.append(SubtitleDelayCommand(seconds: seconds, requestID: requestID))
     }
+    func setSubtitleScale(_ scale: Double, requestID: UInt64) {
+        subtitleScales.append(SubtitleScaleCommand(scale: scale, requestID: requestID))
+    }
     func stop() { stopCount += 1 }
     func shutdown() async { shutdownCount += 1 }
 
@@ -59,6 +65,11 @@ final class RecordingPlaybackEngine: PlaybackEngine {
 
     struct SubtitleCommand: Equatable {
         let url: URL
+        let requestID: UInt64
+    }
+
+    struct SubtitleScaleCommand: Equatable {
+        let scale: Double
         let requestID: UInt64
     }
 

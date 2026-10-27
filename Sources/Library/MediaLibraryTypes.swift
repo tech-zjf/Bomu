@@ -1,5 +1,12 @@
 import Foundation
 
+enum MediaBrowserDensity: String, CaseIterable, Codable, Identifiable, Sendable {
+    case comfortable
+    case compact
+
+    var id: String { rawValue }
+}
+
 struct MediaLibraryCandidate: Equatable, Sendable {
     let url: URL
     let displayName: String

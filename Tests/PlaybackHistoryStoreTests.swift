@@ -4,6 +4,153 @@ import GRDB
 import XCTest
 
 final class PlaybackHistoryStoreTests: XCTestCase {
+    func testArchiveRejectsUnsupportedSubtitleScaleBeforeWritingRecords() async throws {
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let settings = MediaLibraryArchive.Settings(automaticallyPlayNext: true,
+            resumeFromLastPosition: true, defaultSpeed: 1, defaultSubtitleDelay: 0,
+            pauseOnReturn: true, defaultSubtitleScale: 1.5)
+        let data = try await store.exportArchive(settings: settings)
+        let preview = try await store.previewArchiveImport(data)
+        XCTAssertEqual(preview.settings.defaultSubtitleScale, 1.5)
+        for scale in [-1.0, 0, 1.3, 2.1] {
+            var object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            var invalidSettings = try XCTUnwrap(object["settings"] as? [String: Any])
+            invalidSettings["defaultSubtitleScale"] = scale
+            object["settings"] = invalidSettings
+            let invalid = try JSONSerialization.data(withJSONObject: object)
+            do {
+                _ = try await store.importArchive(invalid)
+                XCTFail("An unsupported subtitle scale must not import")
+            } catch is MediaLibraryArchiveError { }
+        }
+    }
+
+    func testCompletionAndResumeThresholdsUseRealDurationAndNaturalEnd() {
+        for (position, duration, expected) in [
+            (94.9, 100.0, false), (95.0, 100.0, true),
+            (479.9, 600.0, false), (480.0, 600.0, true),
+            (480.0, 599.0, false), (569.05, 599.0, true),
+            (949.9, 1000.0, true), (100.0, 1000.0, false)
+        ] {
+            XCTAssertEqual(PlaybackProgress(position: position, duration: duration).isCompleted, expected,
+                           "position=\(position), duration=\(duration)")
+        }
+        XCTAssertEqual(PlaybackProgress(position: 1, duration: 29.99).allowsAutomaticResume, false)
+        XCTAssertEqual(PlaybackProgress(position: 1, duration: 30).allowsAutomaticResume, true)
+        let invalidDurations: [Double?] = [nil, .nan, .infinity, 0, -1]
+        for duration in invalidDurations {
+            XCTAssertNil(PlaybackProgress(position: 1, duration: duration).allowsAutomaticResume)
+            XCTAssertFalse(PlaybackProgress(position: 1, duration: duration).isCompleted)
+        }
+        XCTAssertTrue(PlaybackProgress(position: 1, duration: nil, reachedEnd: true).isCompleted)
+        XCTAssertFalse(PlaybackProgress(position: .nan, duration: 100, reachedEnd: true).isCompleted)
+    }
+
+    func testAutomaticCompletionManualOverrideUndoAndPrivacyHaveOneDurableMeaning() async throws {
+        let media = try makeMediaFile()
+        defer { try? FileManager.default.removeItem(at: media) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let binding = try await store.openHistory(for: media).binding
+        let id = try await store.indexMediaFile(at: media)
+        try await store.setFavorite(true, for: id)
+        try await store.save(for: binding, position: 480, volume: 80,
+                             progress: PlaybackProgress(position: 480, duration: 600))
+        var saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, true, "A favorite-only row must not disable automatic completion")
+        let change = try await store.toggleWatched(for: id)
+        XCTAssertNil(change.previousOverride)
+        XCTAssertFalse(change.isWatched)
+        try await store.save(for: binding, position: 599, volume: 80,
+                             progress: PlaybackProgress(position: 599, duration: 600))
+        saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, false, "The next checkpoint must not override manual unwatched")
+        try await store.setWatchedOverride(change.previousOverride, for: id)
+        try await store.save(for: binding, position: 10, volume: 80,
+                             progress: PlaybackProgress(position: 10, duration: 600))
+        saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, true, "Undo restores automatic completion, which survives a replay")
+        try await store.clearAll()
+        try await store.save(for: binding, position: 10, volume: 80,
+                             progress: PlaybackProgress(position: 10, duration: 600))
+        saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, false, "Clearing history also clears automatic viewing facts")
+        try await store.setWatched(true, for: id)
+        try await store.clearAll()
+        try await store.save(for: binding, position: 10, volume: 80)
+        saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, true, "History cleanup preserves the user's manual choice")
+    }
+
+    func testCompletionArchiveRoundTripRetainsAutomaticAndExplicitUnwatchedSemantics() async throws {
+        let media = try makeMediaFile()
+        defer { try? FileManager.default.removeItem(at: media) }
+        let store = try PlaybackHistoryStore(path: ":memory:")
+        let binding = try await store.openHistory(for: media).binding
+        let id = try await store.indexMediaFile(at: media)
+        try await store.save(for: binding, position: 29, volume: 70,
+                             progress: PlaybackProgress(position: 29, duration: 29.5))
+        let automaticArchive = try await store.exportArchive(settings: Self.testSettings)
+        try await store.setWatched(false, for: id)
+        let manualArchive = try await store.exportArchive(settings: Self.testSettings)
+        _ = try await store.importArchive(automaticArchive)
+        var saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, true)
+        XCTAssertEqual(saved?.allowsAutomaticResume, false)
+        let change = try await store.toggleWatched(for: id)
+        XCTAssertNil(change.previousOverride, "Import must not convert an automatic mark into a manual override")
+        _ = try await store.importArchive(manualArchive)
+        try await store.save(for: binding, position: 29.5, volume: 70,
+                             progress: PlaybackProgress(position: 29.5, duration: 29.5, reachedEnd: true))
+        saved = try await store.history(for: media)
+        XCTAssertEqual(saved?.isWatched, false)
+    }
+
+    func testCompletionMigrationDoesNotTurnOldFavoriteDefaultIntoManualUnwatched() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let media = directory.appending(path: "legacy.mp4")
+        let manuallyWatched = directory.appending(path: "manual.mp4")
+        try Data("legacy".utf8).write(to: media)
+        try Data("manual".utf8).write(to: manuallyWatched)
+        let path = directory.appending(path: "history.sqlite").path
+        do {
+            let store = try PlaybackHistoryStore(path: path)
+            let id = try await store.indexMediaFile(at: media)
+            try await store.setFavorite(true, for: id)
+            let manualID = try await store.indexMediaFile(at: manuallyWatched)
+            try await store.setWatched(true, for: manualID)
+            try await store.save(for: try await store.openHistory(for: media).binding, position: 20, volume: 60)
+        }
+        do {
+            let db = try DatabaseQueue(path: path)
+            try await db.write { db in
+                try db.execute(sql: "ALTER TABLE media_file_preferences ADD COLUMN is_watched BOOLEAN NOT NULL DEFAULT 0")
+                try db.execute(sql: "UPDATE media_file_preferences SET is_watched = watched_override WHERE watched_override IS NOT NULL")
+                try db.execute(sql: "ALTER TABLE media_file_preferences DROP COLUMN watched_override")
+                try db.execute(sql: "ALTER TABLE playback_history DROP COLUMN is_completed")
+                try db.execute(sql: "ALTER TABLE playback_history DROP COLUMN allows_automatic_resume")
+                try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = 'playbackCompletionAndWatchedOverride'")
+            }
+        }
+        let migrated = try PlaybackHistoryStore(path: path)
+        let binding = try await migrated.openHistory(for: media).binding
+        let original = try await migrated.history(for: media)
+        XCTAssertEqual(original?.position, 20)
+        XCTAssertNil(original?.allowsAutomaticResume)
+        try await migrated.save(for: binding, position: 100, volume: 60,
+                                progress: PlaybackProgress(position: 100, duration: 100))
+        let saved = try await migrated.history(for: media)
+        XCTAssertEqual(saved?.isWatched, true,
+                       "A favorite row's old default false must not suppress automatic completion")
+        try await migrated.clearAll()
+        try await migrated.save(for: try await migrated.openHistory(for: manuallyWatched).binding,
+                                position: 1, volume: 60)
+        let retainedManual = try await migrated.history(for: manuallyWatched)
+        XCTAssertTrue(try XCTUnwrap(retainedManual).isWatched,
+                      "An old true mark must remain manual after clearing automatic history")
+    }
+
     func testDebugAcceptanceLibraryUsesOnlyMarkedTemporaryDirectory() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "bomu-acceptance-\(UUID().uuidString)")
         let directory = root.appending(path: "library")
@@ -1032,7 +1179,7 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         let item = try await store.libraryItems(in: scan.sourceRootID).first
 
         XCTAssertEqual(Set(favoriteResults), [false, true])
-        XCTAssertEqual(Set(watchedResults), [false, true])
+        XCTAssertEqual(Set(watchedResults.map(\.isWatched)), [false, true])
         XCTAssertFalse(item?.isFavorite == true)
         XCTAssertFalse(item?.isWatched == true)
     }
@@ -1142,6 +1289,13 @@ final class PlaybackHistoryStoreTests: XCTestCase {
         XCTAssertEqual(preview.schemaVersion, 1)
         XCTAssertEqual(preview.matchedFileCount, 1)
         XCTAssertEqual(preview.unmatchedFileCount, 0)
+        _ = try await store.importArchive(legacyData)
+        try await store.save(for: try await store.openHistory(for: media).binding,
+                             position: 96, volume: 70,
+                             progress: PlaybackProgress(position: 96, duration: 100))
+        let completed = try await store.history(for: media)
+        XCTAssertTrue(try XCTUnwrap(completed).isWatched,
+                      "An old archive's default false must not block later automatic completion")
     }
 
     func testVersionTwoArchiveRejectsMalformedContentFingerprint() async throws {

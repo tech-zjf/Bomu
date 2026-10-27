@@ -3,6 +3,29 @@ import UniformTypeIdentifiers
 import XCTest
 
 final class PlaybackQueueTests: XCTestCase {
+    func testAppendPreservesExistingOrderAndSelectionAndSortsOnlyNewBatch() {
+        let first = URL(filePath: "/media/episode-5.mp4")
+        let second = URL(filePath: "/media/episode-9.mp4")
+        var queue = PlaybackQueue(urls: [first, second], startingAt: second)
+        queue.append([URL(filePath: "/media/episode-10.mp4"), first,
+                      URL(filePath: "/media/sub/../episode-9.mp4"),
+                      URL(filePath: "/media/episode-2.mp4")])
+        XCTAssertEqual(queue.items.map(\.lastPathComponent),
+                       ["episode-5.mp4", "episode-9.mp4", "episode-2.mp4", "episode-10.mp4"])
+        XCTAssertEqual(queue.currentURL, second)
+        XCTAssertEqual(queue.advance()?.lastPathComponent, "episode-2.mp4")
+    }
+
+    func testAppendingToEmptyQueueSelectsFirstMediaAndIgnoresRemoteURLs() {
+        var queue = PlaybackQueue()
+        queue.append([URL(string: "https://example.com/remote.mp4")!])
+        XCTAssertNil(queue.currentURL)
+        let file = URL(filePath: "/media/local.mp4")
+        queue.append([file, file])
+        XCTAssertEqual(queue.items, [file])
+        XCTAssertEqual(queue.currentURL, file)
+    }
+
     func testOpenPanelAcceptsSystemTypesForSupportedFiles() throws {
         let extensions = ["mp4", "mkv", "mov", "ts", "webm", "avi", "mpg", "flac", "wav", "mp3", "m4a",
                           "alac", "mp2v", "mps", "tod", "weba"]

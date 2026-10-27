@@ -17,30 +17,159 @@
     "searchFieldSurface": "#F4F7FA",
     "contentCanvas": "#FFFFFF",
     "separator": "#E5EAF0",
+    "controlHoverSurface": "#E8EDF3",
     "warmAccent": "#EFB98F",
     "playerFallback": "#111722",
-    "playerInfoSurface": "#222B38"
+    "playerInfoSurface": "#222B38",
+    "durationBadgeBackground": "#162434B3"
   },
   "typography": {
     "interfaceFamily": "System sans (SF / localized platform fallback)",
-    "displayFamily": "System serif design, reserved for brand moments (localized platform fallback)",
+    "displayFamily": "System serif design for brand only (localized platform fallback)",
     "roles": {
-      "brand": { "family": "display", "size": 32, "weight": "semibold" },
-      "pageTitle": { "family": "interface", "size": 27, "weight": "bold", "tracking": -0.8 },
-      "welcomeTitle": { "family": "interface", "size": 38, "weight": "bold", "tracking": -1.6, "referenceLineHeight": 49.4, "nativeLineSpacing": 4 },
-      "welcomeKicker": { "family": "interface", "size": 11, "weight": "regular", "tracking": 1 },
-      "welcomeMessage": { "family": "interface", "size": 13, "weight": "regular", "referenceLineHeight": 24.7, "nativeLineSpacing": 9 },
-      "pageSubtitle": { "family": "interface", "size": 12, "weight": "regular" },
-      "sectionTitle": { "family": "interface", "size": 18, "weight": "semibold", "tracking": -0.4 },
-      "sidebarLabel": { "family": "interface", "size": 13, "weight": "regular" },
-      "sidebarSelected": { "family": "interface", "size": 13, "weight": "semibold" },
-      "sidebarSection": { "family": "interface", "size": 10, "weight": "semibold", "tracking": 0.7 },
-      "sidebarLocalTag": { "family": "interface", "size": 10, "weight": "regular" },
-      "mediaTitle": { "family": "interface", "size": 13, "weight": "semibold" },
-      "body": { "family": "interface", "size": 14 },
-      "subtitle": { "family": "interface", "size": 13, "weight": "regular" },
-      "mediaMetadata": { "family": "interface", "size": 11, "weight": "regular" },
-      "metadata": { "family": "interface", "size": 12 },
+      "brand": {
+        "family": "display",
+        "size": 32,
+        "weight": "semibold"
+      },
+      "pageTitle": {
+        "family": "interface",
+        "size": 27,
+        "weight": "bold",
+        "tracking": -0.8
+      },
+      "welcomeTitle": {
+        "family": "interface",
+        "size": 38,
+        "weight": "bold",
+        "tracking": -1.6,
+        "referenceLineHeight": 49.4,
+        "nativeLineSpacing": 4
+      },
+      "welcomeKicker": {
+        "family": "interface",
+        "size": 11,
+        "weight": "regular",
+        "tracking": 1
+      },
+      "welcomeMessage": {
+        "family": "interface",
+        "size": 13,
+        "weight": "regular",
+        "referenceLineHeight": 24.7,
+        "nativeLineSpacing": 9
+      },
+      "welcomeAction": {
+        "family": "interface",
+        "size": 14,
+        "weight": "regular"
+      },
+      "welcomeCaption": {
+        "family": "interface",
+        "size": 12,
+        "weight": "regular"
+      },
+      "pageSubtitle": {
+        "family": "interface",
+        "size": 12,
+        "weight": "regular"
+      },
+      "sectionTitle": {
+        "family": "interface",
+        "size": 18,
+        "weight": "semibold",
+        "tracking": -0.4
+      },
+      "headline": {
+        "family": "interface",
+        "size": 16,
+        "weight": "semibold"
+      },
+      "callout": {
+        "family": "interface",
+        "size": 13,
+        "weight": "regular"
+      },
+      "emphasizedCallout": {
+        "family": "interface",
+        "size": 13,
+        "weight": "medium"
+      },
+      "caption": {
+        "family": "interface",
+        "size": 12,
+        "weight": "regular"
+      },
+      "emphasizedCaption": {
+        "family": "interface",
+        "size": 12,
+        "weight": "semibold"
+      },
+      "sidebarLabel": {
+        "family": "interface",
+        "size": 13,
+        "weight": "regular"
+      },
+      "sidebarSelected": {
+        "family": "interface",
+        "size": 13,
+        "weight": "semibold"
+      },
+      "sidebarSection": {
+        "family": "interface",
+        "size": 10,
+        "weight": "regular",
+        "tracking": 0.7
+      },
+      "categoryLabel": {
+        "family": "interface",
+        "size": 12,
+        "weight": "regular"
+      },
+      "sidebarLocalTag": {
+        "family": "interface",
+        "size": 10,
+        "weight": "regular"
+      },
+      "mediaTitle": {
+        "family": "interface",
+        "size": 13,
+        "weight": "semibold"
+      },
+      "body": {
+        "family": "interface",
+        "size": 14
+      },
+      "subtitle": {
+        "family": "interface",
+        "size": 13,
+        "weight": "regular"
+      },
+      "mediaMetadata": {
+        "family": "interface",
+        "size": 11,
+        "weight": "regular"
+      },
+      "metadata": {
+        "family": "interface",
+        "size": 12
+      },
+      "compactCaption": {
+        "family": "interface",
+        "size": 11,
+        "weight": "regular"
+      },
+      "diagnostic": {
+        "family": "monospaced interface",
+        "size": 11,
+        "weight": "regular"
+      },
+      "durationBadge": {
+        "family": "interface",
+        "size": 10,
+        "weight": "regular",
+        "digits": "monospaced"
+      },
       "timeDigits": "interface with monospaced digits"
     },
     "bundledFonts": false
@@ -48,18 +177,37 @@
   "spacing": {
     "sidebarWidth": 176,
     "settingsNavigationWidth": 164,
-    "sidebarOuterInsets": [25, 13, 17],
+    "sidebarOuterInsets": [
+      25,
+      13,
+      17
+    ],
     "sidebarSectionSpacing": 5,
-    "sidebarHeadingInsets": [21, 12, 7],
+    "sidebarHeadingInsets": [
+      21,
+      12,
+      7
+    ],
     "sidebarRowHorizontalInset": 12,
     "sidebarRowHeight": 40,
     "sidebarIconWidth": 16,
     "sidebarIconGap": 10,
+    "sidebarLocalTagIconWidth": 13,
+    "sidebarLocalTagIconGap": 7,
     "compactControlSize": 28,
     "toolbarControlSize": 35,
     "folderListIconWidth": 48,
     "folderListIconHeight": 45,
     "folderRowContentGap": 14,
+    "folderRowTextGap": 3,
+    "emptyStateVerticalInset": 70,
+    "emptyStateHorizontalInset": 15,
+    "emptyStateGap": 14,
+    "emptyStateIconSize": 62,
+    "emptyStateIconBottomGap": 4,
+    "emptyStateMessageMaxWidth": 310,
+    "durationBadgeTrailingInset": 9,
+    "durationBadgeBottomInset": 10,
     "folderRowVerticalInset": 19,
     "mediaListRowVerticalInset": 13,
     "mediaSummaryLineHeight": 14,
@@ -76,14 +224,33 @@
     "libraryToolsTopGap": 24,
     "libraryResultsTopGap": 20,
     "libraryCategoryGap": 5,
+    "libraryCategoryHeight": 32,
+    "libraryToolsGap": 12,
+    "browserLayoutButtonWidth": 29,
+    "browserLayoutButtonHeight": 28,
+    "browserLayoutInset": 2,
     "searchFieldTopGap": 22,
-    "searchFieldInsets": [9, 12],
+    "searchFieldInsets": [
+      9,
+      12
+    ],
     "playerHorizontalInset": 22,
     "playerStageInset": 12,
-    "welcomeMessageMaxWidth": 340
+    "welcomeMessageMaxWidth": 340,
+    "welcomeArtworkInset": 30,
+    "welcomeCaptionTrailingFraction": 0.06,
+    "welcomeCaptionBottomFraction": 0.16,
+    "welcomeActionIconGap": 8,
+    "welcomeCaptionIconGap": 9,
+    "compactMediaGridColumnCount": 4,
+    "compactMediaGridColumnGap": 12,
+    "compactMediaGridRowGap": 16,
+    "compactMediaListRowVerticalInset": 6
   },
   "radius": {
     "windowVisual": 20,
+    "browserLayoutGroup": 9,
+    "browserLayoutOption": 7,
     "dropTargetOverlay": 8,
     "thumbnail": 14,
     "listArtwork": 10,
@@ -105,7 +272,8 @@
     "原生界面沿用灰色侧栏与白色内容区的连续分栏结构；媒体项没有独立外框，圆角仅用于封面、选中项和控件。",
     "菜单、文件面板和系统提示沿用 macOS 原生外观，不强制套用原型中的菜单与对话框圆角。",
     "设计原型包含示例媒体画面和中文文案；原生应用只展示真实媒体信息，默认界面为英文。",
-    "按用户后续要求，播放时不在舞台下方保留文件详情行；通过 16:9 舞台内的信息按钮显示详情。"
+    "按用户后续要求，播放时不在舞台下方保留文件详情行；通过 16:9 舞台内的信息按钮显示详情。",
+    "当前字体分工按仓库开发约定：品牌字标使用系统衬线；Welcome 主标题及页面标题、正文、导航、控件、文件名和技术信息均用系统无衬线。Welcome 标题按 HTML 样稿采用 38 pt 粗体和 -1.6 pt 字距；本地化继续依赖平台字体回退。"
   ],
   "player": {
     "centralButton": 88,
@@ -150,7 +318,18 @@
     "v02": "light",
     "darkModeVersion": "v0.4",
     "reduceTransparency": "opaque high-contrast fallback",
-    "reduceMotion": true
+    "reduceMotion": true,
+    "browserDensity": {
+      "default": "comfortable",
+      "choices": [
+        "comfortable",
+        "compact"
+      ],
+      "scope": "Library and folder media; independent of grid/list layout. Home summaries keep their default layout.",
+      "comfortable": "3 columns; existing 17/23 grid gaps and 13 pt list vertical inset",
+      "compact": "4 columns; 12/16 grid gaps and 6 pt list vertical inset; unchanged typography, artwork ratio and metadata slots",
+      "validation": "2026-10-26 implementation; current-window visible check only, full three-size matrix remains open"
+    }
   },
   "prototypeExceptions": [
     "示例素材不是实际视频",

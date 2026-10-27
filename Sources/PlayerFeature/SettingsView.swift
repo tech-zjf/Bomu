@@ -59,8 +59,8 @@ struct SettingsView: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .frame(width: AppTheme.Layout.settingsNavigationWidth, alignment: .leading)
                 .padding(.trailing, 18)
+                .frame(width: AppTheme.Layout.settingsNavigationWidth, alignment: .leading)
 
                 AppTheme.separator
                     .frame(width: 1)
@@ -166,6 +166,7 @@ struct SettingsView: View {
             Section("settings.playback.section") {
                 Toggle("settings.playback.resume", isOn: $preferences.resumeFromLastPosition)
                 Toggle("settings.playback.autoNext", isOn: $preferences.automaticallyPlayNext)
+                Toggle("settings.playback.pauseOnReturn", isOn: $preferences.pauseOnReturn)
                 Picker("settings.playback.defaultSpeed", selection: $preferences.defaultSpeed) {
                     ForEach(PlaybackPreferences.supportedSpeeds, id: \.self) { speed in
                         Text("\(speed.formatted(.number.precision(.fractionLength(0...2))))×")
@@ -182,8 +183,15 @@ struct SettingsView: View {
     private var appearanceSettings: some View {
         Form {
             Section("settings.appearance.section") {
+                Picker("library.browserDensity", selection: $preferences.browserDensity) {
+                    Text("library.browserDensity.comfortable").tag(MediaBrowserDensity.comfortable)
+                    Text("library.browserDensity.compact").tag(MediaBrowserDensity.compact)
+                }
+                Text("settings.appearance.densityExplanation")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
                 Label("settings.appearance.lightOnly", systemImage: "sun.max")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textSecondary)
             }
             .bomuOverlayScrollerStyle()
         }
@@ -194,6 +202,14 @@ struct SettingsView: View {
     private var subtitleSettings: some View {
         Form {
             Section("settings.subtitles.section") {
+                Picker("settings.subtitles.defaultSize", selection: $preferences.defaultSubtitleScale) {
+                    ForEach(PlaybackPreferences.supportedSubtitleScales, id: \.self) { scale in
+                        Text(scale, format: .percent.precision(.fractionLength(0))).tag(scale)
+                    }
+                }
+                Text("settings.subtitles.sizeExplanation")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("settings.subtitles.defaultDelay")
@@ -211,7 +227,7 @@ struct SettingsView: View {
                             Text("settings.subtitles.later")
                         }
                         .font(AppTheme.Typography.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.textSecondary)
                 }
             }
             .bomuOverlayScrollerStyle()
@@ -238,7 +254,7 @@ struct SettingsView: View {
             }
             .bomuOverlayScrollerStyle()
             Section("settings.privacy.section") {
-                Text("settings.privacy.explanation").foregroundStyle(.secondary)
+                Text("settings.privacy.explanation").foregroundStyle(AppTheme.textSecondary)
                 ForEach(privateFolders) { folder in
                     HStack {
                         VStack(alignment: .leading, spacing: 3) {
@@ -247,7 +263,7 @@ struct SettingsView: View {
                                 .truncationMode(.middle)
                                 .help(folder.displayName)
                             Text("\(folder.volumeName) · \(folder.relativePath)")
-                                .font(AppTheme.Typography.caption).foregroundStyle(.secondary).lineLimit(1)
+                                .font(AppTheme.Typography.caption).foregroundStyle(AppTheme.textSecondary).lineLimit(1)
                                 .truncationMode(.middle)
                                 .help("\(folder.volumeName) · \(folder.relativePath)")
                         }
@@ -271,7 +287,7 @@ struct SettingsView: View {
             }
             Section("settings.clearLibrary.section") {
                 if records.isWorking { ProgressView("settings.data.working") }
-                Text("settings.data.archiveDescription").foregroundStyle(.secondary)
+                Text("settings.data.archiveDescription").foregroundStyle(AppTheme.textSecondary)
                 Button("settings.data.export", systemImage: "square.and.arrow.up") {
                     exportLibraryData()
                 }
@@ -299,7 +315,7 @@ struct SettingsView: View {
                     EmptyView()
                 }
                 if let importStatus {
-                    Text(importStatus).foregroundStyle(.secondary)
+                    Text(importStatus).foregroundStyle(AppTheme.textSecondary)
                 }
             }
             if let dataManagementError = player.dataManagementError {
@@ -307,7 +323,7 @@ struct SettingsView: View {
             }
             Section {
                 Text("settings.data.mediaUnchanged")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textSecondary)
             }
         }
         .formStyle(.grouped)
@@ -357,7 +373,7 @@ struct SettingsView: View {
             Section("settings.updates.section") {
                 LabeledContent("settings.updates.currentVersion", value: Bundle.main.releaseVersion)
                 Text("settings.updates.unavailable")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textSecondary)
                 Button("settings.updates.check") { }
                     .disabled(true)
             }

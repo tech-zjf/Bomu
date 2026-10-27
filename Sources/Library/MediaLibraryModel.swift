@@ -43,21 +43,15 @@ private enum MediaLibraryPreference {
     case favorite
     case watched
 
-    func toggle(in store: PlaybackHistoryStore, mediaFileID: Int64) async throws -> Bool {
+    func toggle(in store: PlaybackHistoryStore, mediaFileID: Int64) async throws
+        -> (value: Bool, undo: MediaLibraryUndoAction) {
         switch self {
         case .favorite:
-            return try await store.toggleFavorite(for: mediaFileID)
+            let value = try await store.toggleFavorite(for: mediaFileID)
+            return (value, .favorite(mediaFileID: mediaFileID, value: !value))
         case .watched:
-            return try await store.toggleWatched(for: mediaFileID)
-        }
-    }
-
-    func undoAction(mediaFileID: Int64, previousValue: Bool) -> MediaLibraryUndoAction {
-        switch self {
-        case .favorite:
-            return .favorite(mediaFileID: mediaFileID, value: previousValue)
-        case .watched:
-            return .watched(mediaFileID: mediaFileID, value: previousValue)
+            let change = try await store.toggleWatched(for: mediaFileID)
+            return (change.isWatched, .watched(mediaFileID: mediaFileID, override: change.previousOverride))
         }
     }
 
@@ -73,14 +67,14 @@ private enum MediaLibraryPreference {
 
 private enum MediaLibraryUndoAction {
     case favorite(mediaFileID: Int64, value: Bool)
-    case watched(mediaFileID: Int64, value: Bool)
+    case watched(mediaFileID: Int64, override: Bool?)
 
     func restore(in store: PlaybackHistoryStore) async throws {
         switch self {
         case .favorite(let mediaFileID, let value):
             try await store.setFavorite(value, for: mediaFileID)
         case .watched(let mediaFileID, let value):
-            try await store.setWatched(value, for: mediaFileID)
+            try await store.setWatchedOverride(value, for: mediaFileID)
         }
     }
 }
@@ -411,7 +405,7 @@ final class MediaLibraryModel {
         }
     }
 
-    func addFolder(_ folder: URL) {
+    func addFolder(_ folder: URL, includingSubfolders: Bool = true) {
         guard !isShuttingDown, !isReplacingRecords else { return }
         guard store != nil, let scanner = self.scanner else {
             errorMessage = String(localized: "library.unavailable")
@@ -443,7 +437,7 @@ final class MediaLibraryModel {
             var scanError: Error?
             var skippedReason: String?
             if !Task.isCancelled {
-                let scan = scanner.scan(folder: folder, includingSubfolders: true)
+                let scan = scanner.scan(folder: folder, includingSubfolders: includingSubfolders)
                 do {
                     for try await event in scan.events {
                         try Task.checkCancellation()
@@ -599,15 +593,15 @@ final class MediaLibraryModel {
             await previousMutation?.value
             guard let self else { return }
             do {
-                let newValue = try await preference.toggle(in: store, mediaFileID: mediaFileID)
+                let change = try await preference.toggle(in: store, mediaFileID: mediaFileID)
                 guard self.preferenceMutationGeneration == generation else { return }
                 await self.refresh()
                 guard !self.isShuttingDown, !self.isReplacingRecords, self.preferenceMutationGeneration == generation else { return }
                 let notice = MediaLibraryUndoNotice(
                     id: UUID(),
-                    kind: preference.undoKind(newValue: newValue)
+                    kind: preference.undoKind(newValue: change.value)
                 )
-                self.pendingUndo = preference.undoAction(mediaFileID: mediaFileID, previousValue: !newValue)
+                self.pendingUndo = change.undo
                 self.presentUndoNotice(notice)
             } catch {
                 guard self.preferenceMutationGeneration == generation else { return }

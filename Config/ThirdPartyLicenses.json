@@ -102,7 +102,7 @@
       "status": "verified",
       "binarySHA256": "6f88850f0e316f38c3bc5a673adbddfde47189dbc6dd0a3c2059f52a45f6cb8d",
       "licenseExpression": "BSD-2-Clause",
-      "copyright": "Copyright © 2018-2025 VideoLAN and dav1d authors.",
+      "copyright": "Copyright \u00a9 2018-2025 VideoLAN and dav1d authors.",
       "noticeFile": "ThirdParty/dav1d-COPYING.txt",
       "noticeSHA256": "dd92c3c2247c5651606fc23a5e2d6a1ebc5ace9a3e49cbde0e12f05ad1cb1ee5",
       "sourceURL": "https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.bz2",
@@ -568,16 +568,16 @@
     },
     "libmpv.2.dylib": {
       "status": "verified",
-      "binarySHA256": "f762a69094fbc3b2365a1abd793a0800f7f51ce5a2fde3e7523e87c47d5d292a",
+      "binarySHA256": "68befb7152a917850db3b345bc54129f79815d845675f65c8243490801f7e9db",
       "licenseExpression": "GPL-2.0-or-later",
       "copyright": "mpv project authors and contributors; file-level notices are retained in ThirdParty/mpv-Copyright.txt",
       "noticeFile": "ThirdParty/mpv-NOTICE.txt",
-      "noticeSHA256": "4674e7dd03955502e46bd4f6d22c2650ce76ecc45dc29d7050ca8465dc80f12d",
+      "noticeSHA256": "9584e7296dee34e6d6caf04cab8ec47abe75fdf0cff5e3112623000761034d12",
       "sourceURL": "https://github.com/mpv-player/mpv/archive/refs/tags/v0.41.0.tar.gz",
-      "sourceVersion": "mpv 0.41.0",
+      "sourceVersion": "mpv 0.41.0 + render-fence backport dd710281",
       "sourceSHA256": "ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209",
       "buildRecipeFile": "ThirdParty/mpv-build-recipe.json",
-      "buildRecipeSHA256": "3ba83893e3446889d7445cfd03555c2fc05f1e0f52de85c3fbf9dd7d77f8ad9f"
+      "buildRecipeSHA256": "2ae1a7dcfccb996c0303ac9adfc5e86695b9c7c87f372a8455f1f55ba627d665"
     }
   },
   "swiftPackages": {

@@ -9,6 +9,36 @@ struct PlaybackHistory: Equatable, Sendable {
     var subtitleTrackID: Int?
     var volume: Double
     var updatedAt: Date
+    var allowsAutomaticResume: Bool? = nil
+    var isWatched: Bool = false
+}
+
+/// Durable conclusions from a real playback checkpoint, not a duplicate metadata cache.
+struct PlaybackProgress: Equatable, Sendable {
+    let isCompleted: Bool
+    let allowsAutomaticResume: Bool?
+
+    init(position: Double, duration: Double?, reachedEnd: Bool = false) {
+        guard position.isFinite, position >= 0 else {
+            isCompleted = false
+            allowsAutomaticResume = nil
+            return
+        }
+        guard let duration, duration.isFinite, duration > 0 else {
+            isCompleted = reachedEnd
+            allowsAutomaticResume = nil
+            return
+        }
+        allowsAutomaticResume = duration >= 30
+        isCompleted = reachedEnd || position >= duration * 0.95
+            || (duration >= 600 && duration - position <= 120)
+    }
+}
+
+/// The previous override must be restored by Undo, including the absence of an override.
+struct WatchedPreferenceChange: Sendable {
+    let previousOverride: Bool?
+    let isWatched: Bool
 }
 
 /// Identifies a file on one mounted volume and detects likely content changes with sparse samples.
@@ -43,7 +73,7 @@ struct PlaybackHistorySession: Sendable {
 protocol PlaybackHistoryPersisting: Sendable {
     func openHistory(for url: URL) async throws -> PlaybackHistorySession
     func save(for binding: PlaybackHistoryBinding, position: Double, audioTrackID: Int?, subtitleTrackID: Int?,
-              volume: Double, updatedAt: Date) async throws
+              volume: Double, updatedAt: Date, progress: PlaybackProgress?) async throws
     func clearAll() async throws
 }
 

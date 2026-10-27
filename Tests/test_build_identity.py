@@ -62,11 +62,47 @@ class BuildIdentityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Package.resolved'):
             build_identity.finalize(self.root, snapshot, self.app)
 
+    def testResourceBytesAndAssetCatalogChangesInvalidateReceipt(self):
+        for relative in ('Sources/Resources/WelcomeLandscape.png',
+                         'Sources/DesignSystem/Artwork.xcassets/Hero.imageset/hero.png'):
+            with self.subTest(resource=relative):
+                resource = self.root / relative
+                resource.parent.mkdir(parents=True, exist_ok=True)
+                resource.write_bytes(b'original artwork')
+                receipt = build_identity.finalize(
+                    self.root, build_identity.capture(self.root), self.app)
+                resource.write_bytes(b'revised artwork')
+                with self.assertRaisesRegex(ValueError, 'Build inputs changed'):
+                    build_identity.verify(self.root, receipt, self.app)
+                resource.unlink()
+                with self.assertRaisesRegex(ValueError, 'Build inputs changed'):
+                    build_identity.verify(self.root, receipt, self.app)
+
     def testMissingDeclaredExecutableRejectsReceipt(self):
         snapshot = build_identity.capture(self.root)
         (self.app / 'Contents/MacOS/Bomu').unlink()
         with self.assertRaisesRegex(ValueError, 'declared executable'):
             build_identity.finalize(self.root, snapshot, self.app)
+
+    def testOverlayInputsInvalidateReceiptWhenAddedChangedOrRemoved(self):
+        for relative in ('Tools/MPVOverlay/inputs.json',
+                         'Tools/MPVOverlay/mpv-0.41.0-render-fence.patch',
+                         'Tools/SeekProbe/ffmpeg-9.0.1-ts-keyframes.patch'):
+            with self.subTest(input=relative):
+                before_addition = build_identity.capture(self.root)
+                source = self.root / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_bytes(b'original overlay input')
+                with self.assertRaisesRegex(ValueError, 'Build inputs changed'):
+                    build_identity.finalize(self.root, before_addition, self.app)
+                receipt = build_identity.finalize(
+                    self.root, build_identity.capture(self.root), self.app)
+                source.write_bytes(b'changed overlay input')
+                with self.assertRaisesRegex(ValueError, 'Build inputs changed'):
+                    build_identity.verify(self.root, receipt, self.app)
+                source.unlink()
+                with self.assertRaisesRegex(ValueError, 'Build inputs changed'):
+                    build_identity.verify(self.root, receipt, self.app)
 
     def testVerificationRejectsBundleChangedAfterBuild(self):
         receipt = build_identity.finalize(self.root, build_identity.capture(self.root), self.app)

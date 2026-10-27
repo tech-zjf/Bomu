@@ -8,6 +8,7 @@ protocol PlaybackEngine: AnyObject {
     func prepare() async throws
     func open(_ request: PlaybackRequest, options: PlaybackOpenOptions)
     func setPaused(_ request: PlaybackPauseRequest)
+    func setMuted(_ request: PlaybackMuteRequest)
     func seek(_ request: PlaybackSeekRequest)
     func setVolume(_ volume: Double)
     func setSpeed(_ speed: Double)
@@ -15,6 +16,7 @@ protocol PlaybackEngine: AnyObject {
     func setSubtitleTrack(id: Int, requestID: UInt64)
     func addExternalSubtitle(_ url: URL, requestID: UInt64)
     func setSubtitleDelay(_ seconds: Double, requestID: UInt64)
+    func setSubtitleScale(_ scale: Double, requestID: UInt64)
     func stop()
     func shutdown() async
 }
